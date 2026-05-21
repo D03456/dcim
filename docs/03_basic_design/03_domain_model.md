@@ -19,7 +19,7 @@
 | 将来拡張：クラウドリソース管理 | AWSアカウント、リージョン、EC2/EKS/コンテナ等を管理する | CloudAccount、CloudResource |
 | ユーザー・権限管理 | ユーザー、ロール、権限を管理する | UserAccount、Role、Permission |
 | 通知管理 | メール通知条件、通知先、通知履歴を管理する | NotificationSetting、NotificationHistory |
-| 監査ログ管理 | 操作履歴を管理する | AuditLog |
+| 将来拡張：監査ログ管理 | 操作履歴を管理する | AuditLog |
 
 ## 3. 主要エンティティ
 
@@ -140,6 +140,19 @@
 | region | String | リージョン |
 | externalResourceId | String | クラウド側ID |
 | status | String | クラウド側状態 |
+
+### 3.10 共通監査情報
+
+主要エンティティは、最低限の監査情報として以下を保持する。
+
+| 属性 | 型 | 説明 |
+|---|---|---|
+| createdBy | UUID | 作成者 |
+| createdAt | DateTime | 作成日時 |
+| updatedBy | UUID | 更新者 |
+| updatedAt | DateTime | 更新日時 |
+
+完全な操作履歴・変更履歴は将来拡張の監査ログ管理で扱う。
 
 ## 4. 値オブジェクト候補
 
