@@ -30,7 +30,7 @@
 | tenantId | UUID | テナントID |
 | name | String | テナント名 |
 | planType | Enum | Free / Starter / Business / Enterprise |
-| status | Enum | Active / Suspended / Cancelled |
+| status | Enum | Active / Suspended / TrialExpired / Cancelled |
 | createdAt | DateTime | 作成日時 |
 | updatedAt | DateTime | 更新日時 |
 
@@ -250,6 +250,7 @@ classDiagram
 | DRC-001 | すべての主要データはtenantIdで分離する |
 | DRC-002 | 契約プラン上限を超えてDC、ラック、機器、IPサブネット、ユーザーを登録できない |
 | DRC-003 | Freeプランは14日間トライアルとし、DC 1件、ラック3本、機器20台、サブネット3件、ユーザー1名まで |
+| DRC-003-1 | Freeトライアル期限超過後は `TRIAL_EXPIRED` として扱い、ログイン・参照・CSVエクスポート・有料プラン変更のみ許可する |
 | DRC-004 | IPサブネットと機器台数はオプションで追加できる |
 | DRC-005 | IPサブネット追加は10サブネット単位とする |
 | DRC-006 | 機器追加は100台単位とする |

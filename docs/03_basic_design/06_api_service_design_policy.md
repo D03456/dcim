@@ -59,7 +59,7 @@ com.example.dcim
 | SVC-001 | AuthService | ログイン、認証情報取得 |
 | SVC-002 | TenantService | テナント情報取得、テナント状態確認 |
 | SVC-003 | SubscriptionService | プラン情報取得、利用上限算出 |
-| SVC-004 | UsageLimitService | DC、ラック、機器、IPサブネット、ユーザー、Freeトライアル期間の上限チェック |
+| SVC-004 | UsageLimitService | DC、ラック、機器、IPサブネット、ユーザー、Freeトライアル期間、期限超過時の更新可否チェック |
 | SVC-005 | DataCenterService | データセンター登録、更新、検索、詳細取得 |
 | SVC-006 | LocationService | 建物、フロア、エリア、ラック列管理 |
 | SVC-007 | RackService | ラック登録、更新、検索、詳細取得 |
@@ -229,3 +229,17 @@ sequenceDiagram
 - RepositoryをUIから直接呼ばない。
 - 権限チェックとテナントチェックを画面側だけに依存しない。
 - 将来的なクラウドリソース自動同期に備え、外部IDを保持する。
+
+
+## 14. Freeトライアル期限超過時のAPI制御
+
+Freeトライアル期限超過テナントは `TRIAL_EXPIRED` として扱い、API・Service層で通常ロールより前に更新可否を判定する。
+
+| 処理種別 | 可否 | 備考 |
+|---|:---:|---|
+| 参照系API | ○ | 既存データ確認のため許可 |
+| CSVエクスポート | ○ | データ退避・棚卸のため許可 |
+| 契約プラン変更 | ○ | 有料プラン移行のため許可 |
+| 登録・更新・削除API | × | 期限超過中は不可 |
+| CSVインポート | × | 新規登録扱いのため不可 |
+| ユーザー招待 | × | テナント拡張扱いのため不可 |
