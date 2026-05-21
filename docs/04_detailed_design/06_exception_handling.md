@@ -75,7 +75,7 @@ public abstract class DcimException extends RuntimeException {
 ### メッセージ例
 
 - 正式名称を入力してください。
-- IPアドレスの形式が正しくありません。
+- CIDRまたはIPアドレスの形式が正しくありません。
 - 終了日は開始日以降の日付を指定してください。
 
 ## 6.2 ResourceNotFoundException
@@ -103,6 +103,7 @@ public abstract class DcimException extends RuntimeException {
 - データセンター
 - ラック列
 - 機器
+- IPサブネット
 - IPアドレス
 - ユーザー
 
@@ -135,7 +136,7 @@ public abstract class DcimException extends RuntimeException {
 | 項目 | 内容 |
 |---|---|
 | 用途 | 業務上の権限不足 |
-| 例 | Viewerが更新処理を実行 |
+| 例 | 閲覧者が更新処理を実行 |
 | 表示 | この操作を実行する権限がありません。 |
 
 ## 6.8 NotificationSendException
