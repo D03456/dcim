@@ -41,9 +41,10 @@
 | planId | UUID | プランID |
 | planType | Enum | プラン種別 |
 | maxDataCenters | Integer | DC上限 |
-| maxRackRows | Integer | ラック列上限 |
+| maxRacks | Integer | ラック上限 |
 | maxDevices | Integer | 機器上限 |
 | maxIpSubnets | Integer | IPサブネット上限 |
+| trialDays | Integer | Freeトライアル日数 |
 | maxUsers | Integer | ユーザー上限 |
 
 ### 3.3 DataCenter
@@ -222,7 +223,7 @@ classDiagram
 |---|---|
 | DRC-001 | すべての主要データはtenantIdで分離する |
 | DRC-002 | 契約プラン上限を超えてDC、ラック、機器、IPサブネット、ユーザーを登録できない |
-| DRC-003 | FreeプランはDC 1件、ラック列1本、機器5台、IP5個、ユーザー1名まで |
+| DRC-003 | Freeプランは14日間トライアルとし、DC 1件、ラック3本、機器20台、サブネット3件、ユーザー1名まで |
 | DRC-004 | IPサブネットと機器台数はオプションで追加できる |
 | DRC-005 | IPサブネット追加は10サブネット単位とする |
 | DRC-006 | 機器追加は100台単位とする |

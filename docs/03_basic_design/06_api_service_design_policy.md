@@ -59,7 +59,7 @@ com.example.dcim
 | SVC-001 | AuthService | ログイン、認証情報取得 |
 | SVC-002 | TenantService | テナント情報取得、テナント状態確認 |
 | SVC-003 | SubscriptionService | プラン情報取得、利用上限算出 |
-| SVC-004 | UsageLimitService | DC、ラック、機器、IPサブネット、ユーザーの上限チェック |
+| SVC-004 | UsageLimitService | DC、ラック、機器、IPサブネット、ユーザー、Freeトライアル期間の上限チェック |
 | SVC-005 | DataCenterService | データセンター登録、更新、検索、詳細取得 |
 | SVC-006 | LocationService | 建物、フロア、エリア、ラック列管理 |
 | SVC-007 | RackService | ラック登録、更新、検索、詳細取得 |

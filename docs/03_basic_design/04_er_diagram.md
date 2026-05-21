@@ -101,9 +101,10 @@ erDiagram
 | tenant_id | CHAR(36) | FK, NOT NULL | テナントID |
 | plan_type | VARCHAR(30) | NOT NULL | Free/Starter/Business/Enterprise |
 | max_data_centers | INT | NOT NULL | DC上限 |
-| max_rack_rows | INT | NOT NULL | ラック列上限 |
+| max_racks | INT | NOT NULL | ラック上限 |
 | max_devices | INT | NOT NULL | 機器上限 |
 | max_ip_subnets | INT | NOT NULL | IPサブネット上限 |
+| trial_days | INT | NULL | Freeトライアル日数 |
 | max_users | INT | NOT NULL | ユーザー上限 |
 | started_at | DATE | NOT NULL | 開始日 |
 | ended_at | DATE | NULL | 終了日 |
