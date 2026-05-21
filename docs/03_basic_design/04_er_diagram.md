@@ -4,24 +4,19 @@
 
 本書は、Data Center Asset & Infrastructure Manager の基本設計におけるER図および主要テーブルを定義する。
 
-DBはMariaDBを想定する。
+詳細なカラム定義は `docs/04_detailed_design/02_table_definition.md` を正とし、本書では基本設計レベルの主要テーブル、関連、インデックス方針を整理する。初期リリースのID型は詳細設計に合わせて `bigint` を採用する。
 
 ## 2. ER図
 
 ```mermaid
 erDiagram
-    TENANT ||--|| SUBSCRIPTION : has
-    TENANT ||--o{ ADD_ON_OPTION : has
-    TENANT ||--o{ USER_ACCOUNT : has
+    TENANT ||--|| SUBSCRIPTION_PLAN : uses
+    TENANT ||--o{ TENANT_ADD_ON : has
+    TENANT ||--o{ APP_USER : has
+    ROLE ||--o{ USER_ROLE : assigned
+    APP_USER ||--o{ USER_ROLE : has
+
     TENANT ||--o{ DATA_CENTER : has
-    TENANT ||--o{ DEVICE : has
-    TENANT ||--o{ IP_SUBNET : has
-    TENANT ||--o{ MAINTENANCE_CONTRACT : has
-    TENANT ||--o{ CLOUD_ACCOUNT : has
-    TENANT ||--o{ TAG : has
-
-    ROLE ||--o{ USER_ACCOUNT : assigned
-
     DATA_CENTER ||--o{ BUILDING : contains
     BUILDING ||--o{ FLOOR : contains
     FLOOR ||--o{ AREA : contains
@@ -29,59 +24,65 @@ erDiagram
     RACK_ROW ||--o{ RACK : contains
     RACK ||--o{ DEVICE : installed
 
+    TENANT ||--o{ IP_SUBNET : has
     IP_SUBNET ||--o{ IP_ADDRESS : contains
     DEVICE ||--o{ IP_ADDRESS : assigned
 
+    TENANT ||--o{ MAINTENANCE_CONTRACT : has
     MAINTENANCE_CONTRACT ||--o{ MAINTENANCE_CONTRACT_DEVICE : includes
     DEVICE ||--o{ MAINTENANCE_CONTRACT_DEVICE : target
 
-    CLOUD_ACCOUNT ||--o{ CLOUD_RESOURCE : contains
+    TENANT ||--o{ CONTACT : has
+    DATA_CENTER ||--o{ DATA_CENTER_CONTACT : has
+    CONTACT ||--o{ DATA_CENTER_CONTACT : linked
 
-    DATA_CENTER ||--o{ ENTITY_TAG : tagged
-    RACK ||--o{ ENTITY_TAG : tagged
-    DEVICE ||--o{ ENTITY_TAG : tagged
-    IP_ADDRESS ||--o{ ENTITY_TAG : tagged
-    MAINTENANCE_CONTRACT ||--o{ ENTITY_TAG : tagged
-    TAG ||--o{ ENTITY_TAG : used
+    TENANT ||--o{ TAG : has
+    TAG ||--o{ TAGGED_RESOURCE : used
 
     TENANT ||--o{ NOTIFICATION_SETTING : has
-    TENANT ||--o{ NOTIFICATION_HISTORY : has
-    TENANT ||--o{ AUDIT_LOG : has
+    TENANT ||--o{ NOTIFICATION_LOG : has
+    TENANT ||--o{ CSV_EXPORT_HISTORY : has
+    TENANT ||--o{ CSV_IMPORT_HISTORY : has
+    CSV_IMPORT_HISTORY ||--o{ CSV_IMPORT_ERROR : has
+
+    TENANT ||--o{ CLOUD_ACCOUNT : future
+    CLOUD_ACCOUNT ||--o{ CLOUD_RESOURCE : future
 ```
 
 ## 3. 主要テーブル一覧
 
-| テーブル名 | 概要 |
-|---|---|
-| tenant | テナント |
-| subscription | 契約プラン・利用上限 |
-| add_on_option | 追加オプション |
-| user_account | ユーザー |
-| role | ロール |
-| permission | 権限 |
-| role_permission | ロール権限対応 |
-| data_center | データセンター |
-| building | 建物・棟 |
-| floor | フロア |
-| area | エリア |
-| rack_row | ラック列 |
-| rack | ラック |
-| rack_template | ラックテンプレート |
-| device | 機器 |
-| device_alias | 機器別名 |
-| ip_subnet | IPサブネット |
-| ip_address | IPアドレス |
-| maintenance_contract | 保守契約 |
-| maintenance_contract_device | 保守契約対象機器 |
-| cloud_account | 将来拡張：クラウドアカウント |
-| cloud_resource | 将来拡張：クラウドリソース |
-| tag | タグ |
-| entity_tag | エンティティタグ関連 |
-| notification_setting | 通知設定 |
-| notification_log | 通知履歴・メール送信履歴 |
-| csv_import_history | 初期追加対象：CSV取込履歴 |
-| csv_import_error | 初期追加対象：CSV取込エラー |
-| audit_log | 将来拡張：監査ログ |
+| テーブル名 | 概要 | 初期対象 |
+|---|---|:---:|
+| tenant | テナント | ○ |
+| subscription_plan | 契約プラン・利用上限 | ○ |
+| tenant_add_on | テナント別追加利用枠 | ○ |
+| app_user | ユーザー | ○ |
+| role | ロール | ○ |
+| user_role | ユーザー・ロール関連 | ○ |
+| region | 地域 | ○ |
+| data_center | データセンター | ○ |
+| building | 建物・棟 | ○ |
+| floor | フロア | ○ |
+| area | 区画 | ○ |
+| rack_row | ラック列 | ○ |
+| rack | ラック | ○ |
+| device | 機器 | ○ |
+| ip_subnet | IPサブネット | ○ |
+| ip_address | IPアドレス利用状況 | ○ |
+| maintenance_contract | 保守契約 | ○ |
+| maintenance_contract_device | 保守契約対象機器 | ○ |
+| contact | 連絡先 | ○ |
+| data_center_contact | データセンター・連絡先関連 | ○ |
+| tag | タグ | ○ |
+| tagged_resource | タグ関連 | ○ |
+| notification_setting | 通知設定 | ○ |
+| notification_log | 通知履歴・メール送信履歴 | ○ |
+| csv_export_history | CSV出力履歴 | ○ |
+| csv_import_history | CSV取込履歴 | 初期追加 |
+| csv_import_error | CSV取込エラー | 初期追加 |
+| cloud_account | 将来拡張：クラウドアカウント | 将来 |
+| cloud_resource | 将来拡張：クラウドリソース | 将来 |
+| audit_log | 将来拡張：監査ログ | 将来 |
 
 ## 4. テーブル定義案
 
@@ -91,10 +92,12 @@ erDiagram
 
 | カラム | 型 | 制約 | 説明 |
 |---|---|---|---|
-| created_by | CHAR(36) | NOT NULL | 作成者 |
-| created_at | DATETIME | NOT NULL | 作成日時 |
-| updated_by | CHAR(36) | NOT NULL | 更新者 |
-| updated_at | DATETIME | NOT NULL | 更新日時 |
+| tenant_id | bigint | 原則NOT NULL | テナント分離用ID |
+| created_by | bigint | NOT NULL | 作成者ユーザーID |
+| created_at | datetime(6) | NOT NULL | 作成日時 |
+| updated_by | bigint | NOT NULL | 更新者ユーザーID |
+| updated_at | datetime(6) | NOT NULL | 更新日時 |
+| deleted | boolean | NOT NULL | 論理削除フラグ |
 
 完全な操作履歴を記録する `audit_log` は将来拡張として扱う。
 
@@ -102,168 +105,117 @@ erDiagram
 
 | カラム | 型 | 制約 | 説明 |
 |---|---|---|---|
-| tenant_id | CHAR(36) | PK | テナントID |
-| name | VARCHAR(255) | NOT NULL | テナント名 |
-| status | VARCHAR(30) | NOT NULL | ステータス |
-| created_at | DATETIME | NOT NULL | 作成日時 |
-| updated_at | DATETIME | NOT NULL | 更新日時 |
+| tenant_id | bigint | PK | テナントID |
+| tenant_name | varchar(100) | NOT NULL | テナント名 |
+| plan_code | varchar(30) | FK, NOT NULL | 契約プランコード |
+| trial_start_date | date | NULL | Freeトライアル開始日。Free以外はNULL可 |
+| trial_end_date | date | NULL | Freeトライアル終了日。Free以外はNULL可 |
+| status | varchar(30) | NOT NULL | ACTIVE / SUSPENDED / TRIAL_EXPIRED / CANCELLED |
 
-### 4.2 subscription
-
-| カラム | 型 | 制約 | 説明 |
-|---|---|---|---|
-| subscription_id | CHAR(36) | PK | 契約ID |
-| tenant_id | CHAR(36) | FK, NOT NULL | テナントID |
-| plan_type | VARCHAR(30) | NOT NULL | Free/Starter/Business/Enterprise |
-| max_data_centers | INT | NOT NULL | DC上限 |
-| max_racks | INT | NOT NULL | ラック上限 |
-| max_devices | INT | NOT NULL | 機器上限 |
-| max_ip_subnets | INT | NOT NULL | IPサブネット上限 |
-| trial_days | INT | NULL | Freeトライアル日数 |
-| max_users | INT | NOT NULL | ユーザー上限 |
-| started_at | DATE | NOT NULL | 開始日 |
-| ended_at | DATE | NULL | 終了日 |
-
-### 4.3 add_on_option
+### 4.2 subscription_plan
 
 | カラム | 型 | 制約 | 説明 |
 |---|---|---|---|
-| add_on_option_id | CHAR(36) | PK | オプションID |
-| tenant_id | CHAR(36) | FK, NOT NULL | テナントID |
-| option_type | VARCHAR(30) | NOT NULL | IP_SUBNET_PACK / DEVICE_PACK |
-| quantity | INT | NOT NULL | 追加単位数 |
-| enabled | BOOLEAN | NOT NULL | 有効状態 |
+| plan_id | bigint | PK | プランID |
+| plan_code | varchar(30) | UNIQUE, NOT NULL | FREE / STARTER / BUSINESS / ENTERPRISE |
+| plan_name | varchar(100) | NOT NULL | プラン名 |
+| max_data_centers | int | NOT NULL | DC上限 |
+| max_racks | int | NOT NULL | ラック上限 |
+| max_devices | int | NOT NULL | 機器上限 |
+| max_ip_subnets | int | NOT NULL | IPサブネット上限 |
+| trial_days | int | NULL | Freeトライアル日数。標準14 |
+| max_users | int | NOT NULL | ユーザー上限 |
 
-### 4.4 data_center
-
-| カラム | 型 | 制約 | 説明 |
-|---|---|---|---|
-| data_center_id | CHAR(36) | PK | データセンターID |
-| tenant_id | CHAR(36) | FK, NOT NULL | テナントID |
-| official_name | VARCHAR(255) | NOT NULL | 正式名称 |
-| display_name | VARCHAR(255) | NULL | 表示名・呼称名 |
-| region | VARCHAR(100) | NULL | 地域 |
-| prefecture | VARCHAR(100) | NULL | 都道府県 |
-| address | VARCHAR(500) | NULL | 住所 |
-| contact_email | VARCHAR(255) | NULL | 連絡先メール |
-| contact_phone | VARCHAR(50) | NULL | 連絡先電話番号 |
-| status | VARCHAR(30) | NOT NULL | ステータス |
-
-### 4.5 rack
+### 4.3 tenant_add_on
 
 | カラム | 型 | 制約 | 説明 |
 |---|---|---|---|
-| rack_id | CHAR(36) | PK | ラックID |
-| tenant_id | CHAR(36) | FK, NOT NULL | テナントID |
-| rack_row_id | CHAR(36) | FK, NOT NULL | ラック列ID |
-| official_name | VARCHAR(255) | NOT NULL | 正式名称 |
-| display_name | VARCHAR(255) | NULL | 表示名・呼称名 |
-| height_u | INT | NOT NULL | U数 |
-| position_no | VARCHAR(50) | NULL | ラック列内位置 |
-| status | VARCHAR(30) | NOT NULL | ステータス |
+| tenant_add_on_id | bigint | PK | 追加枠ID |
+| tenant_id | bigint | FK, NOT NULL | テナントID |
+| add_on_type | varchar(30) | NOT NULL | IP_SUBNET / DEVICE |
+| quantity_unit | int | NOT NULL | 追加単位数 |
+| effective_from | date | NOT NULL | 有効開始日 |
+| effective_to | date | NULL | 有効終了日 |
 
-### 4.6 device
+### 4.4 data_center / location hierarchy
 
-| カラム | 型 | 制約 | 説明 |
-|---|---|---|---|
-| device_id | CHAR(36) | PK | 機器ID |
-| tenant_id | CHAR(36) | FK, NOT NULL | テナントID |
-| rack_id | CHAR(36) | FK, NULL | 設置ラックID |
-| official_name | VARCHAR(255) | NOT NULL | 正式名称 |
-| display_name | VARCHAR(255) | NULL | 表示名・呼称名 |
-| device_type | VARCHAR(50) | NOT NULL | Server/Switch/Router/FW/LB等 |
-| vendor | VARCHAR(255) | NULL | ベンダー |
-| model_name | VARCHAR(255) | NULL | 型番 |
-| serial_number | VARCHAR(255) | NULL | シリアル番号 |
-| rack_start_u | INT | NULL | 搭載開始U |
-| rack_size_u | INT | NULL | 搭載U数 |
-| status | VARCHAR(30) | NOT NULL | ステータス |
+| テーブル | 主なカラム | 説明 |
+|---|---|---|
+| data_center | data_center_id, tenant_id, region_id, formal_name, display_name, address, status | データセンター |
+| building | building_id, tenant_id, data_center_id, formal_name, display_name | 棟 |
+| floor | floor_id, tenant_id, building_id, floor_name, floor_number | フロア |
+| area | area_id, tenant_id, floor_id, area_name, direction | 区画 |
+| rack_row | rack_row_id, tenant_id, area_id, row_name | ラック列 |
+| rack | rack_id, tenant_id, rack_row_id, formal_name, display_name, rack_number, height_unit, status | ラック |
 
-### 4.7 ip_subnet / ip_address
+### 4.5 device
 
 | カラム | 型 | 制約 | 説明 |
 |---|---|---|---|
-| ip_subnet_id | CHAR(36) | PK | IPサブネットID |
-| tenant_id | CHAR(36) | FK, NOT NULL | テナントID |
-| cidr | VARCHAR(50) | NOT NULL | CIDR表記 |
-| name | VARCHAR(255) | NULL | サブネット名 |
-| status | VARCHAR(30) | NOT NULL | Active/Reserved/Deprecated |
-| ip_address_id | CHAR(36) | PK | 個別IP利用状況ID |
-| address | VARCHAR(45) | NOT NULL | IPv4/IPv6アドレス |
-| assigned_device_id | CHAR(36) | FK, NULL | 割当機器ID |
-| purpose | VARCHAR(255) | NULL | 用途 |
+| device_id | bigint | PK | 機器ID |
+| tenant_id | bigint | FK, NOT NULL | テナントID |
+| rack_id | bigint | FK, NULL | 設置ラックID |
+| device_type | varchar(30) | NOT NULL | SERVER / SWITCH等 |
+| formal_name | varchar(150) | NOT NULL | 正式名称 |
+| display_name | varchar(150) | NULL | 表示名 |
+| hostname | varchar(150) | NULL | ホスト名 |
+| serial_number | varchar(100) | NULL | シリアル番号 |
+| rack_unit_start | int | NULL | 搭載開始U |
+| rack_unit_size | int | NULL | 使用U数 |
+| lifecycle_status | varchar(30) | NOT NULL | ACTIVE / SPARE / RETIRED等 |
 
-### 4.8 maintenance_contract
+### 4.6 ip_subnet / ip_address
 
-| カラム | 型 | 制約 | 説明 |
-|---|---|---|---|
-| maintenance_contract_id | CHAR(36) | PK | 保守契約ID |
-| tenant_id | CHAR(36) | FK, NOT NULL | テナントID |
-| contract_name | VARCHAR(255) | NOT NULL | 契約名 |
-| vendor_name | VARCHAR(255) | NULL | ベンダー |
-| contract_no | VARCHAR(255) | NULL | 契約番号 |
-| start_date | DATE | NULL | 開始日 |
-| end_date | DATE | NOT NULL | 終了日 |
-| notify_before_days | INT | NOT NULL | 通知日前。標準60 |
-| status | VARCHAR(30) | NOT NULL | ステータス |
+| テーブル | 主なカラム | 説明 |
+|---|---|---|
+| ip_subnet | ip_subnet_id, tenant_id, subnet_name, cidr, ip_version, status, description | IPサブネット。プラン上限対象 |
+| ip_address | ip_address_id, tenant_id, ip_subnet_id, ip_address, ip_version, device_id, usage_status, description | 個別IP利用状況 |
 
-### 4.9 maintenance_contract_device
+### 4.7 maintenance_contract
 
-| カラム | 型 | 制約 | 説明 |
-|---|---|---|---|
-| maintenance_contract_device_id | CHAR(36) | PK | 関連ID |
-| tenant_id | CHAR(36) | FK, NOT NULL | テナントID |
-| maintenance_contract_id | CHAR(36) | FK, NOT NULL | 保守契約ID |
-| device_id | CHAR(36) | FK, NOT NULL | 機器ID |
+| テーブル | 主なカラム | 説明 |
+|---|---|---|
+| maintenance_contract | maintenance_contract_id, tenant_id, contract_name, vendor_name, contract_number, start_date, end_date, notification_enabled, notification_days_before | 保守契約 |
+| maintenance_contract_device | maintenance_contract_device_id, tenant_id, maintenance_contract_id, device_id | 保守契約・機器関連 |
+
+### 4.8 contact / tag
+
+| テーブル | 主なカラム | 説明 |
+|---|---|---|
+| contact | contact_id, tenant_id, contact_type, name, email, phone_number | 連絡先 |
+| data_center_contact | data_center_id, contact_id | データセンターと連絡先の関連 |
+| tag | tag_id, tenant_id, tag_name, color_code | タグ |
+| tagged_resource | tagged_resource_id, tenant_id, tag_id, resource_type, resource_id | タグと対象リソースの関連 |
+
+### 4.9 notification / CSV tables
+
+| テーブル | 主なカラム | 説明 |
+|---|---|---|
+| notification_setting | notification_setting_id, tenant_id, notification_type, enabled, email_enabled, days_before | 通知設定 |
+| notification_log | notification_log_id, tenant_id, notification_type, target_type, target_id, recipient, subject, status, sent_at, error_message | 通知履歴・メール送信履歴 |
+| csv_export_history | csv_export_history_id, tenant_id, target_type, condition_summary, file_name, record_count, requested_by, created_at | CSV出力履歴 |
+| csv_import_history | csv_import_history_id, tenant_id, target_type, file_name, status, total_count, success_count, failure_count, requested_by, created_at | CSV取込履歴 |
+| csv_import_error | csv_import_error_id, csv_import_history_id, row_number, column_name, error_message | CSV取込エラー |
 
 ### 4.10 cloud_account / cloud_resource（将来拡張）
 
 | テーブル | 主なカラム | 説明 |
 |---|---|---|
 | cloud_account | cloud_account_id, tenant_id, provider, account_name, account_identifier | AWS等のアカウント |
-| cloud_resource | cloud_resource_id, tenant_id, cloud_account_id, resource_type, resource_name, region, external_resource_id, status | EC2/EKS/コンテナ等 |
-
-### 4.11 location hierarchy tables
-
-| テーブル | 主なカラム | 説明 |
-|---|---|---|
-| building | building_id, tenant_id, data_center_id, name, display_name, status | データセンター配下の棟 |
-| floor | floor_id, tenant_id, building_id, name, floor_no, status | 棟配下のフロア |
-| area | area_id, tenant_id, floor_id, name, direction_type, status | フロア配下のエリア |
-| rack_row | rack_row_id, tenant_id, area_id, name, position_no, status | エリア配下のラック列 |
-
-### 4.12 contact / alias / tag tables
-
-| テーブル | 主なカラム | 説明 |
-|---|---|---|
-| contact | contact_id, tenant_id, company_name, department_name, contact_name, email, phone | データセンターや保守契約に紐づく連絡先 |
-| data_center_contact | data_center_id, contact_id | データセンターと連絡先の関連 |
-| maintenance_contract_contact | maintenance_contract_id, contact_id | 保守契約と連絡先の関連 |
-| device_alias | device_alias_id, tenant_id, device_id, alias_name | 機器の別名・呼称名 |
-| tag | tag_id, tenant_id, name, color | タグ |
-| entity_tag | entity_tag_id, tenant_id, tag_id, entity_type, entity_id | 各エンティティとタグの関連 |
-
-### 4.13 notification / CSV tables
-
-| テーブル | 主なカラム | 説明 |
-|---|---|---|
-| notification_setting | notification_setting_id, tenant_id, notification_type, days_before, email_enabled, screen_enabled | 通知設定 |
-| notification_log | notification_log_id, tenant_id, notification_type, target_type, target_id, recipient, subject, status, sent_at, error_message | 通知履歴・メール送信履歴 |
-| csv_import_history | csv_import_history_id, tenant_id, target_type, file_name, status, total_count, success_count, failure_count | CSV取込履歴 |
-| csv_import_error | csv_import_error_id, csv_import_history_id, row_number, column_name, error_message | CSV取込エラー |
+| cloud_resource | cloud_resource_id, tenant_id, cloud_account_id, resource_type, resource_name, region_name, resource_identifier, status | EC2/EKS/コンテナ等 |
 
 ## 5. インデックス方針
 
 | 対象 | インデックス方針 |
 |---|---|
-| 全主要テーブル | tenant_idにインデックスを付与 |
+| 全主要テーブル | tenant_id, deleted にインデックスを付与 |
 | 一覧検索対象 | 名称、種別、ステータス、タグ関連にインデックスを検討 |
 | ロケーション階層 | tenant_id + parent_id + name にインデックスを検討 |
 | 通知履歴 | tenant_id + notification_type + sent_at にインデックスを検討 |
 | CSV取込履歴 | tenant_id + target_type + created_at にインデックスを検討 |
-| IPサブネット | tenant_id + cidr をユニーク制約候補とする
-| IPアドレス | tenant_id + ip_subnet_id + address をユニーク制約候補とする |
-| 機器 | tenant_id + official_name、serial_numberを検索対象とする |
+| IPサブネット | tenant_id + cidr をユニーク制約候補とする |
+| IPアドレス | tenant_id + ip_subnet_id + ip_address をユニーク制約候補とする |
+| 機器 | tenant_id + formal_name、serial_numberを検索対象とする |
 | 保守契約 | tenant_id + end_date にインデックスを付与 |
 | 監査ログ | 将来拡張。tenant_id + occurred_at にインデックスを付与 |
 
@@ -271,6 +223,7 @@ erDiagram
 
 | 対象 | 方針 |
 |---|---|
-| 主要マスタ | 論理削除を原則とする。deleted_by, deleted_at, deleted を共通項目候補とする |
-| 関連テーブル | 物理削除可。ただし監査ログは保持する |
-| 監査ログ | 将来拡張。原則削除しない。保持期間は別途運用設計で定義 |
+| 主要マスタ | 論理削除を原則とし、deletedを共通項目とする |
+| 関連テーブル | 業務上の履歴性が低いものは物理削除可。ただし整合性に注意する |
+| 通知ログ・CSV履歴 | 問い合わせ対応・監査補助のため原則保持する |
+| 監査ログ | 将来拡張。原則削除しない。保持期間は運用設計で定義 |

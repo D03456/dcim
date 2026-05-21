@@ -33,6 +33,8 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | name | String | テナント名 |
 | planType | Enum | Free / Starter / Business / Enterprise |
 | status | Enum | Active / Suspended / TrialExpired / Cancelled |
+| trialStartDate | Date | Freeトライアル開始日。Free以外はnull可 |
+| trialEndDate | Date | Freeトライアル終了日。Free以外はnull可 |
 | createdAt | DateTime | 作成日時 |
 | updatedAt | DateTime | 更新日時 |
 
