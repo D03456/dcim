@@ -78,7 +78,7 @@ erDiagram
 | tag | タグ |
 | entity_tag | エンティティタグ関連 |
 | notification_setting | 通知設定 |
-| notification_history | 通知履歴・メール送信履歴 |
+| notification_log | 通知履歴・メール送信履歴 |
 | csv_import_history | 初期追加対象：CSV取込履歴 |
 | csv_import_error | 初期追加対象：CSV取込エラー |
 | audit_log | 将来拡張：監査ログ |
@@ -248,9 +248,9 @@ erDiagram
 | テーブル | 主なカラム | 説明 |
 |---|---|---|
 | notification_setting | notification_setting_id, tenant_id, notification_type, days_before, email_enabled, screen_enabled | 通知設定 |
-| notification_history | notification_history_id, tenant_id, notification_type, target_type, target_id, sent_at, result | 通知履歴・メール送信履歴 |
-| csv_import_history | csv_import_history_id, tenant_id, import_type, file_name, status, total_count, success_count, error_count | CSV取込履歴 |
-| csv_import_error | csv_import_error_id, tenant_id, csv_import_history_id, row_no, column_name, error_message | CSV取込エラー |
+| notification_log | notification_log_id, tenant_id, notification_type, target_type, target_id, recipient, subject, status, sent_at, error_message | 通知履歴・メール送信履歴 |
+| csv_import_history | csv_import_history_id, tenant_id, target_type, file_name, status, total_count, success_count, failure_count | CSV取込履歴 |
+| csv_import_error | csv_import_error_id, csv_import_history_id, row_number, column_name, error_message | CSV取込エラー |
 
 ## 5. インデックス方針
 
@@ -260,7 +260,7 @@ erDiagram
 | 一覧検索対象 | 名称、種別、ステータス、タグ関連にインデックスを検討 |
 | ロケーション階層 | tenant_id + parent_id + name にインデックスを検討 |
 | 通知履歴 | tenant_id + notification_type + sent_at にインデックスを検討 |
-| CSV取込履歴 | tenant_id + import_type + created_at にインデックスを検討 |
+| CSV取込履歴 | tenant_id + target_type + created_at にインデックスを検討 |
 | IPサブネット | tenant_id + cidr をユニーク制約候補とする
 | IPアドレス | tenant_id + ip_subnet_id + address をユニーク制約候補とする |
 | 機器 | tenant_id + official_name、serial_numberを検索対象とする |

@@ -23,11 +23,13 @@
 
 ## 3. 主要エンティティ
 
+ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（DB上は `bigint`）を採用する。UUIDは将来、外部公開IDや分散構成が必要になった場合に再検討する。
+
 ### 3.1 Tenant
 
 | 属性 | 型 | 説明 |
 |---|---|---|
-| tenantId | UUID | テナントID |
+| tenantId | Long | テナントID |
 | name | String | テナント名 |
 | planType | Enum | Free / Starter / Business / Enterprise |
 | status | Enum | Active / Suspended / TrialExpired / Cancelled |
@@ -38,7 +40,7 @@
 
 | 属性 | 型 | 説明 |
 |---|---|---|
-| planId | UUID | プランID |
+| planId | Long | プランID |
 | planType | Enum | プラン種別 |
 | maxDataCenters | Integer | DC上限 |
 | maxRacks | Integer | ラック上限 |
@@ -51,8 +53,8 @@
 
 | 属性 | 型 | 説明 |
 |---|---|---|
-| dataCenterId | UUID | データセンターID |
-| tenantId | UUID | テナントID |
+| dataCenterId | Long | データセンターID |
+| tenantId | Long | テナントID |
 | officialName | String | 正式名称 |
 | displayName | String | 表示名 |
 | region | String | 地域 |
@@ -76,8 +78,8 @@
 
 | 属性 | 型 | 説明 |
 |---|---|---|
-| rackId | UUID | ラックID |
-| rackRowId | UUID | ラック列ID |
+| rackId | Long | ラックID |
+| rackRowId | Long | ラック列ID |
 | officialName | String | 正式名称 |
 | displayName | String | 表示名 |
 | heightU | Integer | ラック高さU数 |
@@ -88,9 +90,9 @@
 
 | 属性 | 型 | 説明 |
 |---|---|---|
-| deviceId | UUID | 機器ID |
-| tenantId | UUID | テナントID |
-| rackId | UUID | 設置ラックID |
+| deviceId | Long | 機器ID |
+| tenantId | Long | テナントID |
+| rackId | Long | 設置ラックID |
 | officialName | String | 正式名称 |
 | displayName | String | 表示名 |
 | deviceType | Enum | Server / Switch / Router / Firewall / LoadBalancer / Other |
@@ -105,22 +107,22 @@
 
 | 属性 | 型 | 説明 |
 |---|---|---|
-| ipSubnetId | UUID | IPサブネットID |
-| tenantId | UUID | テナントID |
+| ipSubnetId | Long | IPサブネットID |
+| tenantId | Long | テナントID |
 | cidr | String | CIDR表記 |
 | name | String | サブネット名 |
 | status | Enum | Active / Reserved / Deprecated |
-| ipAddressId | UUID | 個別IP利用状況ID |
+| ipAddressId | Long | 個別IP利用状況ID |
 | address | String | IPアドレス |
-| assignedDeviceId | UUID | 割当機器ID |
+| assignedDeviceId | Long | 割当機器ID |
 | purpose | String | 用途 |
 
 ### 3.8 MaintenanceContract
 
 | 属性 | 型 | 説明 |
 |---|---|---|
-| maintenanceContractId | UUID | 保守契約ID |
-| tenantId | UUID | テナントID |
+| maintenanceContractId | Long | 保守契約ID |
+| tenantId | Long | テナントID |
 | contractName | String | 契約名 |
 | vendorName | String | ベンダー名 |
 | contractNo | String | 契約番号 |
@@ -133,8 +135,8 @@
 
 | 属性 | 型 | 説明 |
 |---|---|---|
-| cloudResourceId | UUID | クラウドリソースID |
-| cloudAccountId | UUID | クラウドアカウントID |
+| cloudResourceId | Long | クラウドリソースID |
+| cloudAccountId | Long | クラウドアカウントID |
 | resourceType | Enum | EC2 / Container / EksCluster / EksPod / Other |
 | resourceName | String | リソース名 |
 | region | String | リージョン |
@@ -147,9 +149,9 @@
 
 | 属性 | 型 | 説明 |
 |---|---|---|
-| createdBy | UUID | 作成者 |
+| createdBy | Long | 作成者 |
 | createdAt | DateTime | 作成日時 |
-| updatedBy | UUID | 更新者 |
+| updatedBy | Long | 更新者 |
 | updatedAt | DateTime | 更新日時 |
 
 完全な操作履歴・変更履歴は将来拡張の監査ログ管理で扱う。
