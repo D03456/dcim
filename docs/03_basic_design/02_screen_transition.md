@@ -60,6 +60,7 @@ flowchart TD
     Usage --> Option[SCR-031 オプション追加]
     FutureAudit[将来拡張: SCR-032 監査ログ]
     SystemSetting[SCR-033 システム設定]
+    CsvImport[SCR-034 CSVインポート画面]
 ```
 
 ## 4. メニュー構成
@@ -81,6 +82,7 @@ flowchart TD
 | 契約プラン | SCR-030 | 利用状況・オプション管理 |
 | 将来拡張：監査ログ | SCR-032 | 操作履歴確認 |
 | システム設定 | SCR-033 | テナント設定 |
+| CSVインポート | SCR-034 | 初期追加対象。一括取込・エラー確認 |
 
 ## 5. 代表的な業務遷移
 

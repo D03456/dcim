@@ -78,7 +78,9 @@ erDiagram
 | tag | タグ |
 | entity_tag | エンティティタグ関連 |
 | notification_setting | 通知設定 |
-| notification_history | 通知履歴 |
+| notification_history | 通知履歴・メール送信履歴 |
+| csv_import_history | 初期追加対象：CSV取込履歴 |
+| csv_import_error | 初期追加対象：CSV取込エラー |
 | audit_log | 将来拡張：監査ログ |
 
 ## 4. テーブル定義案
