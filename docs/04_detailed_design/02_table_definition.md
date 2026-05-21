@@ -101,17 +101,18 @@
 | max_racks | int | NO |  | ラック上限 |
 | max_devices | int | NO |  | 機器上限 |
 | max_ip_subnets | int | NO |  | IPサブネット上限 |
+| max_tags | int | NO |  | タグマスタ件数上限 |
 | trial_days | int | YES |  | Freeトライアル日数。標準14 |
 | max_users | int | NO |  | ユーザー上限 |
 
 ### 初期データ
 
-| plan_code | trial_days | max_data_centers | max_racks | max_devices | max_ip_subnets | max_users |
-|---|---:|---:|---:|---:|---:|---:|
-| FREE | 14 | 1 | 3 | 20 | 3 | 1 |
-| STARTER | null | 2 | 5 | 50 | 10 | 3 |
-| BUSINESS | null | 5 | 50 | 100 | 50 | 10 |
-| ENTERPRISE | null | 10 | 100 | 1000 | 200 | 30 |
+| plan_code | trial_days | max_data_centers | max_racks | max_devices | max_ip_subnets | max_tags | max_users |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| FREE | 14 | 1 | 3 | 20 | 3 | 10 | 1 |
+| STARTER | null | 2 | 5 | 50 | 10 | 50 | 3 |
+| BUSINESS | null | 5 | 50 | 100 | 50 | 200 | 10 |
+| ENTERPRISE | null | 10 | 100 | 1000 | 200 | 1000 | 30 |
 
 ## 4.3 tenant_add_on
 
@@ -349,7 +350,31 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.13 tag
+## 4.13 data_center_contact
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| data_center_contact_id | bigint | NO | PK | DC・連絡先関連ID |
+| tenant_id | bigint | NO | FK | テナントID |
+| data_center_id | bigint | NO | FK | DC ID |
+| contact_id | bigint | NO | FK | 連絡先ID |
+| contact_role | varchar(30) | YES |  | PRIMARY / EMERGENCY / BILLING / OTHER 等の用途 |
+| created_by | bigint | NO | FK | 作成者 |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
+| updated_at | datetime(6) | NO |  | 更新日時 |
+| deleted | boolean | NO |  | 論理削除 |
+
+### インデックス
+
+| 名称 | カラム | 種別 |
+|---|---|---|
+| uk_dc_contact | tenant_id, data_center_id, contact_id, deleted | UNIQUE |
+| idx_dc_contact_contact | tenant_id, contact_id, deleted | INDEX |
+
+`DataCenterService.assignContact(dataCenterId, contactId)` は、同一テナント内のDCと連絡先のみ関連付ける。既に有効な関連が存在する場合は重複登録せず、業務例外として扱う。
+
+## 4.14 tag
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -361,7 +386,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.14 tagged_resource
+## 4.15 tagged_resource
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -374,7 +399,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.15 notification_setting
+## 4.16 notification_setting
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -388,7 +413,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.16 notification_log
+## 4.17 notification_log
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -406,7 +431,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.17 csv_export_history
+## 4.18 csv_export_history
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -419,7 +444,7 @@
 | requested_by | bigint | NO | FK | 実行者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
 
-## 4.18 csv_import_history
+## 4.19 csv_import_history
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -434,7 +459,7 @@
 | requested_by | bigint | NO | FK | 実行者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
 
-## 4.19 csv_import_error
+## 4.20 csv_import_error
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -444,7 +469,7 @@
 | column_name | varchar(100) | YES |  | カラム名 |
 | error_message | varchar(500) | NO |  | エラー内容 |
 
-## 4.20 app_user / role / user_role
+## 4.21 app_user / role / user_role
 
 ### app_user
 
@@ -466,7 +491,7 @@
 | role | role_id, role_code, role_name | ロール定義 |
 | user_role | user_role_id, tenant_id, user_id, role_id | ユーザー・ロール関連 |
 
-## 4.21 cloud_account（将来拡張）
+## 4.22 cloud_account（将来拡張）
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -479,7 +504,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.22 cloud_resource（将来拡張）
+## 4.23 cloud_resource（将来拡張）
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
