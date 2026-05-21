@@ -154,6 +154,19 @@
 
 完全な操作履歴・変更履歴は将来拡張の監査ログ管理で扱う。
 
+### 3.11 連絡先・タグ・通知・CSV関連
+
+| エンティティ | 説明 |
+|---|---|
+| Contact | データセンターや保守契約に紐づく連絡先 |
+| DeviceAlias | 機器の別名・呼称名 |
+| Tag | 検索・分類用タグ |
+| EntityTag | タグと対象エンティティの関連 |
+| NotificationSetting | 通知条件、通知先、通知チャネル設定 |
+| NotificationHistory | 画面通知・メール通知の履歴 |
+| CsvImportHistory | CSV取込履歴 |
+| CsvImportError | CSV取込時の行単位エラー |
+
 ## 4. 値オブジェクト候補
 
 | 値オブジェクト | 説明 |

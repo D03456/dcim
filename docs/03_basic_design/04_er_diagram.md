@@ -223,12 +223,44 @@ erDiagram
 | cloud_account | cloud_account_id, tenant_id, provider, account_name, account_identifier | AWS等のアカウント |
 | cloud_resource | cloud_resource_id, tenant_id, cloud_account_id, resource_type, resource_name, region, external_resource_id, status | EC2/EKS/コンテナ等 |
 
+### 4.11 location hierarchy tables
+
+| テーブル | 主なカラム | 説明 |
+|---|---|---|
+| building | building_id, tenant_id, data_center_id, name, display_name, status | データセンター配下の棟 |
+| floor | floor_id, tenant_id, building_id, name, floor_no, status | 棟配下のフロア |
+| area | area_id, tenant_id, floor_id, name, direction_type, status | フロア配下のエリア |
+| rack_row | rack_row_id, tenant_id, area_id, name, position_no, status | エリア配下のラック列 |
+
+### 4.12 contact / alias / tag tables
+
+| テーブル | 主なカラム | 説明 |
+|---|---|---|
+| contact | contact_id, tenant_id, company_name, department_name, contact_name, email, phone | データセンターや保守契約に紐づく連絡先 |
+| data_center_contact | data_center_id, contact_id | データセンターと連絡先の関連 |
+| maintenance_contract_contact | maintenance_contract_id, contact_id | 保守契約と連絡先の関連 |
+| device_alias | device_alias_id, tenant_id, device_id, alias_name | 機器の別名・呼称名 |
+| tag | tag_id, tenant_id, name, color | タグ |
+| entity_tag | entity_tag_id, tenant_id, tag_id, entity_type, entity_id | 各エンティティとタグの関連 |
+
+### 4.13 notification / CSV tables
+
+| テーブル | 主なカラム | 説明 |
+|---|---|---|
+| notification_setting | notification_setting_id, tenant_id, notification_type, days_before, email_enabled, screen_enabled | 通知設定 |
+| notification_history | notification_history_id, tenant_id, notification_type, target_type, target_id, sent_at, result | 通知履歴・メール送信履歴 |
+| csv_import_history | csv_import_history_id, tenant_id, import_type, file_name, status, total_count, success_count, error_count | CSV取込履歴 |
+| csv_import_error | csv_import_error_id, tenant_id, csv_import_history_id, row_no, column_name, error_message | CSV取込エラー |
+
 ## 5. インデックス方針
 
 | 対象 | インデックス方針 |
 |---|---|
 | 全主要テーブル | tenant_idにインデックスを付与 |
 | 一覧検索対象 | 名称、種別、ステータス、タグ関連にインデックスを検討 |
+| ロケーション階層 | tenant_id + parent_id + name にインデックスを検討 |
+| 通知履歴 | tenant_id + notification_type + sent_at にインデックスを検討 |
+| CSV取込履歴 | tenant_id + import_type + created_at にインデックスを検討 |
 | IPサブネット | tenant_id + cidr をユニーク制約候補とする
 | IPアドレス | tenant_id + ip_subnet_id + address をユニーク制約候補とする |
 | 機器 | tenant_id + official_name、serial_numberを検索対象とする |
@@ -239,6 +271,6 @@ erDiagram
 
 | 対象 | 方針 |
 |---|---|
-| 主要マスタ | 論理削除を原則とする |
+| 主要マスタ | 論理削除を原則とする。deleted_by, deleted_at, deleted を共通項目候補とする |
 | 関連テーブル | 物理削除可。ただし監査ログは保持する |
 | 監査ログ | 将来拡張。原則削除しない。保持期間は別途運用設計で定義 |
