@@ -4,14 +4,14 @@
 
 本書は、Data Center Asset & Infrastructure Manager（以下、本システム）の詳細設計における主要エンティティを定義する。
 
-対象は、データセンター、ラック、機器、IPアドレス、保守契約、通知、契約プラン、ユーザー・権限、タグ、外部クラウド資産である。
+対象は、データセンター、ラック、機器、IPサブネット・IPアドレス、保守契約、通知、契約プラン、ユーザー・権限、タグ、CSV連携である。クラウド資産管理は将来拡張として扱う。
 
 ## 2. 前提
 
 - アーキテクチャはDDDを意識したレイヤード構成とする。
 - Java / Spring Boot / Spring Security / Vaadin / MariaDB / Lombok を前提とする。
 - マルチテナントSaaSを前提とし、すべての業務データは原則として `tenant_id` を保持する。
-- 論理削除を基本とし、業務データには `deleted`、`created_at`、`updated_at` を持たせる。
+- 論理削除を基本とし、主要な業務データには最低限の監査情報として `created_by`、`created_at`、`updated_by`、`updated_at`、`deleted` を持たせる。
 - 料金プラン別の上限管理を行う。
 
 ## 3. 共通エンティティ
@@ -62,9 +62,10 @@
 | planCode | String | ○ | FREE / STARTER / BUSINESS / ENTERPRISE |
 | planName | String | ○ | 表示名 |
 | maxDataCenters | Integer | ○ | データセンター上限 |
-| maxRackRows | Integer | ○ | ラック列上限 |
+| maxRacks | Integer | ○ | ラック上限。ラック列は物理階層として管理し、課金・上限はラック数を基本とする |
 | maxDevices | Integer | ○ | 機器上限 |
-| maxIpAddresses | Integer | ○ | IPアドレス上限 |
+| maxIpSubnets | Integer | ○ | IPサブネット上限 |
+| trialDays | Integer | - | Freeプランのトライアル日数。標準14日 |
 | maxUsers | Integer | ○ | ユーザー上限 |
 
 ### 4.2 TenantAddOn
@@ -80,7 +81,7 @@
 
 | 種別 | 追加単位 |
 |---|---:|
-| IPアドレス | 256個単位 |
+| サブネット | 10サブネット単位 |
 | 機器 | 100台単位 |
 
 ## 5. ロケーション系エンティティ
@@ -197,7 +198,7 @@
 | 項目 | 内容 |
 |---|---|
 | エンティティ名 | Device |
-| 概要 | サーバー、NW機器、仮想・クラウド機器などの管理対象機器 |
+| 概要 | サーバー、NW機器などの物理・設備管理対象機器。クラウドリソースは将来拡張で別管理 |
 | 集約 | Device集約 |
 | 主キー | deviceId |
 
@@ -228,12 +229,33 @@
 - 通称設定
 - 廃止処理
 
-### 6.2 IpAddress
+### 6.2 IpSubnet
+
+| 項目 | 内容 |
+|---|---|
+| エンティティ名 | IpSubnet |
+| 概要 | CIDR単位のIP管理範囲。プラン上限・追加オプションのカウント対象 |
+| 集約 | Network集約 |
+| 主キー | ipSubnetId |
+
+#### 主な属性
+
+| 属性 | 型 | 必須 | 説明 |
+|---|---:|:---:|---|
+| ipSubnetId | Long | ○ | IPサブネットID |
+| tenantId | Long | ○ | テナントID |
+| subnetName | String | ○ | サブネット名 |
+| cidr | String | ○ | CIDR表記。例: 192.0.2.0/24 |
+| ipVersion | IpVersion | ○ | IPv4 / IPv6 |
+| status | IpSubnetStatus | ○ | 利用中 / 予約 / 廃止 |
+| description | String | - | 備考 |
+
+### 6.3 IpAddress
 
 | 項目 | 内容 |
 |---|---|
 | エンティティ名 | IpAddress |
-| 概要 | IPアドレス管理対象 |
+| 概要 | IPサブネット配下の個別IP利用状況 |
 | 集約 | Network集約 |
 | 主キー | ipAddressId |
 
@@ -243,6 +265,7 @@
 |---|---:|:---:|---|
 | ipAddressId | Long | ○ | IPアドレスID |
 | tenantId | Long | ○ | テナントID |
+| ipSubnetId | Long | ○ | IPサブネットID |
 | ipAddress | String | ○ | IPアドレス |
 | ipVersion | IpVersion | ○ | IPv4 / IPv6 |
 | deviceId | Long | - | 割当機器ID |
@@ -343,14 +366,14 @@
 | 集約 | Notification集約 |
 | 主キー | notificationLogId |
 
-## 10. クラウド資産系エンティティ
+## 10. 将来拡張：クラウド資産系エンティティ
 
 ### 10.1 CloudAccount
 
 | 項目 | 内容 |
 |---|---|
 | エンティティ名 | CloudAccount |
-| 概要 | AWS等のクラウドアカウント情報 |
+| 概要 | AWS等のクラウドアカウント情報。初期リリース対象外 |
 | 集約 | CloudResource集約 |
 | 主キー | cloudAccountId |
 
@@ -359,7 +382,7 @@
 | 項目 | 内容 |
 |---|---|
 | エンティティ名 | CloudResource |
-| 概要 | EC2、コンテナ、EKS Pod等のクラウドリソース |
+| 概要 | EC2、コンテナ、EKS Pod等のクラウドリソース。初期リリース対象外 |
 | 集約 | CloudResource集約 |
 | 主キー | cloudResourceId |
 
@@ -388,8 +411,9 @@
 | 列挙型 | 値 |
 |---|---|
 | PlanType | FREE, STARTER, BUSINESS, ENTERPRISE |
-| DeviceType | SERVER, SWITCH, ROUTER, FIREWALL, LOAD_BALANCER, STORAGE, CLOUD |
+| DeviceType | SERVER, SWITCH, ROUTER, FIREWALL, LOAD_BALANCER, STORAGE, OTHER |
 | IpVersion | IPV4, IPV6 |
+| IpSubnetStatus | ACTIVE, RESERVED, RETIRED |
 | IpUsageStatus | UNUSED, IN_USE, RESERVED, RETIRED |
 | DeviceLifecycleStatus | ACTIVE, SPARE, PLANNED_RETIREMENT, RETIRED |
 | NotificationType | MAINTENANCE_EXPIRY, PLAN_LIMIT, SYSTEM |

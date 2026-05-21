@@ -47,19 +47,19 @@
 | 対象 | 上限 |
 |---|---:|
 | データセンター | プラン別 |
-| ラック列 | プラン別 |
+| ラック | プラン別 |
 | 機器 | プラン別 + 100台単位追加 |
-| IPアドレス | プラン別 + 256個単位追加 |
+| IPサブネット | プラン別 + 10サブネット単位追加 |
 | ユーザー | プラン別 |
 
 ### 4.2 プラン初期上限
 
-| プラン | DC | ラック列 | 機器 | IP | ユーザー |
-|---|---:|---:|---:|---:|---:|
-| Free | 1 | 1 | 5 | 5 | 1 |
-| Starter | 2 | 5 | 50 | 50 | 3 |
-| Business | 5 | 50 | 100 | 100 | 10 |
-| Enterprise | 10 | 100 | 1000 | 1000 | 30 |
+| プラン | 利用期間 | DC | ラック | 機器 | サブネット | ユーザー |
+|---|---:|---:|---:|---:|---:|---:|
+| Free | 14日間 | 1 | 3 | 20 | 3 | 1 |
+| Starter | 契約期間中 | 2 | 5 | 50 | 10 | 3 |
+| Business | 契約期間中 | 5 | 50 | 100 | 50 | 10 |
+| Enterprise | 契約期間中 | 10 | 100 | 1000 | 200 | 30 |
 
 ### 4.3 エラー条件
 
@@ -123,7 +123,7 @@
 
 ### 業務チェック
 
-- 登録時にラック列上限を超えないこと。
+- ラック登録時にラック上限を超えないこと。ラック列は物理階層として管理する。
 
 ## 5.6 Rack
 
@@ -170,11 +170,24 @@
 - 廃止済み機器には新規IP割当不可。
 - 削除時、保守契約やIP割当がある場合は確認または解除を求める。
 
-## 5.8 IpAddress
+## 5.8 IpSubnet / IpAddress
+
+### IpSubnet
 
 | 項目 | 必須 | ルール |
 |---|:---:|---|
-| ipAddress | ○ | IPv4またはIPv6形式 |
+| subnetName | ○ | 1〜150文字 |
+| cidr | ○ | CIDR形式。IPv4/IPv6形式と一致 |
+| ipVersion | ○ | CIDR形式と一致 |
+| status | ○ | ACTIVE / RESERVED / RETIRED |
+| description | - | 255文字以内 |
+
+### IpAddress
+
+| 項目 | 必須 | ルール |
+|---|:---:|---|
+| ipSubnetId | ○ | 同一テナント内に存在 |
+| ipAddress | ○ | サブネット範囲内のIPv4またはIPv6形式 |
 | ipVersion | ○ | IPアドレス形式と一致 |
 | deviceId | - | 指定時は同一テナント内に存在 |
 | usageStatus | ○ | UNUSED / IN_USE / RESERVED / RETIRED |
@@ -182,8 +195,9 @@
 
 ### 業務チェック
 
-- 同一テナント内でIPアドレス重複不可。
-- 登録時にIP上限を超えないこと。
+- 同一テナント内でCIDR重複不可。
+- 登録時にIPサブネット上限を超えないこと。
+- 個別IPは所属サブネット範囲内であること。
 - deviceId指定時は `usageStatus = IN_USE` と整合すること。
 - `RETIRED` のIPは機器へ割当不可。
 
@@ -226,12 +240,12 @@
 | tagName | ○ | 1〜50文字、同一テナント内で重複不可 |
 | colorCode | - | `#RRGGBB` 形式 |
 
-## 5.12 CloudResource
+## 5.12 CloudResource（将来拡張）
 
 | 項目 | 必須 | ルール |
 |---|:---:|---|
 | cloudAccountId | ○ | 同一テナント内に存在 |
-| provider | ○ | AWS等、定義済み値 |
+| provider | ○ | AWS等、定義済み値。初期リリースでは入力画面・登録処理の対象外 |
 | regionName | - | 100文字以内 |
 | resourceType | ○ | EC2 / CONTAINER / EKS_POD 等 |
 | resourceName | ○ | 1〜150文字 |
@@ -246,7 +260,7 @@
 | ACTIVE | SPARE, PLANNED_RETIREMENT, RETIRED |
 | SPARE | ACTIVE, RETIRED |
 | PLANNED_RETIREMENT | ACTIVE, RETIRED |
-| RETIRED | 原則変更不可。ただしAdminのみ復旧可 |
+| RETIRED | 原則変更不可。ただしテナント管理者のみ復旧可 |
 
 ### 6.2 IpUsageStatus
 
@@ -279,3 +293,11 @@
 - 保存ボタン押下時にService層の業務チェックを実行する。
 - ValidationExceptionは画面上部または項目横に表示する。
 - 業務例外はNotificationまたはDialogで表示する。
+
+
+## 9. CSVバリデーション
+
+- CSVエクスポートは閲覧権限がある対象のみ出力可能とする。
+- CSVインポートはテナント管理者または運用者のみ実行可能とする。
+- ヘッダ不一致、必須欠落、形式不正、参照先なし、プラン上限超過は行単位またはファイル単位でエラーにする。
+- 取込結果は `csv_import_history` と `csv_import_error` に記録する。

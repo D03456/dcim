@@ -21,12 +21,16 @@ com.example.dcim.domain.repository
   ├─ DataCenterRepository.java
   ├─ RackRepository.java
   ├─ DeviceRepository.java
+  ├─ IpSubnetRepository.java
   ├─ IpAddressRepository.java
   ├─ MaintenanceContractRepository.java
   ├─ ContactRepository.java
   ├─ TagRepository.java
   ├─ NotificationLogRepository.java
-  └─ CloudResourceRepository.java
+  ├─ CsvExportHistoryRepository.java
+  ├─ CsvImportHistoryRepository.java
+  ├─ CsvImportErrorRepository.java
+  └─ CloudResourceRepository.java（将来拡張）
 ```
 
 ## 4. 共通Repository方針
@@ -64,7 +68,8 @@ and deleted = false
 | RackRowRepository | rack_row | ラック列検索 |
 | RackRepository | rack | ラック検索 |
 | DeviceRepository | device | 機器検索 |
-| IpAddressRepository | ip_address | IP検索 |
+| IpSubnetRepository | ip_subnet | IPサブネット検索・上限件数確認 |
+| IpAddressRepository | ip_address | IP利用状況検索 |
 | MaintenanceContractRepository | maintenance_contract | 保守契約検索 |
 | MaintenanceContractDeviceRepository | maintenance_contract_device | 保守契約・機器関連検索 |
 | ContactRepository | contact | 連絡先検索 |
@@ -72,8 +77,11 @@ and deleted = false
 | TaggedResourceRepository | tagged_resource | タグ関連検索 |
 | NotificationSettingRepository | notification_setting | 通知設定検索 |
 | NotificationLogRepository | notification_log | 通知履歴検索 |
-| CloudAccountRepository | cloud_account | クラウドアカウント検索 |
-| CloudResourceRepository | cloud_resource | クラウド資産検索 |
+| CsvExportHistoryRepository | csv_export_history | CSV出力履歴検索 |
+| CsvImportHistoryRepository | csv_import_history | CSV取込履歴検索 |
+| CsvImportErrorRepository | csv_import_error | CSV取込エラー検索 |
+| CloudAccountRepository | cloud_account | 将来拡張：クラウドアカウント検索 |
+| CloudResourceRepository | cloud_resource | 将来拡張：クラウド資産検索 |
 
 ## 6. 主要Repository詳細
 
@@ -166,23 +174,37 @@ where d.tenant_id = :tenantId
 | hasMaintenance | 保守有無 |
 | tagIds | タグ指定 |
 
-## 6.4 IpAddressRepository
+## 6.4 IpSubnetRepository / IpAddressRepository
 
-### 主なメソッド
+### IpSubnetRepository 主なメソッド
+
+```java
+Optional<IpSubnet> findByIpSubnetIdAndTenantIdAndDeletedFalse(Long ipSubnetId, Long tenantId);
+
+Optional<IpSubnet> findByTenantIdAndCidrAndDeletedFalse(Long tenantId, String cidr);
+
+Page<IpSubnet> findByTenantIdAndDeletedFalse(Long tenantId, Pageable pageable);
+
+boolean existsByTenantIdAndCidrAndDeletedFalse(Long tenantId, String cidr);
+
+long countByTenantIdAndDeletedFalse(Long tenantId);
+```
+
+### IpAddressRepository 主なメソッド
 
 ```java
 Optional<IpAddress> findByIpAddressIdAndTenantIdAndDeletedFalse(Long ipAddressId, Long tenantId);
 
 Optional<IpAddress> findByTenantIdAndIpAddressAndDeletedFalse(Long tenantId, String ipAddress);
 
-Page<IpAddress> findByTenantIdAndDeletedFalse(Long tenantId, Pageable pageable);
+Page<IpAddress> findByTenantIdAndIpSubnetIdAndDeletedFalse(Long tenantId, Long ipSubnetId, Pageable pageable);
 
 List<IpAddress> findByTenantIdAndDeviceIdAndDeletedFalse(Long tenantId, Long deviceId);
 
-boolean existsByTenantIdAndIpAddressAndDeletedFalse(Long tenantId, String ipAddress);
-
-long countByTenantIdAndDeletedFalse(Long tenantId);
+boolean existsByTenantIdAndIpSubnetIdAndIpAddressAndDeletedFalse(Long tenantId, Long ipSubnetId, String ipAddress);
 ```
+
+プラン上限判定では `IpSubnetRepository.countByTenantIdAndDeletedFalse()` を利用し、個別IPアドレス数は上限カウントに含めない。
 
 ## 6.5 MaintenanceContractRepository
 
@@ -296,7 +318,8 @@ List<NotificationLog> findByTenantIdAndStatusAndDeletedFalse(
 以下のような検索は `Specification` を利用する。
 
 - 機器一覧検索
-- IPアドレス一覧検索
+- IPサブネット一覧検索
+- IPアドレス利用状況一覧検索
 - 保守契約一覧検索
 - タグを含む横断検索
 
@@ -332,3 +355,20 @@ List<NotificationLog> findByTenantIdAndStatusAndDeletedFalse(
 - テナント分離条件が必ず効いていることを確認する。
 - 論理削除データが検索されないことを確認する。
 - 一意制約に関するテストを実施する。
+
+
+## 11. CSV関連Repository
+
+```java
+Page<CsvExportHistory> findByTenantIdAndDeletedFalse(Long tenantId, Pageable pageable);
+
+Page<CsvImportHistory> findByTenantIdAndDeletedFalse(Long tenantId, Pageable pageable);
+
+List<CsvImportError> findByCsvImportHistoryId(Long csvImportHistoryId);
+```
+
+CSV履歴は監査・問い合わせ対応に利用するため、原則として物理削除しない。
+
+## 12. 将来拡張Repository
+
+`CloudAccountRepository`、`CloudResourceRepository` はクラウド資産管理の将来拡張用であり、初期リリースでは実装対象外とする。

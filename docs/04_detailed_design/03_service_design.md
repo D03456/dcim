@@ -46,13 +46,16 @@ com.example.dcim
 | LocationService | 棟、フロア、区画管理 |
 | RackService | ラック列、ラック管理 |
 | DeviceService | 機器管理 |
-| IpAddressService | IPアドレス管理 |
+| IpSubnetService | IPサブネット管理、サブネット上限判定 |
+| IpAddressService | サブネット配下のIPアドレス利用状況管理 |
 | MaintenanceContractService | 保守契約管理 |
 | ContactService | 連絡先管理 |
 | TagService | タグ管理 |
 | NotificationService | 通知作成・送信 |
 | MaintenanceNotificationService | 保守期限通知処理 |
-| CloudResourceService | クラウド資産管理 |
+| CloudResourceService | 将来拡張：クラウド資産管理 |
+| CsvExportService | CSVエクスポート |
+| CsvImportService | CSVインポート（初期追加対象） |
 | SearchService | 横断検索 |
 
 ## 5. 主要Service詳細
@@ -73,9 +76,9 @@ com.example.dcim
 | getCurrentLimit(tenantId) | テナントの現在上限を取得 |
 | getCurrentUsage(tenantId) | テナントの現在使用量を取得 |
 | validateCanCreateDataCenter(tenantId) | DC追加可否を検証 |
-| validateCanCreateRackRow(tenantId) | ラック列追加可否を検証 |
+| validateCanCreateRack(tenantId) | ラック追加可否を検証 |
 | validateCanCreateDevice(tenantId) | 機器追加可否を検証 |
-| validateCanCreateIpAddress(tenantId) | IP追加可否を検証 |
+| validateCanCreateIpSubnet(tenantId) | IPサブネット追加可否を検証 |
 | validateCanCreateUser(tenantId) | ユーザー追加可否を検証 |
 
 ### 判定方針
@@ -175,30 +178,42 @@ com.example.dcim
 5. 機器を保存する。
 6. タグ指定がある場合は `TagService` で関連付ける。
 
-## 5.5 IpAddressService
+## 5.5 IpSubnetService / IpAddressService
 
-### 責務
+### IpSubnetServiceの責務
 
-- IPアドレス登録・更新・削除
+- IPサブネット登録・更新・削除
+- サブネット上限チェック
+- CIDR重複チェック
+- サブネット配下IPの生成・再生成方針管理
+
+### IpAddressServiceの責務
+
+- IPサブネット配下の個別IP利用状況管理
 - 機器への割当・解除
-- IPアドレス使用状況管理
+- IPアドレス検索
 
 ### 主なメソッド
 
 | メソッド | 概要 |
 |---|---|
-| create(command) | IP登録 |
-| bulkCreate(command) | IP一括登録 |
+| createSubnet(command) | IPサブネット登録 |
+| updateSubnet(ipSubnetId, command) | IPサブネット更新 |
+| deleteSubnet(ipSubnetId) | IPサブネット論理削除 |
+| generateAddresses(ipSubnetId) | サブネット配下IPの利用状況を生成 |
 | assignToDevice(ipAddressId, deviceId) | 機器へ割当 |
 | release(ipAddressId) | 割当解除 |
-| search(query) | IP検索 |
+| searchSubnets(query) | IPサブネット検索 |
+| searchAddresses(query) | IPアドレス検索 |
 
-### IP割当ルール
+### IP管理ルール
 
+- プラン上限は個別IP数ではなく、`ip_subnet` の有効件数で判定する。
+- 同一テナント内でCIDRは重複不可とする。
+- 個別IPは必ず1つのIPサブネットに属する。
 - `UNUSED` または `RESERVED` のIPのみ機器へ割当可能。
 - 割当後は `IN_USE` とする。
 - 解除後は原則 `UNUSED` とする。
-- 同一テナント内でIPアドレスは重複不可。
 
 ## 5.6 MaintenanceContractService
 
@@ -278,17 +293,37 @@ com.example.dcim
 - DataCenter
 - Rack
 - Device
+- IpSubnet
 - IpAddress
 - MaintenanceContract
-- CloudResource
+- CloudResource（将来拡張）
 
-## 5.10 CloudResourceService
+## 5.10 CloudResourceService（将来拡張）
 
 ### 責務
 
 - クラウドアカウント管理
 - EC2 / コンテナ / EKS Pod等の手動登録
 - 将来の外部連携取込に備えたデータ管理
+
+初期リリースでは画面・業務処理の対象外とし、設計上の拡張ポイントとして保持する。
+
+## 5.11 CsvExportService / CsvImportService
+
+### 責務
+
+- CSVエクスポートは初期リリース必須機能として、主要マスタ・一覧データを対象に提供する。
+- CSVインポートは初期追加対象として、履歴・エラー管理を含めて設計する。
+- 権限、テナント分離、プラン上限、入力チェックをService層で検証する。
+
+### 主なメソッド
+
+| メソッド | 概要 |
+|---|---|
+| export(targetType, query) | 対象データをCSV出力し、履歴を保存する |
+| importCsv(targetType, file) | CSVを検証・登録し、取込履歴を保存する |
+| validateHeader(targetType, file) | ヘッダ妥当性を検証する |
+| findImportErrors(historyId) | 取込エラー一覧を取得する |
 
 ## 6. トランザクション方針
 
@@ -303,16 +338,19 @@ com.example.dcim
 
 - 画面表示制御はVaadin側で実施する。
 - 業務処理の最終的な権限チェックはService層で実施する。
-- 管理者、編集者、閲覧者のロールを想定する。
+- 基本設計のロール定義に合わせ、テナント管理者、運用者、閲覧者、契約管理者、監査閲覧者を想定する。
 
-| 操作 | Admin | Editor | Viewer |
-|---|:---:|:---:|:---:|
-| 参照 | ○ | ○ | ○ |
-| 登録 | ○ | ○ | × |
-| 更新 | ○ | ○ | × |
-| 削除 | ○ | × | × |
-| ユーザー管理 | ○ | × | × |
-| プラン管理 | ○ | × | × |
+| 操作 | テナント管理者 | 運用者 | 閲覧者 | 契約管理者 | 監査閲覧者 |
+|---|:---:|:---:|:---:|:---:|:---:|
+| 参照 | ○ | ○ | ○ | △ | ○ |
+| 登録 | ○ | ○ | × | × | × |
+| 更新 | ○ | ○ | × | × | × |
+| 削除 | ○ | ○ | × | × | × |
+| CSVエクスポート | ○ | ○ | ○ | △ | ○ |
+| CSVインポート | ○ | ○ | × | × | × |
+| ユーザー管理 | ○ | × | × | × | × |
+| プラン管理 | ○ | × | × | ○ | × |
+| 監査ログ閲覧 | ○ | × | × | × | ○ |
 
 ## 8. DTO方針
 

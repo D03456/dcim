@@ -22,7 +22,9 @@
 
 | カラム | 型 | NULL | 説明 |
 |---|---|---:|---|
+| created_by | bigint | NO | 作成者ユーザーID |
 | created_at | datetime(6) | NO | 作成日時 |
+| updated_by | bigint | NO | 更新者ユーザーID |
 | updated_at | datetime(6) | NO | 更新日時 |
 | deleted | boolean | NO | 論理削除フラグ |
 
@@ -50,17 +52,21 @@
 | 12 | rack_row | ラック列 |
 | 13 | rack | ラック |
 | 14 | device | 機器 |
-| 15 | ip_address | IPアドレス |
-| 16 | maintenance_contract | 保守契約 |
-| 17 | maintenance_contract_device | 保守契約・機器関連 |
-| 18 | contact | 連絡先 |
-| 19 | data_center_contact | DC・連絡先関連 |
-| 20 | tag | タグ |
-| 21 | tagged_resource | タグ関連 |
-| 22 | notification_setting | 通知設定 |
-| 23 | notification_log | 通知ログ |
-| 24 | cloud_account | クラウドアカウント |
-| 25 | cloud_resource | クラウドリソース |
+| 15 | ip_subnet | IPサブネット |
+| 16 | ip_address | IPアドレス利用状況 |
+| 17 | maintenance_contract | 保守契約 |
+| 18 | maintenance_contract_device | 保守契約・機器関連 |
+| 19 | contact | 連絡先 |
+| 20 | data_center_contact | DC・連絡先関連 |
+| 21 | tag | タグ |
+| 22 | tagged_resource | タグ関連 |
+| 23 | notification_setting | 通知設定 |
+| 24 | notification_log | 通知ログ |
+| 25 | csv_export_history | CSVエクスポート履歴 |
+| 26 | csv_import_history | CSVインポート履歴 |
+| 27 | csv_import_error | CSVインポートエラー |
+| 28 | cloud_account | 将来拡張：クラウドアカウント |
+| 29 | cloud_resource | 将来拡張：クラウドリソース |
 
 ## 4. 主要テーブル定義
 
@@ -90,19 +96,20 @@
 | plan_code | varchar(30) | NO | UK | FREE / STARTER / BUSINESS / ENTERPRISE |
 | plan_name | varchar(100) | NO |  | プラン名 |
 | max_data_centers | int | NO |  | DC上限 |
-| max_rack_rows | int | NO |  | ラック列上限 |
+| max_racks | int | NO |  | ラック上限 |
 | max_devices | int | NO |  | 機器上限 |
-| max_ip_addresses | int | NO |  | IP上限 |
+| max_ip_subnets | int | NO |  | IPサブネット上限 |
+| trial_days | int | YES |  | Freeトライアル日数。標準14 |
 | max_users | int | NO |  | ユーザー上限 |
 
 ### 初期データ
 
-| plan_code | max_data_centers | max_rack_rows | max_devices | max_ip_addresses | max_users |
-|---|---:|---:|---:|---:|---:|
-| FREE | 1 | 1 | 5 | 5 | 1 |
-| STARTER | 2 | 5 | 50 | 50 | 3 |
-| BUSINESS | 5 | 50 | 100 | 100 | 10 |
-| ENTERPRISE | 10 | 100 | 1000 | 1000 | 30 |
+| plan_code | trial_days | max_data_centers | max_racks | max_devices | max_ip_subnets | max_users |
+|---|---:|---:|---:|---:|---:|---:|
+| FREE | 14 | 1 | 3 | 20 | 3 | 1 |
+| STARTER | null | 2 | 5 | 50 | 10 | 3 |
+| BUSINESS | null | 5 | 50 | 100 | 50 | 10 |
+| ENTERPRISE | null | 10 | 100 | 1000 | 200 | 30 |
 
 ## 4.3 tenant_add_on
 
@@ -110,7 +117,7 @@
 |---|---|---:|---|---|
 | tenant_add_on_id | bigint | NO | PK | 追加枠ID |
 | tenant_id | bigint | NO | FK | テナントID |
-| add_on_type | varchar(30) | NO |  | IP_ADDRESS / DEVICE |
+| add_on_type | varchar(30) | NO |  | IP_SUBNET / DEVICE |
 | quantity_unit | int | NO |  | 追加単位数 |
 | effective_from | date | NO |  | 有効開始日 |
 | effective_to | date | YES |  | 有効終了日 |
@@ -140,7 +147,62 @@
 | idx_dc_tenant | tenant_id, deleted | INDEX |
 | uk_dc_name | tenant_id, formal_name, deleted | UNIQUE |
 
-## 4.5 rack
+## 4.5 building / floor / area / rack_row
+
+初期リリースから物理階層を必須で扱うため、以下の階層テーブルを実装対象とする。
+
+### building
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| building_id | bigint | NO | PK | 棟ID |
+| tenant_id | bigint | NO | FK | テナントID |
+| data_center_id | bigint | NO | FK | DC ID |
+| formal_name | varchar(150) | NO |  | 正式名称 |
+| display_name | varchar(150) | YES |  | 通称・呼称名 |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| updated_at | datetime(6) | NO |  | 更新日時 |
+| deleted | boolean | NO |  | 論理削除 |
+
+### floor
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| floor_id | bigint | NO | PK | フロアID |
+| tenant_id | bigint | NO | FK | テナントID |
+| building_id | bigint | NO | FK | 棟ID |
+| floor_name | varchar(100) | NO |  | フロア名 |
+| floor_number | varchar(30) | YES |  | 階数・表記 |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| updated_at | datetime(6) | NO |  | 更新日時 |
+| deleted | boolean | NO |  | 論理削除 |
+
+### area
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| area_id | bigint | NO | PK | 区画ID |
+| tenant_id | bigint | NO | FK | テナントID |
+| floor_id | bigint | NO | FK | フロアID |
+| area_name | varchar(100) | NO |  | 区画名 |
+| direction | varchar(30) | YES |  | EAST / WEST / SOUTH / NORTH / OTHER |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| updated_at | datetime(6) | NO |  | 更新日時 |
+| deleted | boolean | NO |  | 論理削除 |
+
+### rack_row
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| rack_row_id | bigint | NO | PK | ラック列ID |
+| tenant_id | bigint | NO | FK | テナントID |
+| area_id | bigint | NO | FK | 区画ID |
+| row_name | varchar(100) | NO |  | ラック列名 |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| updated_at | datetime(6) | NO |  | 更新日時 |
+| deleted | boolean | NO |  | 論理削除 |
+
+## 4.6 rack
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -156,7 +218,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.6 device
+## 4.7 device
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -186,18 +248,45 @@
 | idx_device_hostname | tenant_id, hostname, deleted | INDEX |
 | uk_device_formal_name | tenant_id, formal_name, deleted | UNIQUE |
 
-## 4.7 ip_address
+## 4.8 ip_subnet
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| ip_subnet_id | bigint | NO | PK | IPサブネットID |
+| tenant_id | bigint | NO | FK | テナントID |
+| subnet_name | varchar(150) | NO |  | サブネット名 |
+| cidr | varchar(64) | NO |  | CIDR表記 |
+| ip_version | varchar(10) | NO |  | IPV4 / IPV6 |
+| status | varchar(30) | NO |  | ACTIVE / RESERVED / RETIRED |
+| description | varchar(255) | YES |  | 備考 |
+| created_by | bigint | NO | FK | 作成者 |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
+| updated_at | datetime(6) | NO |  | 更新日時 |
+| deleted | boolean | NO |  | 論理削除 |
+
+### インデックス
+
+| 名称 | カラム | 種別 |
+|---|---|---|
+| uk_ip_subnet_cidr | tenant_id, cidr, deleted | UNIQUE |
+| idx_ip_subnet_tenant | tenant_id, deleted | INDEX |
+
+## 4.9 ip_address
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
 | ip_address_id | bigint | NO | PK | IPアドレスID |
 | tenant_id | bigint | NO | FK | テナントID |
+| ip_subnet_id | bigint | NO | FK | IPサブネットID |
 | ip_address | varchar(45) | NO |  | IPv4 / IPv6 |
 | ip_version | varchar(10) | NO |  | IPV4 / IPV6 |
 | device_id | bigint | YES | FK | 割当機器ID |
 | usage_status | varchar(30) | NO |  | UNUSED / IN_USE / RESERVED / RETIRED |
 | description | varchar(255) | YES |  | 備考 |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -208,7 +297,7 @@
 | uk_ip_address | tenant_id, ip_address, deleted | UNIQUE |
 | idx_ip_device | tenant_id, device_id, deleted | INDEX |
 
-## 4.8 maintenance_contract
+## 4.10 maintenance_contract
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -225,7 +314,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.9 maintenance_contract_device
+## 4.11 maintenance_contract_device
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -244,7 +333,7 @@
 | uk_contract_device | tenant_id, maintenance_contract_id, device_id, deleted | UNIQUE |
 | idx_contract_device_device | tenant_id, device_id, deleted | INDEX |
 
-## 4.10 contact
+## 4.12 contact
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -258,7 +347,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.11 tag
+## 4.13 tag
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -270,7 +359,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.12 tagged_resource
+## 4.14 tagged_resource
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -283,7 +372,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.13 notification_setting
+## 4.15 notification_setting
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -297,7 +386,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.14 notification_log
+## 4.16 notification_log
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -315,7 +404,67 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.15 cloud_account
+## 4.17 csv_export_history
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| csv_export_history_id | bigint | NO | PK | CSV出力履歴ID |
+| tenant_id | bigint | NO | FK | テナントID |
+| target_type | varchar(50) | NO |  | DEVICE / RACK / IP_SUBNET 等 |
+| condition_summary | text | YES |  | 出力条件概要 |
+| file_name | varchar(255) | NO |  | 出力ファイル名 |
+| record_count | int | NO |  | 出力件数 |
+| requested_by | bigint | NO | FK | 実行者 |
+| created_at | datetime(6) | NO |  | 作成日時 |
+
+## 4.18 csv_import_history
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| csv_import_history_id | bigint | NO | PK | CSV取込履歴ID |
+| tenant_id | bigint | NO | FK | テナントID |
+| target_type | varchar(50) | NO |  | DEVICE / RACK / IP_SUBNET 等 |
+| file_name | varchar(255) | NO |  | 取込ファイル名 |
+| status | varchar(30) | NO |  | PENDING / SUCCEEDED / FAILED / PARTIAL_FAILED |
+| total_count | int | NO |  | 総行数 |
+| success_count | int | NO |  | 成功行数 |
+| failure_count | int | NO |  | 失敗行数 |
+| requested_by | bigint | NO | FK | 実行者 |
+| created_at | datetime(6) | NO |  | 作成日時 |
+
+## 4.19 csv_import_error
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| csv_import_error_id | bigint | NO | PK | CSV取込エラーID |
+| csv_import_history_id | bigint | NO | FK | 取込履歴ID |
+| row_number | int | NO |  | 行番号 |
+| column_name | varchar(100) | YES |  | カラム名 |
+| error_message | varchar(500) | NO |  | エラー内容 |
+
+## 4.20 app_user / role / user_role
+
+### app_user
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| user_id | bigint | NO | PK | ユーザーID |
+| tenant_id | bigint | NO | FK | テナントID |
+| email | varchar(255) | NO |  | メールアドレス |
+| display_name | varchar(150) | NO |  | 表示名 |
+| status | varchar(30) | NO |  | ACTIVE / INVITED / SUSPENDED |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| updated_at | datetime(6) | NO |  | 更新日時 |
+| deleted | boolean | NO |  | 論理削除 |
+
+### role / user_role
+
+| テーブル | 主なカラム | 説明 |
+|---|---|---|
+| role | role_id, role_code, role_name | ロール定義 |
+| user_role | user_role_id, tenant_id, user_id, role_id | ユーザー・ロール関連 |
+
+## 4.21 cloud_account（将来拡張）
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -328,7 +477,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.16 cloud_resource
+## 4.22 cloud_resource（将来拡張）
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -349,3 +498,8 @@
 - 参照整合性はDB外部キーとアプリケーションチェックの併用とする。
 - 論理削除を採用するため、親データ削除時はService層で子データの存在を確認する。
 - 履歴保全が必要な保守契約・通知ログは物理削除しない。
+
+
+## 6. 初期リリース対象外テーブル
+
+`cloud_account`、`cloud_resource` は将来拡張の設計候補として定義するが、初期リリースの実装・マイグレーション対象からは除外する。
