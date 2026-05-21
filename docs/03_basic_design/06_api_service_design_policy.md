@@ -45,7 +45,7 @@ com.example.dcim
   ├── location
   ├── rack
   ├── device
-  ├── ipaddress
+  ├── ipsubnet
   ├── maintenance
   ├── cloud
   ├── notification
@@ -59,14 +59,14 @@ com.example.dcim
 | SVC-001 | AuthService | ログイン、認証情報取得 |
 | SVC-002 | TenantService | テナント情報取得、テナント状態確認 |
 | SVC-003 | SubscriptionService | プラン情報取得、利用上限算出 |
-| SVC-004 | UsageLimitService | DC、ラック列、機器、IP、ユーザーの上限チェック |
+| SVC-004 | UsageLimitService | DC、ラック、機器、IPサブネット、ユーザーの上限チェック |
 | SVC-005 | DataCenterService | データセンター登録、更新、検索、詳細取得 |
 | SVC-006 | LocationService | 建物、フロア、エリア、ラック列管理 |
 | SVC-007 | RackService | ラック登録、更新、検索、詳細取得 |
 | SVC-008 | RackTemplateService | ラックテンプレート管理 |
 | SVC-009 | RackPlacementService | ラック搭載位置チェック、空きU算出 |
 | SVC-010 | DeviceService | 機器登録、更新、検索、詳細取得 |
-| SVC-011 | IpAddressService | IPアドレス登録、割当、解放、検索 |
+| SVC-011 | IpSubnetService | IPサブネット登録、配下IP割当、解放、検索 |
 | SVC-012 | MaintenanceContractService | 保守契約登録、対象機器ひもづけ、検索 |
 | SVC-013 | MaintenanceAlertService | 保守期限通知対象抽出、保守未設定機器抽出 |
 | SVC-014 | CloudAccountService | クラウドアカウント管理 |
@@ -88,7 +88,8 @@ com.example.dcim
 | データセンター | `/api/v1/data-centers` |
 | ラック | `/api/v1/racks` |
 | 機器 | `/api/v1/devices` |
-| IPアドレス | `/api/v1/ip-addresses` |
+| IPサブネット | `/api/v1/ip-subnets` |
+| IP利用状況 | `/api/v1/ip-addresses` |
 | 保守契約 | `/api/v1/maintenance-contracts` |
 | クラウドアカウント | `/api/v1/cloud-accounts` |
 | クラウドリソース | `/api/v1/cloud-resources` |
@@ -202,8 +203,8 @@ sequenceDiagram
 |---|---|
 | メール通知 | SMTPまたはクラウドメールサービスを利用可能な設計にする |
 | AWS連携 | 初期は手動登録、将来的にAPI同期を検討する |
-| CSVインポート | 機器、IP、ラックの一括登録候補とする |
-| CSVエクスポート | 一覧画面の検索結果出力として実装候補とする |
+| CSVインポート | 機器、IPサブネット、ラックの一括登録対象とする |
+| CSVエクスポート | 一覧画面の検索結果出力として初期必須で実装する |
 
 ## 12. 命名方針
 

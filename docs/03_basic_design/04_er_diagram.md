@@ -15,7 +15,7 @@ erDiagram
     TENANT ||--o{ USER_ACCOUNT : has
     TENANT ||--o{ DATA_CENTER : has
     TENANT ||--o{ DEVICE : has
-    TENANT ||--o{ IP_SEGMENT : has
+    TENANT ||--o{ IP_SUBNET : has
     TENANT ||--o{ MAINTENANCE_CONTRACT : has
     TENANT ||--o{ CLOUD_ACCOUNT : has
     TENANT ||--o{ TAG : has
@@ -29,7 +29,7 @@ erDiagram
     RACK_ROW ||--o{ RACK : contains
     RACK ||--o{ DEVICE : installed
 
-    IP_SEGMENT ||--o{ IP_ADDRESS : contains
+    IP_SUBNET ||--o{ IP_ADDRESS : contains
     DEVICE ||--o{ IP_ADDRESS : assigned
 
     MAINTENANCE_CONTRACT ||--o{ MAINTENANCE_CONTRACT_DEVICE : includes
@@ -69,7 +69,7 @@ erDiagram
 | rack_template | ラックテンプレート |
 | device | 機器 |
 | device_alias | 機器別名 |
-| ip_segment | IPセグメント |
+| ip_subnet | IPサブネット |
 | ip_address | IPアドレス |
 | maintenance_contract | 保守契約 |
 | maintenance_contract_device | 保守契約対象機器 |
@@ -103,7 +103,7 @@ erDiagram
 | max_data_centers | INT | NOT NULL | DC上限 |
 | max_rack_rows | INT | NOT NULL | ラック列上限 |
 | max_devices | INT | NOT NULL | 機器上限 |
-| max_ip_addresses | INT | NOT NULL | IP上限 |
+| max_ip_subnets | INT | NOT NULL | IPサブネット上限 |
 | max_users | INT | NOT NULL | ユーザー上限 |
 | started_at | DATE | NOT NULL | 開始日 |
 | ended_at | DATE | NULL | 終了日 |
@@ -114,7 +114,7 @@ erDiagram
 |---|---|---|---|
 | add_on_option_id | CHAR(36) | PK | オプションID |
 | tenant_id | CHAR(36) | FK, NOT NULL | テナントID |
-| option_type | VARCHAR(30) | NOT NULL | IP_ADDRESS_PACK / DEVICE_PACK |
+| option_type | VARCHAR(30) | NOT NULL | IP_SUBNET_PACK / DEVICE_PACK |
 | quantity | INT | NOT NULL | 追加単位数 |
 | enabled | BOOLEAN | NOT NULL | 有効状態 |
 
@@ -163,15 +163,17 @@ erDiagram
 | rack_size_u | INT | NULL | 搭載U数 |
 | status | VARCHAR(30) | NOT NULL | ステータス |
 
-### 4.7 ip_address
+### 4.7 ip_subnet / ip_address
 
 | カラム | 型 | 制約 | 説明 |
 |---|---|---|---|
-| ip_address_id | CHAR(36) | PK | IPアドレスID |
+| ip_subnet_id | CHAR(36) | PK | IPサブネットID |
 | tenant_id | CHAR(36) | FK, NOT NULL | テナントID |
-| ip_segment_id | CHAR(36) | FK, NULL | IPセグメントID |
+| cidr | VARCHAR(50) | NOT NULL | CIDR表記 |
+| name | VARCHAR(255) | NULL | サブネット名 |
+| status | VARCHAR(30) | NOT NULL | Active/Reserved/Deprecated |
+| ip_address_id | CHAR(36) | PK | 個別IP利用状況ID |
 | address | VARCHAR(45) | NOT NULL | IPv4/IPv6アドレス |
-| status | VARCHAR(30) | NOT NULL | Available/Assigned/Reserved/Deprecated |
 | assigned_device_id | CHAR(36) | FK, NULL | 割当機器ID |
 | purpose | VARCHAR(255) | NULL | 用途 |
 
@@ -211,7 +213,8 @@ erDiagram
 |---|---|
 | 全主要テーブル | tenant_idにインデックスを付与 |
 | 一覧検索対象 | 名称、種別、ステータス、タグ関連にインデックスを検討 |
-| IPアドレス | tenant_id + address をユニーク制約候補とする |
+| IPサブネット | tenant_id + cidr をユニーク制約候補とする
+| IPアドレス | tenant_id + ip_subnet_id + address をユニーク制約候補とする |
 | 機器 | tenant_id + official_name、serial_numberを検索対象とする |
 | 保守契約 | tenant_id + end_date にインデックスを付与 |
 | 監査ログ | tenant_id + occurred_at にインデックスを付与 |

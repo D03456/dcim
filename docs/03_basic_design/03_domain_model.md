@@ -14,7 +14,7 @@
 | ロケーション管理 | データセンター、建物、フロア、エリア、ラック列を管理する | DataCenter、Building、Floor、Area、RackRow |
 | ラック管理 | ラックとラック内搭載位置を管理する | Rack、RackMountPosition、RackTemplate |
 | 機器管理 | サーバー、ネットワーク機器、別名、タグを管理する | Device、DeviceAlias、Tag |
-| IPアドレス管理 | IPアドレス、セグメント、割当状況を管理する | IpAddress、IpSegment |
+| IPサブネット管理 | IPサブネットと配下IPの割当状況を管理する | IpSubnet、IpAddress |
 | 保守契約管理 | 保守契約、対象機器、期限通知を管理する | MaintenanceContract、MaintenanceContractDevice、MaintenanceAlert |
 | クラウドリソース管理 | AWSアカウント、リージョン、EC2/EKS/コンテナ等を管理する | CloudAccount、CloudResource |
 | ユーザー・権限管理 | ユーザー、ロール、権限を管理する | UserAccount、Role、Permission |
@@ -43,7 +43,7 @@
 | maxDataCenters | Integer | DC上限 |
 | maxRackRows | Integer | ラック列上限 |
 | maxDevices | Integer | 機器上限 |
-| maxIpAddresses | Integer | IPアドレス上限 |
+| maxIpSubnets | Integer | IPサブネット上限 |
 | maxUsers | Integer | ユーザー上限 |
 
 ### 3.3 DataCenter
@@ -100,15 +100,17 @@
 | rackSizeU | Integer | 搭載U数 |
 | status | Enum | Planned / Active / Maintenance / Retired |
 
-### 3.7 IpAddress
+### 3.7 IpSubnet / IpAddress
 
 | 属性 | 型 | 説明 |
 |---|---|---|
-| ipAddressId | UUID | IPアドレスID |
+| ipSubnetId | UUID | IPサブネットID |
 | tenantId | UUID | テナントID |
-| ipSegmentId | UUID | セグメントID |
+| cidr | String | CIDR表記 |
+| name | String | サブネット名 |
+| status | Enum | Active / Reserved / Deprecated |
+| ipAddressId | UUID | 個別IP利用状況ID |
 | address | String | IPアドレス |
-| status | Enum | Available / Assigned / Reserved / Deprecated |
 | assignedDeviceId | UUID | 割当機器ID |
 | purpose | String | 用途 |
 
@@ -145,6 +147,7 @@
 | TenantId | テナント識別子 |
 | DataCenterId | データセンター識別子 |
 | RackPosition | ラック内U位置 |
+| IpSubnetCidr | IPサブネットCIDR
 | IpAddressValue | IPアドレス値 |
 | ContactInfo | メール・電話番号 |
 | DateRange | 開始日・終了日の期間 |
@@ -188,7 +191,7 @@ classDiagram
     RackRow "1" --> "0..*" Rack
     Rack "1" --> "0..*" Device
 
-    IpSegment "1" --> "0..*" IpAddress
+    IpSubnet "1" --> "0..*" IpAddress
     Device "1" --> "0..*" IpAddress
 
     MaintenanceContract "1" --> "0..*" Device
@@ -218,10 +221,10 @@ classDiagram
 | 制約ID | 制約内容 |
 |---|---|
 | DRC-001 | すべての主要データはtenantIdで分離する |
-| DRC-002 | 契約プラン上限を超えてDC、ラック列、機器、IP、ユーザーを登録できない |
+| DRC-002 | 契約プラン上限を超えてDC、ラック、機器、IPサブネット、ユーザーを登録できない |
 | DRC-003 | FreeプランはDC 1件、ラック列1本、機器5台、IP5個、ユーザー1名まで |
-| DRC-004 | IPアドレスと機器台数はオプションで追加できる |
-| DRC-005 | IPアドレス追加は256個単位とする |
+| DRC-004 | IPサブネットと機器台数はオプションで追加できる |
+| DRC-005 | IPサブネット追加は10サブネット単位とする |
 | DRC-006 | 機器追加は100台単位とする |
 | DRC-007 | ラック内のU位置は同一ラック内で重複不可とする |
 | DRC-008 | 保守契約には複数の機器をひもづけ可能とする |

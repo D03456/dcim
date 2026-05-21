@@ -37,10 +37,10 @@ flowchart TD
     DeviceList --> DeviceDetail
     DeviceList --> DeviceEdit[SCR-014 機器登録・編集]
     DeviceDetail --> DeviceEdit
-    DeviceDetail --> IPList[SCR-015 IPアドレス一覧]
+    DeviceDetail --> IPList[SCR-015 IPサブネット一覧]
     DeviceDetail --> MaintenanceDetail[SCR-018 保守契約詳細]
 
-    IPList --> IPEdit[SCR-016 IPアドレス登録・編集]
+    IPList --> IPEdit[SCR-016 IPサブネット登録・編集]
 
     MaintenanceList[SCR-017 保守契約一覧] --> MaintenanceDetail
     MaintenanceList --> MaintenanceEdit[SCR-019 保守契約登録・編集]
@@ -69,7 +69,7 @@ flowchart TD
 | データセンター | SCR-003 | DC、建物、フロア、エリア管理の入口 |
 | ラック | SCR-008 | ラック管理の入口 |
 | 機器 | SCR-012 | サーバー/NW機器管理の入口 |
-| IPアドレス | SCR-015 | IP利用状況管理の入口 |
+| IPサブネット | SCR-015 | IPサブネット・IP利用状況管理の入口 |
 | 保守契約 | SCR-017 | 保守契約管理の入口 |
 | 保守未設定 | SCR-020 | 保守契約未設定機器の確認 |
 | 保守期限アラート | SCR-021 | 期限切れ/期限間近契約の確認 |
