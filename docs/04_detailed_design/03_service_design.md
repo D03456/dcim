@@ -79,6 +79,7 @@ com.example.dcim
 | validateCanCreateRack(tenantId) | ラック追加可否を検証 |
 | validateCanCreateDevice(tenantId) | 機器追加可否を検証 |
 | validateCanCreateIpSubnet(tenantId) | IPサブネット追加可否を検証 |
+| validateCanCreateTag(tenantId) | タグ追加可否を検証 |
 | validateCanCreateUser(tenantId) | ユーザー追加可否を検証 |
 
 ### 判定方針
@@ -287,6 +288,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 ### 責務
 
 - タグ登録・更新・削除
+- タグ登録前の `PlanLimitService.validateCanCreateTag()` 実行
 - 各リソースへのタグ付与・解除
 - タグによる検索条件提供
 
@@ -299,6 +301,10 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 - IpAddress
 - MaintenanceContract
 - CloudResource（将来拡張）
+
+### タグ上限
+
+タグ数のプラン上限はタグマスタ件数で判定し、リソースへのタグ付け件数は上限対象外とする。
 
 ## 5.10 CloudResourceService（将来拡張）
 
@@ -316,6 +322,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 
 - CSVエクスポートは初期リリース必須機能として、主要マスタ・一覧データを対象に提供する。
 - CSVインポートは初期追加対象として、履歴・エラー管理を含めて設計する。
+- FreeプランのCSVインポートは1ファイル100行まで許可する。101行以上はファイル単位エラーとする。
 - 権限、テナント分離、プラン上限、入力チェックをService層で検証する。
 
 ### 主なメソッド
@@ -334,7 +341,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 | 登録・更新・削除 | REQUIRED |
 | 検索・参照 | readOnly |
 | 通知送信 | ログ作成と送信結果更新を分離 |
-| 一括登録 | 1件単位の成功・失敗管理を検討 |
+| 一括登録 | ヘッダ不一致・ファイル形式不正はファイル単位でFAILED。行単位の入力/参照/上限エラーは正常行のみ登録し、失敗行を `csv_import_error` に記録してPARTIAL_FAILEDとする |
 
 ## 7. 認可チェック方針
 
