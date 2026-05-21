@@ -77,7 +77,9 @@
 | tenant_id | bigint | NO | PK | テナントID |
 | tenant_name | varchar(100) | NO |  | テナント名 |
 | plan_code | varchar(30) | NO | FK | 契約プランコード |
-| status | varchar(30) | NO |  | ACTIVE / SUSPENDED |
+| trial_start_date | date | YES |  | Freeトライアル開始日 |
+| trial_end_date | date | YES |  | Freeトライアル終了日 |
+| status | varchar(30) | NO |  | ACTIVE / SUSPENDED / TRIAL_EXPIRED / CANCELLED |
 | created_at | datetime(6) | NO |  | 作成日時 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |

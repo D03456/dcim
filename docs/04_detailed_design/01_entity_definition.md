@@ -32,7 +32,7 @@
 | tenantId | Long | ○ | テナントID |
 | tenantName | String | ○ | テナント名 |
 | planType | PlanType | ○ | 契約プラン |
-| status | TenantStatus | ○ | 利用状態 |
+| status | TenantStatus | ○ | 利用状態。ACTIVE / SUSPENDED / TRIAL_EXPIRED など |
 | createdAt | LocalDateTime | ○ | 作成日時 |
 | updatedAt | LocalDateTime | ○ | 更新日時 |
 
@@ -411,6 +411,7 @@
 | 列挙型 | 値 |
 |---|---|
 | PlanType | FREE, STARTER, BUSINESS, ENTERPRISE |
+| TenantStatus | ACTIVE, SUSPENDED, TRIAL_EXPIRED, CANCELLED |
 | DeviceType | SERVER, SWITCH, ROUTER, FIREWALL, LOAD_BALANCER, STORAGE, OTHER |
 | IpVersion | IPV4, IPV6 |
 | IpSubnetStatus | ACTIVE, RESERVED, RETIRED |
