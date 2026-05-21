@@ -1,235 +1,235 @@
-# Planning and Concept
+# 企画・構想整理
 
-## 1. Service Name
+## 1. サービス名
 
 **Data Center Asset & Infrastructure Manager**
 
-Short name: **DCIM Manager**
+略称案：**DCIM Manager**
 
-## 2. Service Overview
+## 2. サービス概要
 
-DCIM Manager is a lightweight SaaS product for centrally managing data centers, buildings, floors, areas, rack rows, racks, physical devices, network devices, IP subnets, maintenance contracts, and related operational information.
+DCIM Manager は、データセンター、棟、フロア、エリア、ラック列、ラック、物理機器、ネットワーク機器、IPサブネット、保守契約、関連する運用情報を一元管理するための軽量DCIM SaaSです。
 
-The service starts from small-scale use and is designed for data center operators, infrastructure engineers, corporate IT teams, MSPs, and SIers who currently manage infrastructure assets with spreadsheets or fragmented internal documents.
+小規模利用から開始できるサービスとして、データセンター管理者、インフラ担当者、情シス、MSP、SIerなどが、Excelや個別資料で管理しているインフラ資産情報を、構造化された検索可能な台帳として整理できることを目的とします。
 
-The initial product focuses on replacing spreadsheet-based infrastructure ledgers with a structured, searchable, and maintainable system.
+初期プロダクトでは、既存の大規模DCIMというより、Excel管理から脱却するための実用的なインフラ台帳を目指します。
 
-## 3. Background and Problems
+## 3. 背景・課題
 
-### 3.1 Current Problems
+### 3.1 現状の課題
 
-- Data center, rack, device, IP, and maintenance contract information is often scattered across spreadsheets or individually managed files.
-- Rack installation positions, official device names, aliases, common names, and maintenance expiration dates are not consistently organized.
-- Maintenance contract expiration checks tend to depend on individual knowledge and manual work.
-- IP address ledgers and device information are often managed separately, making it difficult to check IP usage and availability.
-- On-premises devices and future cloud resources may be managed separately, making the overall infrastructure picture hard to understand.
-- Once operational data grows, adding physical hierarchy such as buildings, floors, areas, and rack rows later becomes difficult and costly.
+- データセンター、ラック、機器、IP、保守契約の情報がExcelや個人管理に分散しやすい。
+- ラック搭載位置、機器の正式名称、通称名、別名、保守期限などが整理されていない。
+- 保守切れや契約漏れの確認が属人的になりやすい。
+- IPアドレス台帳と機器情報が分離しており、IP利用状況や空き状況の確認に手間がかかる。
+- オンプレ機器と将来的なクラウドリソースが別管理になり、全体像を把握しにくい。
+- 運用データが増えた後に、棟・フロア・エリア・ラック列などの物理階層を追加すると、データモデル変更や既存データ移行の負荷が大きくなる。
 
-### 3.2 Goals
+### 3.2 解決したいこと
 
-- Manage data centers, buildings, floors, areas, rack rows, racks, devices, IP subnets, and maintenance contracts hierarchically.
-- Link devices and maintenance contracts so that users can identify devices without contracts and contracts approaching expiration.
-- Improve searchability with official names, common names, aliases, and tags.
-- Provide a trial-friendly plan that allows users to evaluate the service before moving to paid plans.
-- Design the domain model so that cloud resource management can be added in the future without disrupting the core physical asset model.
+- データセンター、棟、フロア、エリア、ラック列、ラック、機器、IPサブネット、保守契約を階層的に管理する。
+- 保守契約と機器を紐づけ、未契約機器や期限切れ予定を把握できるようにする。
+- 正式名称に加え、通称名・別名・タグで検索しやすくする。
+- トライアルしやすいプランを用意し、有料プランへの移行判断をしやすくする。
+- 将来的なクラウドリソース管理に対応できるよう、初期段階から拡張しやすいドメイン構造にする。
 
-## 4. Target Users
+## 4. 想定ユーザー
 
-| Category | Target User | Main Purpose |
+| 区分 | 想定ユーザー | 主な利用目的 |
 |---|---|---|
-| Corporate IT | Internal infrastructure teams | Manage servers, network devices, IP subnets, and maintenance contracts |
-| Data center operators | DC operations teams | Manage racks, installation positions, facility hierarchy, and contacts |
-| MSP / SIer | Customer infrastructure managers | Manage multiple customers and multiple data centers |
-| Small businesses | Startups and SMBs | Replace spreadsheet-based infrastructure ledgers |
-| Security / audit teams | Asset management and audit staff | Confirm managed devices, maintenance status, and locations |
+| 情シス | 社内インフラ担当者 | サーバー・ネットワーク機器・IPサブネット・保守契約管理 |
+| データセンター管理者 | DC運用担当 | ラック・機器搭載位置・物理階層・連絡先管理 |
+| MSP / SIer | 顧客インフラ管理担当 | 複数顧客・複数データセンターの管理 |
+| 小規模事業者 | スタートアップ・中小企業 | Excel代替の簡易インフラ台帳 |
+| セキュリティ・監査担当 | 資産管理・監査担当 | 管理対象機器、保守状況、所在確認 |
 
-## 5. Value Proposition
+## 5. 提供価値
 
-### 5.1 Core Value
+### 5.1 基本価値
 
-- Centralized data center asset management
-- Hierarchical facility management from data center to rack row and rack
-- Rack-based device placement management
-- IP subnet management
-- Maintenance contract expiration management
-- Improved searchability across assets
-- Visualization of devices without maintenance contracts and expiration risks
-- Minimum audit trail for asset and contract changes
+- データセンター資産の一元管理
+- データセンターからラック列・ラックまでの階層的な施設管理
+- ラック単位の機器配置管理
+- IPサブネット管理
+- 保守契約の期限管理
+- 管理対象の検索性向上
+- 未保守機器や期限切れリスクの可視化
+- 資産・契約変更に対する最低限の監査情報の保持
 
-### 5.2 Differentiation
+### 5.2 差別化案
 
-- Lightweight DCIM focused on replacing spreadsheet-based infrastructure ledgers.
-- Trial-friendly Free plan with a limited trial period instead of overly restrictive resource limits.
-- Data center, rack, device, IP subnet, and maintenance contract management in one operational workflow.
-- Search by official name, common name, alias, and tags.
-- Bidirectional visibility between devices and maintenance contracts.
-- Physical hierarchy support from the initial release, including buildings, floors, areas, and rack rows.
-- Future expandability toward AWS and other cloud resource management.
+- Excel台帳の置き換えに特化した軽量DCIMであること。
+- Freeプランは極端な機能制限ではなく、14日間のトライアルとして評価しやすくすること。
+- データセンター、ラック、機器、IPサブネット、保守契約をひとつの業務導線で管理できること。
+- 正式名称以外に、通称名・別名・タグを利用して検索できること。
+- 保守契約から機器を確認でき、機器側からも保守有無を確認できること。
+- 初期リリースから棟・フロア・エリア・ラック列を含む物理階層を扱えること。
+- 将来的にAWSなどのクラウド資産も管理対象に含められる拡張性を持つこと。
 
-## 6. Service Scope
+## 6. サービススコープ
 
-### 6.1 Initial Release Scope
+### 6.1 初期リリース対象
 
-The following items are included in the initial release.
+初期リリースでは、以下を対象とします。
 
-- Tenant management
-- User management
-- Plan management
-- Data center management
-- Building management
-- Floor management
-- Area management
-- Rack row management
-- Rack management
-- Server device management
-- Network device management
-- IP subnet management
-- Maintenance contract management
-- Tag management
-- Common name and alias management
-- Notification feature
-- Search and list views
-- Plan limit control
-- Minimum audit trail
-  - Created by
-  - Created at
-  - Updated by
-  - Updated at
+- テナント管理
+- ユーザー管理
+- プラン管理
+- データセンター管理
+- 棟管理
+- フロア管理
+- エリア管理
+- ラック列管理
+- ラック管理
+- サーバー機器管理
+- ネットワーク機器管理
+- IPサブネット管理
+- 保守契約管理
+- タグ管理
+- 通称名・別名管理
+- 通知機能
+- 検索・一覧表示
+- プラン上限制御
+- 最低限の監査情報
+  - 作成者
+  - 作成日時
+  - 更新者
+  - 更新日時
 
-### 6.2 Future Extension Scope
+### 6.2 将来拡張対象
 
-The following items are future extensions and are not included in the initial release.
+以下は将来拡張とし、初期リリースには含めません。
 
-- AWS account management
-- AWS region management
-- EC2 management
-- Container management
-- EKS Pod management
-- Import / export
-- Full audit log history
-- Public API
-- Fine-grained permission roles
-- Rack diagram visualization
-- Device templates
-- Manufacturer device information integration
+- AWSアカウント管理
+- AWSリージョン管理
+- EC2管理
+- コンテナ管理
+- EKS Pod管理
+- インポート / エクスポート
+- 完全な監査ログ履歴
+- API公開
+- 権限ロールの細分化
+- ラック図の視覚化
+- 機器テンプレート
+- メーカー機器情報連携
 
-## 7. Plan Concept
+## 7. プラン構想
 
-The Free plan should be useful enough for evaluation, but limited by trial period.
+Freeプランは、実用的な評価ができる程度に制限を緩和しつつ、利用期間を14日間に限定します。
 
-| Plan | Trial / Contract | Data Center Limit | Rack Limit | Device Limit | Subnet Limit | User Limit |
+| プラン | 利用形態 | DC上限 | ラック上限 | 機器上限 | サブネット上限 | ユーザー上限 |
 |---|---|---:|---:|---:|---:|---:|
-| Free | 14-day trial | 1 | 3 | 20 | 3 | 1 |
-| Starter | Monthly / Annual | 2 | 5 | 50 | 10 | 3 |
-| Business | Monthly / Annual | 5 | 50 | 100 | 50 | 10 |
-| Enterprise | Custom | 10 | 100 | 1000 | 200 | 30 |
+| Free | 14日間トライアル | 1 | 3 | 20 | 3 | 1 |
+| Starter | 月額 / 年額 | 2 | 5 | 50 | 10 | 3 |
+| Business | 月額 / 年額 | 5 | 50 | 100 | 50 | 10 |
+| Enterprise | 個別契約 | 10 | 100 | 1000 | 200 | 30 |
 
-### 7.1 Free Plan Policy
+### 7.1 Freeプラン方針
 
-The Free plan is intended for trial use.
+Freeプランは試用を目的とします。
 
-- Usage period: 14 days
-- Purpose: allow users to evaluate whether the service can replace spreadsheet-based management
-- Resource limits are relaxed enough to register a small but realistic environment
-- After the trial period, users should upgrade to a paid plan to continue using the service
+- 利用期間は14日間とする。
+- Excel管理から移行する価値があるかを評価できることを目的とする。
+- 小規模ながら現実的な環境を登録できる程度にリソース上限を緩和する。
+- トライアル終了後も継続利用する場合は、有料プランへの移行を促す。
 
-## 8. Option Concept
+## 8. オプション構想
 
-| Option | Unit | Description |
+| オプション | 単位 | 内容 |
 |---|---:|---|
-| Subnet addition | 10 subnets | Add manageable IP subnet capacity |
-| Device addition | 100 devices | Add manageable device capacity |
+| サブネット追加 | 10サブネット単位 | 管理可能なIPサブネット数を追加 |
+| 機器追加 | 100台単位 | 管理可能な機器台数を追加 |
 
-## 9. Development Policy
+## 9. 開発方針
 
-| Item | Policy |
+| 項目 | 方針 |
 |---|---|
-| Development method | Waterfall |
-| Design policy | Domain separation with DDD awareness |
-| Backend | Java / Spring Boot |
-| Security | Spring Security |
-| UI | Vaadin |
-| Database | MariaDB |
-| Build | Maven |
-| Support | Lombok |
-| Development support | Use OpenClaw for instruction and review support |
+| 開発手法 | ウォーターフォール |
+| 設計方針 | DDDを意識したドメイン分割 |
+| バックエンド | Java / Spring Boot |
+| セキュリティ | Spring Security |
+| 画面 | Vaadin |
+| DB | MariaDB |
+| ビルド | Maven |
+| 補助 | Lombok |
+| 開発支援 | OpenClawを指示・レビュー役として利用 |
 
-## 10. Initial Release Priority
+## 10. 初期リリースの優先度
 
-### Must-have: Minimum Practical Version
+### Must-have：最小実用構成
 
-- Tenant management
-- User management
-- Data center / building / floor / area / rack row / rack management
-- Device management
-- IP subnet management
-- Maintenance contract management
-- Search and list views
-- Plan limit control
-- Minimum audit trail
+- テナント管理
+- ユーザー管理
+- データセンター / 棟 / フロア / エリア / ラック列 / ラック管理
+- 機器管理
+- IPサブネット管理
+- 保守契約管理
+- 検索・一覧
+- プラン上限制御
+- 最低限の監査情報
 
-### Should-have: Practical Operation Features
+### Should-have：実運用向け機能
 
-- Tag management
-- Common name and alias management
-- Maintenance expiration notification
-- Search for devices without maintenance contracts
-- Maintenance contract and device linkage
+- タグ管理
+- 通称名・別名管理
+- 保守切れ通知
+- 未保守機器検索
+- 保守契約と機器の紐づけ
 
-### Could-have: Advanced Features
+### Could-have：高度化機能
 
-- CSV import / export
-- Rack templates
-- Rack diagram visualization
-- Cloud resource management
-- API integration
-- Full audit log history
-- Manufacturer device information integration
-- Advanced permission management
+- CSVインポート / エクスポート
+- ラックテンプレート
+- ラック図の視覚化
+- クラウドリソース管理
+- API連携
+- 完全な監査ログ履歴
+- メーカー機器情報連携
+- 高度な権限管理
 
-## 11. Recommended Initial Policy
+## 11. 推奨方針
 
-The initial development should include the minimum practical version plus selected practical operation features.
+初期開発では、最小実用構成に加えて、実運用で価値が出やすい一部機能を含めます。
 
-Specifically, the initial release should include:
+具体的には、初期リリースに以下を含めます。
 
-- Physical hierarchy from data center to rack row and rack
-- Device management
-- IP subnet management
-- Tag management
-- Common name and alias management
-- Maintenance contract and device linkage
-- Search for devices without maintenance contracts
-- Maintenance expiration notification two months before expiration
-- Plan limit control
-- Minimum audit trail
+- データセンターからラック列・ラックまでの物理階層
+- 機器管理
+- IPサブネット管理
+- タグ管理
+- 通称名・別名管理
+- 保守契約と機器の紐づけ
+- 未保守機器検索
+- 保守期限2か月前通知
+- プラン上限制御
+- 最低限の監査情報
 
-Reasons:
+理由は以下の通りです。
 
-- If buildings, floors, areas, and rack rows are added later, the data model and existing data migration become more difficult.
-- A simple asset ledger alone is not differentiated enough.
-- Maintenance contracts, notifications, and searchability provide practical value from the beginning.
-- Managing IP capacity by subnet is more natural than managing it by individual IP address count.
-- Cloud resource management should remain a future extension to avoid expanding the initial scope too much.
+- 棟・フロア・エリア・ラック列を後から追加すると、データモデル変更や既存データ移行が大きくなるため。
+- 単なる資産台帳だけでは差別化が弱いため。
+- 保守契約・通知・検索性を初期から入れることで、実用価値を出しやすいため。
+- IPの制限単位は個別IP数よりもサブネット数の方が実運用に合いやすいため。
+- クラウドリソース管理は初期スコープを広げすぎないよう、将来拡張に留めるため。
 
-## 12. Success Criteria
+## 12. 成功条件
 
-- Users feel that the service is worth migrating to from spreadsheets.
-- Small users can evaluate the service during the 14-day Free trial.
-- Users can start registering initial data within 30 minutes.
-- Users can register at least one realistic rack environment during the trial.
-- Users can search by device name, alias, IP subnet, and tag.
-- Users can list devices with maintenance contracts expiring within two months.
-- Users can list devices without maintenance contracts.
-- The domain structure can be extended to cloud resource management in the future.
+- Excelから移行する価値があると感じられる。
+- 小規模利用者が14日間のFreeトライアルで評価できる。
+- 30分以内に初期データ登録を開始できる。
+- トライアル期間中に、現実的な1ラック分の環境を登録できる。
+- 機器名・別名・IPサブネット・タグで検索できる。
+- 保守期限2か月以内の機器を一覧表示できる。
+- 未保守機器を一覧表示できる。
+- 将来的にクラウド管理へ拡張できるドメイン構造になっている。
 
-## 13. Future Considerations
+## 13. 今後の検討事項
 
-- Final pricing
-- Contract and billing method
-- Tenant separation method
-- Data import method
-- Permission role design
-- Whether full audit logs should be added soon after initial release
-- Priority of cloud resource management
-- Priority of rack diagram visualization
+- 正式な料金設定
+- 契約・課金方式
+- テナント分離方式
+- データインポート方式
+- 権限ロール設計
+- 完全な監査ログを初期リリース直後に追加するか
+- クラウドリソース管理の優先度
+- ラック図表示の優先度
