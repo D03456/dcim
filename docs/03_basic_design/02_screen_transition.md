@@ -49,8 +49,9 @@ flowchart TD
     NoMaintenance[SCR-020 保守未設定機器一覧] --> DeviceDetail
     MaintenanceAlert --> MaintenanceDetail
 
-    CloudAccount[SCR-022 クラウドアカウント一覧] --> CloudResourceList[SCR-023 クラウドリソース一覧]
-    CloudResourceList --> CloudResourceDetail[SCR-024 クラウドリソース詳細]
+    FutureCloud[将来拡張: クラウド管理] -.-> CloudAccount[SCR-022 クラウドアカウント一覧]
+    CloudAccount -.-> CloudResourceList[SCR-023 クラウドリソース一覧]
+    CloudResourceList -.-> CloudResourceDetail[SCR-024 クラウドリソース詳細]
 
     Tag[SCR-025 タグ管理]
     Notification[SCR-026 通知設定]
@@ -73,7 +74,7 @@ flowchart TD
 | 保守契約 | SCR-017 | 保守契約管理の入口 |
 | 保守未設定 | SCR-020 | 保守契約未設定機器の確認 |
 | 保守期限アラート | SCR-021 | 期限切れ/期限間近契約の確認 |
-| クラウド | SCR-022 | クラウドアカウント・リソース管理 |
+| 将来拡張：クラウド | SCR-022 | クラウドアカウント・リソース管理 |
 | タグ管理 | SCR-025 | 共通タグ管理 |
 | 通知設定 | SCR-026 | 通知条件・通知先管理 |
 | ユーザー管理 | SCR-027 | ユーザー・ロール管理 |

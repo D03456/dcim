@@ -16,7 +16,7 @@
 | 機器管理 | サーバー、ネットワーク機器、別名、タグを管理する | Device、DeviceAlias、Tag |
 | IPサブネット管理 | IPサブネットと配下IPの割当状況を管理する | IpSubnet、IpAddress |
 | 保守契約管理 | 保守契約、対象機器、期限通知を管理する | MaintenanceContract、MaintenanceContractDevice、MaintenanceAlert |
-| クラウドリソース管理 | AWSアカウント、リージョン、EC2/EKS/コンテナ等を管理する | CloudAccount、CloudResource |
+| 将来拡張：クラウドリソース管理 | AWSアカウント、リージョン、EC2/EKS/コンテナ等を管理する | CloudAccount、CloudResource |
 | ユーザー・権限管理 | ユーザー、ロール、権限を管理する | UserAccount、Role、Permission |
 | 通知管理 | メール通知条件、通知先、通知履歴を管理する | NotificationSetting、NotificationHistory |
 | 監査ログ管理 | 操作履歴を管理する | AuditLog |
@@ -129,7 +129,7 @@
 | notifyBeforeDays | Integer | 期限通知日数。標準60日 |
 | status | Enum | Active / ExpiringSoon / Expired / Cancelled |
 
-### 3.9 CloudResource
+### 3.9 CloudResource（将来拡張）
 
 | 属性 | 型 | 説明 |
 |---|---|---|
@@ -214,7 +214,7 @@ classDiagram
 | IpAllocationService | IPアドレス割当、解放、重複チェック |
 | MaintenanceAlertService | 保守期限2か月前通知対象の抽出 |
 | DeviceSearchService | 保守未設定機器、タグ、別名、設置場所による検索 |
-| CloudResourceSyncService | クラウドリソースの同期方針管理 |
+| CloudResourceSyncService | 将来拡張。クラウドリソースの同期方針管理 |
 | AuthorizationService | ロール・権限による操作可否判定 |
 
 ## 7. ドメイン制約

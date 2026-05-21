@@ -73,8 +73,8 @@ erDiagram
 | ip_address | IPアドレス |
 | maintenance_contract | 保守契約 |
 | maintenance_contract_device | 保守契約対象機器 |
-| cloud_account | クラウドアカウント |
-| cloud_resource | クラウドリソース |
+| cloud_account | 将来拡張：クラウドアカウント |
+| cloud_resource | 将来拡張：クラウドリソース |
 | tag | タグ |
 | entity_tag | エンティティタグ関連 |
 | notification_setting | 通知設定 |
@@ -201,7 +201,7 @@ erDiagram
 | maintenance_contract_id | CHAR(36) | FK, NOT NULL | 保守契約ID |
 | device_id | CHAR(36) | FK, NOT NULL | 機器ID |
 
-### 4.10 cloud_account / cloud_resource
+### 4.10 cloud_account / cloud_resource（将来拡張）
 
 | テーブル | 主なカラム | 説明 |
 |---|---|---|

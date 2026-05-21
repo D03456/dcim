@@ -69,8 +69,8 @@ com.example.dcim
 | SVC-011 | IpSubnetService | IPサブネット登録、配下IP割当、解放、検索 |
 | SVC-012 | MaintenanceContractService | 保守契約登録、対象機器ひもづけ、検索 |
 | SVC-013 | MaintenanceAlertService | 保守期限通知対象抽出、保守未設定機器抽出 |
-| SVC-014 | CloudAccountService | クラウドアカウント管理 |
-| SVC-015 | CloudResourceService | クラウドリソース管理、同期結果保存 |
+| SVC-014 | CloudAccountService | 将来拡張。クラウドアカウント管理 |
+| SVC-015 | CloudResourceService | 将来拡張。クラウドリソース管理、同期結果保存 |
 | SVC-016 | TagService | タグ登録、更新、付与、解除 |
 | SVC-017 | NotificationService | 通知設定、通知履歴管理、メール通知実行 |
 | SVC-018 | UserAccountService | ユーザー招待、更新、無効化、ロール変更 |
@@ -91,8 +91,8 @@ com.example.dcim
 | IPサブネット | `/api/v1/ip-subnets` |
 | IP利用状況 | `/api/v1/ip-addresses` |
 | 保守契約 | `/api/v1/maintenance-contracts` |
-| クラウドアカウント | `/api/v1/cloud-accounts` |
-| クラウドリソース | `/api/v1/cloud-resources` |
+| 将来拡張：クラウドアカウント | `/api/v1/cloud-accounts` |
+| 将来拡張：クラウドリソース | `/api/v1/cloud-resources` |
 | タグ | `/api/v1/tags` |
 | ユーザー | `/api/v1/users` |
 | 利用状況 | `/api/v1/usage` |
@@ -202,7 +202,7 @@ sequenceDiagram
 | 外部連携 | 方針 |
 |---|---|
 | メール通知 | SMTPまたはクラウドメールサービスを利用可能な設計にする |
-| AWS連携 | 初期は手動登録、将来的にAPI同期を検討する |
+| AWS連携 | 将来拡張。手動登録およびAPI同期を検討する |
 | CSVインポート | 機器、IPサブネット、ラックの一括登録対象とする |
 | CSVエクスポート | 一覧画面の検索結果出力として初期必須で実装する |
 
