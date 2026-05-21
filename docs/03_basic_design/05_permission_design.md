@@ -36,8 +36,8 @@
 | PERM_IP_EDIT | IP編集 | IPサブネットと配下IP利用状況を登録・編集できる |
 | PERM_MAINTENANCE_VIEW | 保守閲覧 | 保守契約を閲覧できる |
 | PERM_MAINTENANCE_EDIT | 保守編集 | 保守契約を登録・編集できる |
-| PERM_CLOUD_VIEW | クラウド閲覧 | クラウドリソースを閲覧できる |
-| PERM_CLOUD_EDIT | クラウド編集 | クラウド情報を登録・編集できる |
+| PERM_CLOUD_VIEW | クラウド閲覧 | 将来拡張。クラウドリソースを閲覧できる |
+| PERM_CLOUD_EDIT | クラウド編集 | 将来拡張。クラウド情報を登録・編集できる |
 | PERM_TAG_EDIT | タグ編集 | タグを登録・編集できる |
 | PERM_NOTIFICATION_EDIT | 通知設定編集 | 通知設定を編集できる |
 | PERM_USER_VIEW | ユーザー閲覧 | ユーザー一覧を閲覧できる |
@@ -86,7 +86,7 @@
 | SCR-012〜014 | 機器関連 | PERM_DEVICE_VIEW / PERM_DEVICE_EDIT |
 | SCR-015〜016 | IP関連 | PERM_IP_VIEW / PERM_IP_EDIT |
 | SCR-017〜021 | 保守契約関連 | PERM_MAINTENANCE_VIEW / PERM_MAINTENANCE_EDIT |
-| SCR-022〜024 | クラウド関連 | PERM_CLOUD_VIEW / PERM_CLOUD_EDIT |
+| SCR-022〜024 | クラウド関連 | 将来拡張。PERM_CLOUD_VIEW / PERM_CLOUD_EDIT |
 | SCR-025 | タグ管理 | PERM_TAG_EDIT |
 | SCR-026 | 通知設定 | PERM_NOTIFICATION_EDIT |
 | SCR-027〜029 | ユーザー・権限 | PERM_USER_VIEW / PERM_USER_EDIT |
