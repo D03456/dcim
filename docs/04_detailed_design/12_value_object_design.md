@@ -6,10 +6,19 @@
 
 ## 2. 設計方針
 
-- 業務上の意味を持つ値はプリミティブ型のまま扱わず、Value Object化を検討する。
+- 業務上の意味を持ち、不正値による障害リスクが高い値は初期リリースからValue Object化する。
 - 不正な値を生成時点で拒否する。
 - JPA Entityへの保存時は、必要に応じて文字列・数値へ変換する。
 - 画面DTOでは扱いやすさを優先し、Domain変換時に検証する。
+
+## 2.1 初期必須 / 段階導入の区分
+
+| 区分 | 対象 | 方針 |
+|---|---|---|
+| 初期必須 | `IpSubnetCidr`, `IpAddressValue`, `RackMountRange`, `RackHeightUnit`, `NotificationDaysBefore`, `EmailAddress`, `DateRange` | 形式・範囲・整合性の不正が重大なため初期から導入する |
+| 初期推奨 | `FormalName`, `DisplayName`, `RackNumber`, `HostName`, `SerialNumber`, `TagName`, `PhoneNumber` | 入力仕様の一元化に有効。実装コストに応じて優先導入する |
+| 段階導入 | `TenantId`, `UserId`, `DataCenterId`, `RackId`, `DeviceId` などID系 | 初期DBはbigint前提。外部公開IDやDomain分離を強める段階で導入する |
+| Enum必須 | `TenantStatus`, `PlanType`, `DeviceLifecycleStatus`, `IpSubnetStatus`, `IpUsageStatus`, `NotificationType`, `NotificationStatus` | 文字列直書きを避け、初期からEnumで扱う |
 
 ## 3. ID系
 
@@ -24,7 +33,7 @@
 | `IpAddressId` | IPアドレスID |
 | `MaintenanceContractId` | 保守契約ID |
 
-初期実装ではDB上は `bigint` を前提とする。Domain層でID Value Objectを導入するかは実装コストと相談して段階導入可能とする。
+初期実装ではDB上は `bigint` を前提とする。ID系Value Objectは初期必須ではなく、Domain層の分離を強める段階で導入する。
 
 ## 4. 名称・文字列系
 
