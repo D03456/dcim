@@ -75,7 +75,7 @@ com.example.dcim
 | SVC-017 | NotificationService | 通知設定、通知履歴管理、メール通知実行 |
 | SVC-018 | UserAccountService | ユーザー招待、更新、無効化、ロール変更 |
 | SVC-019 | AuthorizationService | 権限チェック、ロール判定 |
-| SVC-020 | AuditLogService | 操作ログ記録、検索 |
+| SVC-020 | AuditLogService | 将来拡張。操作ログ記録、検索 |
 
 ## 6. API設計方針
 
@@ -169,7 +169,8 @@ com.example.dcim
 | テナント分離 | すべての検索・更新でtenantId条件を必須化 |
 | 入力チェック | Bean Validation + ドメイン制約チェック |
 | 例外処理 | 業務例外、認可例外、システム例外を分類 |
-| 監査ログ | 登録、更新、削除、権限変更、契約変更を記録 |
+| 最低限監査情報 | 登録・更新時に作成者、作成日時、更新者、更新日時を保存 |
+| 監査ログ | 将来拡張。登録、更新、削除、権限変更、契約変更を記録 |
 | トランザクション | Application Service単位で制御 |
 | ページング | 一覧取得はページングを標準化 |
 | CSV出力 | 一覧検索条件に基づく出力を標準化 |
@@ -186,7 +187,7 @@ sequenceDiagram
     UsageLimitService->>SubscriptionService: プラン・オプション取得
     UsageLimitService-->>ApplicationService: 登録可否
     ApplicationService->>Repository: 保存
-    ApplicationService->>AuditLogService: 操作ログ記録
+    ApplicationService->>Repository: 最低限監査情報を含めて保存
     ApplicationService-->>UI: 結果返却
 ```
 

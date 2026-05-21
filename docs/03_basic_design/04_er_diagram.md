@@ -79,9 +79,22 @@ erDiagram
 | entity_tag | エンティティタグ関連 |
 | notification_setting | 通知設定 |
 | notification_history | 通知履歴 |
-| audit_log | 監査ログ |
+| audit_log | 将来拡張：監査ログ |
 
 ## 4. テーブル定義案
+
+### 4.0 共通カラム方針
+
+主要テーブルには最低限の監査情報として以下の共通カラムを持たせる。
+
+| カラム | 型 | 制約 | 説明 |
+|---|---|---|---|
+| created_by | CHAR(36) | NOT NULL | 作成者 |
+| created_at | DATETIME | NOT NULL | 作成日時 |
+| updated_by | CHAR(36) | NOT NULL | 更新者 |
+| updated_at | DATETIME | NOT NULL | 更新日時 |
+
+完全な操作履歴を記録する `audit_log` は将来拡張として扱う。
 
 ### 4.1 tenant
 
@@ -218,7 +231,7 @@ erDiagram
 | IPアドレス | tenant_id + ip_subnet_id + address をユニーク制約候補とする |
 | 機器 | tenant_id + official_name、serial_numberを検索対象とする |
 | 保守契約 | tenant_id + end_date にインデックスを付与 |
-| 監査ログ | tenant_id + occurred_at にインデックスを付与 |
+| 監査ログ | 将来拡張。tenant_id + occurred_at にインデックスを付与 |
 
 ## 6. 削除方針
 
@@ -226,4 +239,4 @@ erDiagram
 |---|---|
 | 主要マスタ | 論理削除を原則とする |
 | 関連テーブル | 物理削除可。ただし監査ログは保持する |
-| 監査ログ | 原則削除しない。保持期間は別途運用設計で定義 |
+| 監査ログ | 将来拡張。原則削除しない。保持期間は別途運用設計で定義 |

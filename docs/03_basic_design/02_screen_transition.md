@@ -58,7 +58,7 @@ flowchart TD
     UserList[SCR-027 ユーザー一覧] --> UserEdit[SCR-028 ユーザー登録・編集]
     Role[SCR-029 権限ロール一覧]
     Usage --> Option[SCR-031 オプション追加]
-    Audit[SCR-032 監査ログ]
+    FutureAudit[将来拡張: SCR-032 監査ログ]
     SystemSetting[SCR-033 システム設定]
 ```
 
@@ -79,7 +79,7 @@ flowchart TD
 | 通知設定 | SCR-026 | 通知条件・通知先管理 |
 | ユーザー管理 | SCR-027 | ユーザー・ロール管理 |
 | 契約プラン | SCR-030 | 利用状況・オプション管理 |
-| 監査ログ | SCR-032 | 操作履歴確認 |
+| 将来拡張：監査ログ | SCR-032 | 操作履歴確認 |
 | システム設定 | SCR-033 | テナント設定 |
 
 ## 5. 代表的な業務遷移
