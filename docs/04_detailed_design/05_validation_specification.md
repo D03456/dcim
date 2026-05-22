@@ -266,7 +266,53 @@
 - 正式名称と同一の別名は登録不可とする。
 - 横断検索では正式名称、代表表示名、呼称名・別名、タグ名を検索対象に含める。
 
-## 5.13 CloudResource（将来拡張）
+## 5.13 Region
+
+| 項目 | 必須 | ルール |
+|---|:---:|---|
+| regionCode | - | 50文字以内、同一テナント内で重複不可とする場合は個別制約で定義 |
+| regionName | ○ | 1〜100文字、同一テナント内で重複不可 |
+| prefecture | - | 100文字以内 |
+| displayOrder | - | 0以上の整数 |
+| status | ○ | ACTIVE / INACTIVE |
+
+### 業務チェック
+
+- DCで利用中のリージョンは物理削除しない。削除操作は論理削除またはINACTIVE化とする。
+
+## 5.14 AppUser / 招待・パスワード
+
+| 項目 | 必須 | ルール |
+|---|:---:|---|
+| email | ○ | メール形式、255文字以内、同一テナント内で重複不可 |
+| displayName | ○ | 1〜150文字 |
+| passwordHash | ○ | ハッシュ化済み文字列のみ保存。平文パスワードは保存不可 |
+| status | ○ | ACTIVE / INVITED / SUSPENDED |
+| roleIds | ○ | 同一テナントで利用可能なロールID |
+
+### 業務チェック
+
+- ユーザー招待時にユーザー数上限を超えないこと。
+- パスワード登録・変更時は、平文パスワードをログ・DB・通知に残さないこと。
+- 招待中ユーザーの再招待は既存状態を確認し、重複ユーザーを作成しないこと。
+
+## 5.15 NotificationSetting
+
+| 項目 | 必須 | ルール |
+|---|:---:|---|
+| notificationType | ○ | MAINTENANCE_EXPIRY / PLAN_LIMIT / TRIAL_EXPIRY / SYSTEM |
+| enabled | ○ | true / false |
+| emailEnabled | ○ | true / false |
+| inAppEnabled | ○ | true / false |
+| daysBefore | - | 0以上の整数。期限系通知で使用 |
+
+### 業務チェック
+
+- `enabled=true` の場合、少なくとも1つの通知チャネル（メールまたは画面内通知）を有効にする。
+- MAINTENANCE_EXPIRY の標準値は60日前とし、30日前・当日・期限切れ通知も初期対応範囲として扱う。
+- TRIAL_EXPIRY の標準値は3日前および期限日とする。
+
+## 5.16 CloudResource（将来拡張）
 
 | 項目 | 必須 | ルール |
 |---|:---:|---|

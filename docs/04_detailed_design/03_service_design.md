@@ -43,6 +43,7 @@ com.example.dcim
 | UserService | ユーザー管理 |
 | RoleService | 権限管理 |
 | DataCenterService | DC登録・更新・削除・検索 |
+| RegionService | 地域・都道府県分類管理 |
 | LocationService | 棟、フロア、区画管理 |
 | RackService | ラック列、ラック管理 |
 | DeviceService | 機器管理 |
@@ -96,7 +97,33 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 
 上限超過時は `PlanLimitExceededException` を送出する。
 
-## 5.2 DataCenterService
+## 5.2 UserService
+
+### 責務
+
+- ユーザー招待
+- ユーザー情報更新
+- ロール付与・変更
+- ユーザー無効化
+- パスワードハッシュ保存・更新日時管理
+
+### 主なメソッド
+
+| メソッド | 概要 |
+|---|---|
+| invite(command) | ユーザー招待 |
+| update(userId, command) | ユーザー情報更新 |
+| changeRoles(userId, roleIds) | ロール変更 |
+| suspend(userId) | ユーザー停止 |
+| updatePasswordHash(userId, passwordHash) | パスワードハッシュ更新 |
+
+### 業務ルール
+
+- 同一テナント内でメールアドレスを重複させない。
+- パスワード平文は保存しない。保存対象はハッシュ値のみとする。
+- ユーザー作成前に `PlanLimitService.validateCanCreateUser()` を実行する。
+
+## 5.3 DataCenterService
 
 ### 責務
 
@@ -129,7 +156,29 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 5. `DataCenter` を保存する。
 6. 必要に応じてタグ、連絡先、呼称名・別名を関連付ける。
 
-## 5.3 RackService
+## 5.4 RegionService
+
+### 責務
+
+- リージョン登録・更新・削除
+- DC登録時の選択肢提供
+- 表示順制御
+
+### 主なメソッド
+
+| メソッド | 概要 |
+|---|---|
+| create(command) | リージョン登録 |
+| update(regionId, command) | リージョン更新 |
+| delete(regionId) | リージョン論理削除 |
+| findActive(tenantId) | 有効リージョン一覧取得 |
+
+### 業務ルール
+
+- 同一テナント内で `regionName` を重複させない。
+- DCで利用中のリージョンは削除不可またはINACTIVE化とする。
+
+## 5.5 RackService
 
 ### 責務
 
@@ -154,7 +203,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 - `rack_unit_start + rack_unit_size - 1` が `height_unit` を超えないこと。
 - 同一ラック内で使用U範囲が既存機器と重複しないこと。
 
-## 5.4 DeviceService
+## 5.6 DeviceService
 
 ### 責務
 
@@ -185,7 +234,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 5. 機器を保存する。
 6. タグ指定がある場合は `TagService` で関連付ける。
 
-## 5.5 IpSubnetService / IpAddressService
+## 5.7 IpSubnetService / IpAddressService
 
 ### IpSubnetServiceの責務
 
@@ -222,7 +271,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 - 割当後は `IN_USE` とする。
 - 解除後は原則 `UNUSED` とする。
 
-## 5.6 MaintenanceContractService
+## 5.8 MaintenanceContractService
 
 ### 責務
 
@@ -255,13 +304,16 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 
 標準は60日前通知とする。
 
-## 5.7 NotificationService
+## 5.9 NotificationService
 
 ### 責務
 
 - 通知メッセージ生成
-- 通知送信
+- メール通知送信
+- 画面内通知作成
+- 通知設定取得・更新
 - 通知ログ保存
+- 未読/既読管理
 - 重複通知抑止
 
 ### 主なメソッド
@@ -269,17 +321,21 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 | メソッド | 概要 |
 |---|---|
 | createNotification(command) | 通知作成 |
+| createInAppNotification(command) | 画面内通知作成 |
 | send(notificationId) | 通知送信 |
+| markAsRead(notificationId, userId) | 画面内通知を既読化 |
+| updateSetting(command) | 通知設定更新 |
 | sendMaintenanceExpiryNotification(contractId) | 保守期限通知送信 |
-| hasAlreadySent(type, targetId, recipient) | 重複通知確認 |
+| hasAlreadySent(type, channel, targetId, recipient) | メール通知の重複通知確認 |
+| hasAlreadySentInApp(type, targetId, recipientUserId) | 画面内通知の重複通知確認 |
 
-## 5.8 MaintenanceNotificationService
+## 5.10 MaintenanceNotificationService
 
 ### 責務
 
 - 定期実行により保守期限が近い契約を抽出する。
-- 通知対象の連絡先を決定する。
-- 通知送信を依頼する。
+- 通知対象の連絡先・ユーザーを決定する。
+- メール通知と画面内通知の作成・送信を依頼する。
 
 ### スケジュール案
 
@@ -290,7 +346,53 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 | 対象 | notification_enabled = true の保守契約 |
 | 標準通知 | 60日前 |
 
-## 5.9 TagService
+## 5.11 ContactService
+
+### 責務
+
+- 連絡先登録・更新・削除
+- DC・保守契約への連絡先関連付け
+- 通知先候補の提供
+
+### 主なメソッド
+
+| メソッド | 概要 |
+|---|---|
+| create(command) | 連絡先登録 |
+| update(contactId, command) | 連絡先更新 |
+| delete(contactId) | 連絡先論理削除 |
+| assignToDataCenter(dataCenterId, contactId, role) | DC連絡先紐付け |
+| assignToMaintenanceContract(contractId, contactId, role) | 保守契約連絡先紐付け |
+| findNotificationContacts(target) | 通知対象連絡先取得 |
+
+### 業務ルール
+
+- 同一テナント内の対象にのみ紐付ける。
+- 通知先に利用する場合はメールアドレスを必須とする。
+
+## 5.12 ResourceAliasService
+
+### 責務
+
+- 呼称名・別名登録・更新・削除
+- 正式名称・代表表示名と合わせた検索条件提供
+
+### 主なメソッド
+
+| メソッド | 概要 |
+|---|---|
+| addAlias(resourceType, resourceId, aliasName, aliasType) | 別名追加 |
+| updateAlias(aliasId, command) | 別名更新 |
+| removeAlias(aliasId) | 別名削除 |
+| findByResource(resourceType, resourceId) | 対象リソースの別名一覧 |
+| searchByAlias(query) | 別名検索 |
+
+### 業務ルール
+
+- 同一対象内で同じ別名を重複登録しない。
+- 正式名称と同一の別名は登録不可とする。
+
+## 5.13 TagService
 
 ### 責務
 
@@ -313,7 +415,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 
 タグ数のプラン上限はタグマスタ件数で判定し、リソースへのタグ付け件数は上限対象外とする。
 
-## 5.10 CloudResourceService（将来拡張）
+## 5.14 CloudResourceService（将来拡張）
 
 ### 責務
 
@@ -323,7 +425,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 
 初期リリースでは画面・業務処理の対象外とし、設計上の拡張ポイントとして保持する。
 
-## 5.11 CsvExportService / CsvImportService
+## 5.15 CsvExportService / CsvImportService
 
 ### 責務
 

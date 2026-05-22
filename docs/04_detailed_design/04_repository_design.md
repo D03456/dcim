@@ -18,6 +18,10 @@
 ```text
 com.example.dcim.domain.repository
   ├─ TenantRepository.java
+  ├─ SubscriptionPlanRepository.java
+  ├─ TenantAddOnRepository.java
+  ├─ AppUserRepository.java
+  ├─ RegionRepository.java
   ├─ DataCenterRepository.java
   ├─ RackRepository.java
   ├─ DeviceRepository.java
@@ -26,7 +30,9 @@ com.example.dcim.domain.repository
   ├─ MaintenanceContractRepository.java
   ├─ ContactRepository.java
   ├─ TagRepository.java
+  ├─ TaggedResourceRepository.java
   ├─ ResourceAliasRepository.java
+  ├─ NotificationSettingRepository.java
   ├─ NotificationLogRepository.java
   ├─ CsvExportHistoryRepository.java
   ├─ CsvImportHistoryRepository.java
@@ -64,7 +70,8 @@ and deleted = false
 | TenantRepository | tenant | テナント取得 |
 | SubscriptionPlanRepository | subscription_plan | プラン上限取得 |
 | TenantAddOnRepository | tenant_add_on | 追加枠取得 |
-| AppUserRepository | app_user | ユーザー取得 |
+| AppUserRepository | app_user | ユーザー取得・メール重複確認 |
+| RegionRepository | region | リージョン検索 |
 | DataCenterRepository | data_center | DC検索 |
 | RackRowRepository | rack_row | ラック列検索 |
 | RackRepository | rack | ラック検索 |
@@ -88,7 +95,36 @@ and deleted = false
 
 ## 6. 主要Repository詳細
 
-## 6.1 DataCenterRepository
+## 6.1 AppUserRepository
+
+### 主なメソッド
+
+```java
+Optional<AppUser> findByUserIdAndTenantIdAndDeletedFalse(Long userId, Long tenantId);
+
+Optional<AppUser> findByTenantIdAndEmailAndDeletedFalse(Long tenantId, String email);
+
+boolean existsByTenantIdAndEmailAndDeletedFalse(Long tenantId, String email);
+
+long countByTenantIdAndDeletedFalse(Long tenantId);
+```
+
+## 6.2 RegionRepository
+
+### 主なメソッド
+
+```java
+Optional<Region> findByRegionIdAndTenantIdAndDeletedFalse(Long regionId, Long tenantId);
+
+List<Region> findByTenantIdAndStatusAndDeletedFalseOrderByDisplayOrderAsc(
+    Long tenantId,
+    RegionStatus status
+);
+
+boolean existsByTenantIdAndRegionNameAndDeletedFalse(Long tenantId, String regionName);
+```
+
+## 6.3 DataCenterRepository
 
 ### 主なメソッド
 
@@ -111,7 +147,7 @@ long countByTenantIdAndDeletedFalse(Long tenantId);
 | status | 状態指定 |
 | tagIds | タグ指定 |
 
-## 6.2 RackRepository
+## 6.4 RackRepository
 
 ### 主なメソッド
 
@@ -134,7 +170,7 @@ boolean existsByTenantIdAndRackRowIdAndRackNumberAndDeletedFalse(
 - 対象ラック内の機器一覧を取得する。
 - `DeviceRepository.findByTenantIdAndRackIdAndDeletedFalse()` を利用する。
 
-## 6.3 DeviceRepository
+## 6.5 DeviceRepository
 
 ### 主なメソッド
 
@@ -177,7 +213,7 @@ where d.tenant_id = :tenantId
 | hasMaintenance | 保守有無 |
 | tagIds | タグ指定 |
 
-## 6.4 IpSubnetRepository / IpAddressRepository
+## 6.6 IpSubnetRepository / IpAddressRepository
 
 ### IpSubnetRepository 主なメソッド
 
@@ -209,7 +245,7 @@ boolean existsByTenantIdAndIpSubnetIdAndIpAddressAndDeletedFalse(Long tenantId, 
 
 プラン上限判定では `IpSubnetRepository.countByTenantIdAndDeletedFalse()` を利用し、個別IPアドレス数は上限カウントに含めない。
 
-## 6.5 MaintenanceContractRepository
+## 6.7 MaintenanceContractRepository
 
 ### 主なメソッド
 
@@ -241,7 +277,7 @@ List<MaintenanceContract> findExpiringContracts(
 );
 ```
 
-## 6.6 MaintenanceContractDeviceRepository
+## 6.8 MaintenanceContractDeviceRepository
 
 ### 主なメソッド
 
@@ -263,7 +299,7 @@ List<MaintenanceContractDevice> findByTenantIdAndMaintenanceContractIdAndDeleted
 );
 ```
 
-## 6.7 MaintenanceContractContactRepository
+## 6.9 MaintenanceContractContactRepository
 
 ### 主なメソッド
 
@@ -285,7 +321,25 @@ List<MaintenanceContractContact> findByTenantIdAndContactIdAndDeletedFalse(
 );
 ```
 
-## 6.8 TagRepository
+## 6.10 ContactRepository
+
+### 主なメソッド
+
+```java
+Optional<Contact> findByContactIdAndTenantIdAndDeletedFalse(Long contactId, Long tenantId);
+
+Page<Contact> findByTenantIdAndDeletedFalse(Long tenantId, Pageable pageable);
+
+Page<Contact> findByTenantIdAndContactTypeAndDeletedFalse(
+    Long tenantId,
+    ContactType contactType,
+    Pageable pageable
+);
+
+List<Contact> findByTenantIdAndContactIdInAndDeletedFalse(Long tenantId, List<Long> contactIds);
+```
+
+## 6.11 TagRepository
 
 ### 主なメソッド
 
@@ -297,7 +351,7 @@ Optional<Tag> findByTenantIdAndTagNameAndDeletedFalse(Long tenantId, String tagN
 boolean existsByTenantIdAndTagNameAndDeletedFalse(Long tenantId, String tagName);
 ```
 
-## 6.9 TaggedResourceRepository
+## 6.12 TaggedResourceRepository
 
 ### 主なメソッド
 
@@ -316,7 +370,7 @@ boolean existsByTenantIdAndTagIdAndResourceTypeAndResourceIdAndDeletedFalse(
 );
 ```
 
-## 6.10 ResourceAliasRepository
+## 6.13 ResourceAliasRepository
 
 ### 主なメソッド
 
@@ -341,18 +395,48 @@ boolean existsByTenantIdAndResourceTypeAndResourceIdAndAliasNameAndDeletedFalse(
 );
 ```
 
-## 6.11 NotificationLogRepository
+## 6.14 NotificationSettingRepository
 
 ### 主なメソッド
 
 ```java
-boolean existsByTenantIdAndNotificationTypeAndTargetTypeAndTargetIdAndRecipientAndStatus(
+Optional<NotificationSetting> findByTenantIdAndNotificationTypeAndDeletedFalse(
+    Long tenantId,
+    NotificationType notificationType
+);
+
+List<NotificationSetting> findByTenantIdAndDeletedFalse(Long tenantId);
+```
+
+## 6.15 NotificationLogRepository
+
+### 主なメソッド
+
+```java
+boolean existsByTenantIdAndNotificationTypeAndChannelAndTargetTypeAndTargetIdAndRecipientAndStatus(
     Long tenantId,
     NotificationType notificationType,
+    NotificationChannel channel,
     TargetType targetType,
     Long targetId,
     String recipient,
     NotificationStatus status
+);
+
+boolean existsByTenantIdAndNotificationTypeAndChannelAndTargetTypeAndTargetIdAndRecipientUserIdAndStatus(
+    Long tenantId,
+    NotificationType notificationType,
+    NotificationChannel channel,
+    TargetType targetType,
+    Long targetId,
+    Long recipientUserId,
+    NotificationStatus status
+);
+
+List<NotificationLog> findByTenantIdAndRecipientUserIdAndChannelAndReadAtIsNullAndDeletedFalse(
+    Long tenantId,
+    Long recipientUserId,
+    NotificationChannel channel
 );
 
 List<NotificationLog> findByTenantIdAndStatusAndDeletedFalse(

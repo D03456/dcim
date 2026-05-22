@@ -484,7 +484,13 @@
 | NotificationStatus | PENDING, SENT, FAILED, SKIPPED |
 | NotificationChannel | EMAIL, IN_APP |
 | RegionStatus | ACTIVE, INACTIVE |
-| ResourceType | DATA_CENTER, RACK, DEVICE |
+| ResourceType | DATA_CENTER, RACK, DEVICE, IP_SUBNET, IP_ADDRESS, MAINTENANCE_CONTRACT |
 | AliasType | DISPLAY, ABBREVIATION, OPERATION, OTHER |
 | ContactMethod | EMAIL, PHONE, OTHER |
 | UserStatus | ACTIVE, INVITED, SUSPENDED |
+| DataCenterStatus | ACTIVE, INACTIVE |
+| RackStatus | ACTIVE, INACTIVE |
+| ContactType | DC, VENDOR, INTERNAL |
+| ContactRole | PRIMARY, VENDOR, EMERGENCY, BILLING, OTHER |
+| AddOnType | IP_SUBNET, DEVICE |
+| Direction | EAST, WEST, SOUTH, NORTH, OTHER |
