@@ -50,6 +50,7 @@ com.example.dcim
 | IpAddressService | サブネット配下のIPアドレス利用状況管理 |
 | MaintenanceContractService | 保守契約管理 |
 | ContactService | 連絡先管理 |
+| ResourceAliasService | 呼称名・別名管理 |
 | TagService | タグ管理 |
 | NotificationService | 通知作成・送信 |
 | MaintenanceNotificationService | 保守期限通知処理 |
@@ -104,6 +105,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 - データセンター削除
 - DC連絡先紐付け
 - タグ付与
+- 呼称名・別名の登録・更新
 
 ### 主なメソッド
 
@@ -115,6 +117,8 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 | findById(dataCenterId) | DC詳細取得 |
 | search(query) | DC検索 |
 | assignContact(dataCenterId, contactId) | 連絡先紐付け |
+| addAlias(dataCenterId, aliasName, aliasType) | DC呼称名・別名追加 |
+| removeAlias(dataCenterId, aliasId) | DC呼称名・別名削除 |
 
 ### 登録処理
 
@@ -123,7 +127,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 3. 正式名称の重複を確認する。
 4. 入力値を検証する。
 5. `DataCenter` を保存する。
-6. 必要に応じてタグ、連絡先を関連付ける。
+6. 必要に応じてタグ、連絡先、呼称名・別名を関連付ける。
 
 ## 5.3 RackService
 

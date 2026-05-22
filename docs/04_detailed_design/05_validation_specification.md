@@ -224,10 +224,16 @@
 
 | 項目 | 必須 | ルール |
 |---|:---:|---|
-| name | ○ | 1〜150文字 |
+| organizationName | - | 150文字以内 |
+| departmentName | - | 150文字以内 |
+| positionName | - | 100文字以内 |
+| personName | ○ | 1〜150文字 |
 | email | - | メール形式、255文字以内 |
 | phoneNumber | - | 50文字以内 |
+| address | - | 255文字以内 |
+| preferredContactMethod | - | EMAIL / PHONE / OTHER |
 | contactType | ○ | DC / VENDOR / INTERNAL |
+| active | ○ | true / false |
 
 ### 業務チェック
 
@@ -246,7 +252,21 @@
 - タグ登録時にタグ数上限を超えないこと。
 - タグ数上限は有効なタグマスタ件数で判定し、タグ付け件数は対象外とする。
 
-## 5.12 CloudResource（将来拡張）
+## 5.12 ResourceAlias
+
+| 項目 | 必須 | ルール |
+|---|:---:|---|
+| resourceType | ○ | DATA_CENTER / RACK / DEVICE |
+| resourceId | ○ | 同一テナント内に存在 |
+| aliasName | ○ | 1〜150文字、同一対象内で重複不可 |
+| aliasType | - | DISPLAY / ABBREVIATION / OPERATION / OTHER |
+
+### 業務チェック
+
+- 正式名称と同一の別名は登録不可とする。
+- 横断検索では正式名称、代表表示名、呼称名・別名、タグ名を検索対象に含める。
+
+## 5.13 CloudResource（将来拡張）
 
 | 項目 | 必須 | ルール |
 |---|:---:|---|

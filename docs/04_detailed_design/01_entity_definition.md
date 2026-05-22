@@ -101,8 +101,11 @@
 |---|---:|:---:|---|
 | regionId | Long | ○ | 地域ID |
 | tenantId | Long | ○ | テナントID |
+| regionCode | String | - | 地域コード |
 | regionName | String | ○ | 地域名 |
 | prefecture | String | - | 都道府県 |
+| displayOrder | Integer | - | 表示順 |
+| status | RegionStatus | ○ | ACTIVE / INACTIVE |
 
 ### 5.2 DataCenter
 
@@ -121,14 +124,15 @@
 | tenantId | Long | ○ | テナントID |
 | regionId | Long | - | 地域ID |
 | formalName | String | ○ | 正式名称 |
-| displayName | String | - | 通称・呼称名 |
+| displayName | String | - | 代表表示名。複数の呼称名・別名はResourceAliasで保持 |
 | address | String | - | 所在地 |
 | status | DataCenterStatus | ○ | 利用状態 |
 
 #### 主な振る舞い
 
 - 名称変更
-- 通称設定
+- 代表表示名設定
+- 呼称名・別名追加
 - 利用停止
 - タグ付与
 - 連絡先関連付け
@@ -186,7 +190,7 @@
 | tenantId | Long | ○ | テナントID |
 | rackRowId | Long | ○ | ラック列ID |
 | formalName | String | ○ | 正式名称 |
-| displayName | String | - | 通称・呼称名 |
+| displayName | String | - | 代表表示名。複数の呼称名・別名はResourceAliasで保持 |
 | rackNumber | String | ○ | ラック番号 |
 | heightUnit | Integer | ○ | ラック高さ。例: 42U |
 | status | RackStatus | ○ | 利用状態 |
@@ -211,7 +215,7 @@
 | rackId | Long | - | 設置ラックID |
 | deviceType | DeviceType | ○ | SERVER / SWITCH / ROUTER / FIREWALL / LOAD_BALANCER / CLOUD など |
 | formalName | String | ○ | 正式名称 |
-| displayName | String | - | 通称・呼称名 |
+| displayName | String | - | 代表表示名。複数の呼称名・別名はResourceAliasで保持 |
 | hostname | String | - | ホスト名 |
 | serialNumber | String | - | シリアル番号 |
 | manufacturer | String | - | メーカー |
@@ -226,7 +230,8 @@
 - IPアドレス割当
 - 保守契約紐付け
 - タグ付与
-- 通称設定
+- 代表表示名設定
+- 呼称名・別名追加
 - 廃止処理
 
 ### 6.2 IpSubnet
@@ -343,9 +348,16 @@
 | contactId | Long | ○ | 連絡先ID |
 | tenantId | Long | ○ | テナントID |
 | contactType | ContactType | ○ | DC / VENDOR / INTERNAL など |
-| name | String | ○ | 名称 |
+| organizationName | String | - | 会社・組織名 |
+| departmentName | String | - | 部署名 |
+| positionName | String | - | 役職・肩書 |
+| personName | String | ○ | 担当者名または窓口名 |
 | email | String | - | メールアドレス |
 | phoneNumber | String | - | 電話番号 |
+| address | String | - | 住所・所在地 |
+| preferredContactMethod | ContactMethod | - | EMAIL / PHONE / OTHER |
+| note | String | - | 備考 |
+| active | Boolean | ○ | 有効フラグ |
 
 ### 8.2 Tag
 
@@ -364,6 +376,26 @@
 | 概要 | タグと対象リソースの関連 |
 | 集約 | Tag集約 |
 | 主キー | taggedResourceId |
+
+### 8.4 ResourceAlias
+
+| 項目 | 内容 |
+|---|---|
+| エンティティ名 | ResourceAlias |
+| 概要 | 正式名称とは別に検索対象とする呼称名・別名・略称・運用名 |
+| 集約 | 対象リソースの集約に従属 |
+| 主キー | resourceAliasId |
+
+#### 主な属性
+
+| 属性 | 型 | 必須 | 説明 |
+|---|---:|:---:|---|
+| resourceAliasId | Long | ○ | 別名ID |
+| tenantId | Long | ○ | テナントID |
+| resourceType | ResourceType | ○ | DATA_CENTER / RACK / DEVICE |
+| resourceId | Long | ○ | 対象ID |
+| aliasName | String | ○ | 呼称名・別名・略称・運用名 |
+| aliasType | AliasType | - | DISPLAY / ABBREVIATION / OPERATION / OTHER |
 
 ## 9. 通知系エンティティ
 
@@ -416,6 +448,18 @@
 | 集約 | User集約 |
 | 主キー | userId |
 
+#### 主な属性
+
+| 属性 | 型 | 必須 | 説明 |
+|---|---:|:---:|---|
+| userId | Long | ○ | ユーザーID |
+| tenantId | Long | ○ | テナントID |
+| email | String | ○ | ログインIDとなるメールアドレス |
+| displayName | String | ○ | 表示名 |
+| passwordHash | String | ○ | ハッシュ化済みパスワード。平文パスワードは保持しない |
+| passwordUpdatedAt | LocalDateTime | - | パスワード最終更新日時 |
+| status | UserStatus | ○ | ACTIVE / INVITED / SUSPENDED |
+
 ### 11.2 Role
 
 | 項目 | 内容 |
@@ -438,3 +482,9 @@
 | DeviceLifecycleStatus | ACTIVE, SPARE, PLANNED_RETIREMENT, RETIRED |
 | NotificationType | MAINTENANCE_EXPIRY, PLAN_LIMIT, TRIAL_EXPIRY, SYSTEM |
 | NotificationStatus | PENDING, SENT, FAILED, SKIPPED |
+| NotificationChannel | EMAIL, IN_APP |
+| RegionStatus | ACTIVE, INACTIVE |
+| ResourceType | DATA_CENTER, RACK, DEVICE |
+| AliasType | DISPLAY, ABBREVIATION, OPERATION, OTHER |
+| ContactMethod | EMAIL, PHONE, OTHER |
+| UserStatus | ACTIVE, INVITED, SUSPENDED |

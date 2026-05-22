@@ -17,12 +17,12 @@
 
 ## 3. 通知チャネル
 
-初期リリースではメール通知を基本とする。
+初期リリースではメール通知と画面内通知を基本とする。画面内通知はVaadin画面上の通知一覧・未読表示として実装し、外部チャネル連携は将来拡張とする。
 
 | チャネル | 対応方針 |
 |---|---|
 | メール | 初期対応 |
-| 画面内通知 | 将来対応 |
+| 画面内通知 | 初期対応 |
 | Slack / Teams | 将来対応 |
 | Webhook | 将来対応 |
 
@@ -158,16 +158,17 @@ Freeプランのトライアル期限が近づいた場合、または期限日�
 | notification_type | 通知種別 |
 | enabled | 通知有効フラグ |
 | email_enabled | メール有効フラグ |
+| in_app_enabled | 画面内通知有効フラグ |
 | days_before | 期限前日数 |
 
 ## 7.2 初期設定
 
-| 通知種別 | enabled | email_enabled | days_before |
-|---|:---:|:---:|---:|
-| MAINTENANCE_EXPIRY | true | true | 60 |
-| PLAN_LIMIT | true | true | null |
-| TRIAL_EXPIRY | true | true | 3 |
-| SYSTEM | true | true | null |
+| 通知種別 | enabled | email_enabled | in_app_enabled | days_before |
+|---|:---:|:---:|:---:|---:|
+| MAINTENANCE_EXPIRY | true | true | true | 60 |
+| PLAN_LIMIT | true | true | true | null |
+| TRIAL_EXPIRY | true | true | true | 3 |
+| SYSTEM | true | true | true | null |
 
 ## 8. 通知ログ
 
@@ -178,12 +179,15 @@ Freeプランのトライアル期限が近づいた場合、または期限日�
 | 項目 | 内容 |
 |---|---|
 | notification_type | 通知種別 |
+| channel | EMAIL / IN_APP |
 | target_type | 対象種別 |
 | target_id | 対象ID |
-| recipient | 送信先 |
+| recipient | 送信先メールアドレス。画面内通知ではNULL可 |
+| recipient_user_id | 画面内通知の受信ユーザーID |
 | subject | 件名 |
 | status | PENDING / SENT / FAILED / SKIPPED |
 | sent_at | 送信日時 |
+| read_at | 画面内通知の既読日時 |
 | error_message | 失敗理由 |
 
 ## 8.2 ステータス遷移
@@ -205,6 +209,7 @@ FAILED  -> SENT    ※再送成功時
 |---|---|
 | tenant_id | テナントID |
 | notification_type | 通知種別 |
+| channel | EMAIL / IN_APP |
 | target_type | 対象種別 |
 | target_id | 対象ID |
 | recipient | 宛先 |
