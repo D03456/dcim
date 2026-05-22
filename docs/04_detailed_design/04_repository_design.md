@@ -26,6 +26,7 @@ com.example.dcim.domain.repository
   ├─ MaintenanceContractRepository.java
   ├─ ContactRepository.java
   ├─ TagRepository.java
+  ├─ ResourceAliasRepository.java
   ├─ NotificationLogRepository.java
   ├─ CsvExportHistoryRepository.java
   ├─ CsvImportHistoryRepository.java
@@ -76,6 +77,7 @@ and deleted = false
 | ContactRepository | contact | 連絡先検索 |
 | TagRepository | tag | タグ検索 |
 | TaggedResourceRepository | tagged_resource | タグ関連検索 |
+| ResourceAliasRepository | resource_alias | 呼称名・別名検索 |
 | NotificationSettingRepository | notification_setting | 通知設定検索 |
 | NotificationLogRepository | notification_log | 通知履歴検索 |
 | CsvExportHistoryRepository | csv_export_history | CSV出力履歴検索 |
@@ -314,7 +316,32 @@ boolean existsByTenantIdAndTagIdAndResourceTypeAndResourceIdAndDeletedFalse(
 );
 ```
 
-## 6.10 NotificationLogRepository
+## 6.10 ResourceAliasRepository
+
+### 主なメソッド
+
+```java
+List<ResourceAlias> findByTenantIdAndResourceTypeAndResourceIdAndDeletedFalse(
+    Long tenantId,
+    ResourceType resourceType,
+    Long resourceId
+);
+
+Page<ResourceAlias> findByTenantIdAndAliasNameContainingAndDeletedFalse(
+    Long tenantId,
+    String aliasName,
+    Pageable pageable
+);
+
+boolean existsByTenantIdAndResourceTypeAndResourceIdAndAliasNameAndDeletedFalse(
+    Long tenantId,
+    ResourceType resourceType,
+    Long resourceId,
+    String aliasName
+);
+```
+
+## 6.11 NotificationLogRepository
 
 ### 主なメソッド
 

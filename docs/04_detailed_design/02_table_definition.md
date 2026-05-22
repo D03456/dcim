@@ -63,6 +63,7 @@
 | 23 | tagged_resource | タグ関連 |
 | 24 | notification_setting | 通知設定 |
 | 25 | notification_log | 通知ログ |
+| 25A | resource_alias | 呼称名・別名 |
 | 26 | csv_export_history | CSVエクスポート履歴 |
 | 27 | csv_import_history | CSVインポート履歴 |
 | 28 | csv_import_error | CSVインポートエラー |
@@ -129,6 +130,30 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
+## 4.3A region
+
+データセンター所在地を分類する地域マスタ。初期リリースではテナントごとの任意マスタとして管理し、都道府県・地域コード・表示順を保持する。
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| region_id | bigint | NO | PK | 地域ID |
+| tenant_id | bigint | NO | FK | テナントID |
+| region_code | varchar(50) | YES |  | 地域コード |
+| region_name | varchar(100) | NO |  | 地域名 |
+| prefecture | varchar(100) | YES |  | 都道府県 |
+| display_order | int | YES |  | 表示順 |
+| status | varchar(30) | NO |  | ACTIVE / INACTIVE |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| updated_at | datetime(6) | NO |  | 更新日時 |
+| deleted | boolean | NO |  | 論理削除 |
+
+### インデックス
+
+| 名称 | カラム | 種別 |
+|---|---|---|
+| idx_region_tenant | tenant_id, deleted | INDEX |
+| uk_region_name | tenant_id, region_name, deleted | UNIQUE |
+
 ## 4.4 data_center
 
 | カラム | 型 | NULL | キー | 説明 |
@@ -137,7 +162,7 @@
 | tenant_id | bigint | NO | FK | テナントID |
 | region_id | bigint | YES | FK | 地域ID |
 | formal_name | varchar(150) | NO |  | 正式名称 |
-| display_name | varchar(150) | YES |  | 通称・呼称名 |
+| display_name | varchar(150) | YES |  | 代表表示名。複数の呼称名・別名は `resource_alias` で保持する |
 | address | varchar(255) | YES |  | 所在地 |
 | status | varchar(30) | NO |  | ACTIVE / INACTIVE |
 | created_at | datetime(6) | NO |  | 作成日時 |
@@ -163,7 +188,7 @@
 | tenant_id | bigint | NO | FK | テナントID |
 | data_center_id | bigint | NO | FK | DC ID |
 | formal_name | varchar(150) | NO |  | 正式名称 |
-| display_name | varchar(150) | YES |  | 通称・呼称名 |
+| display_name | varchar(150) | YES |  | 代表表示名。複数の呼称名・別名は `resource_alias` で保持する |
 | created_at | datetime(6) | NO |  | 作成日時 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
@@ -214,7 +239,7 @@
 | tenant_id | bigint | NO | FK | テナントID |
 | rack_row_id | bigint | NO | FK | ラック列ID |
 | formal_name | varchar(150) | NO |  | 正式名称 |
-| display_name | varchar(150) | YES |  | 通称・呼称名 |
+| display_name | varchar(150) | YES |  | 代表表示名。複数の呼称名・別名は `resource_alias` で保持する |
 | rack_number | varchar(50) | NO |  | ラック番号 |
 | height_unit | int | NO |  | ラック高さ |
 | status | varchar(30) | NO |  | ACTIVE / INACTIVE |
@@ -231,7 +256,7 @@
 | rack_id | bigint | YES | FK | ラックID |
 | device_type | varchar(30) | NO |  | SERVER / SWITCH 等 |
 | formal_name | varchar(150) | NO |  | 正式名称 |
-| display_name | varchar(150) | YES |  | 通称・呼称名 |
+| display_name | varchar(150) | YES |  | 代表表示名。複数の呼称名・別名は `resource_alias` で保持する |
 | hostname | varchar(150) | YES |  | ホスト名 |
 | serial_number | varchar(100) | YES |  | シリアル番号 |
 | manufacturer | varchar(100) | YES |  | メーカー |
@@ -368,9 +393,16 @@
 | contact_id | bigint | NO | PK | 連絡先ID |
 | tenant_id | bigint | NO | FK | テナントID |
 | contact_type | varchar(30) | NO |  | DC / VENDOR / INTERNAL |
-| name | varchar(150) | NO |  | 名称 |
+| organization_name | varchar(150) | YES |  | 会社・組織名 |
+| department_name | varchar(150) | YES |  | 部署名 |
+| position_name | varchar(100) | YES |  | 役職・肩書 |
+| person_name | varchar(150) | NO |  | 担当者名または窓口名 |
 | email | varchar(255) | YES |  | メールアドレス |
 | phone_number | varchar(50) | YES |  | 電話番号 |
+| address | varchar(255) | YES |  | 住所・所在地 |
+| preferred_contact_method | varchar(30) | YES |  | EMAIL / PHONE / OTHER |
+| note | text | YES |  | 備考 |
+| active | boolean | NO |  | 有効フラグ |
 | created_at | datetime(6) | NO |  | 作成日時 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
@@ -433,6 +465,7 @@
 | notification_type | varchar(50) | NO |  | MAINTENANCE_EXPIRY 等 |
 | enabled | boolean | NO |  | 有効フラグ |
 | email_enabled | boolean | NO |  | メール通知有効 |
+| in_app_enabled | boolean | NO |  | 画面内通知有効 |
 | days_before | int | YES |  | 期限前日数 |
 | created_at | datetime(6) | NO |  | 作成日時 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
@@ -445,12 +478,15 @@
 | notification_log_id | bigint | NO | PK | 通知ログID |
 | tenant_id | bigint | NO | FK | テナントID |
 | notification_type | varchar(50) | NO |  | 通知種別 |
+| channel | varchar(30) | NO |  | EMAIL / IN_APP |
 | target_type | varchar(50) | NO |  | 対象種別 |
 | target_id | bigint | NO |  | 対象ID |
-| recipient | varchar(255) | NO |  | 送信先 |
+| recipient | varchar(255) | YES |  | 送信先メールアドレス。画面内通知ではNULL可 |
+| recipient_user_id | bigint | YES | FK | 画面内通知の受信ユーザーID |
 | subject | varchar(255) | NO |  | 件名 |
 | status | varchar(30) | NO |  | PENDING / SENT / FAILED / SKIPPED |
 | sent_at | datetime(6) | YES |  | 送信日時 |
+| read_at | datetime(6) | YES |  | 画面内通知の既読日時 |
 | error_message | text | YES |  | エラー内容 |
 | created_at | datetime(6) | NO |  | 作成日時 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
@@ -504,6 +540,8 @@
 | tenant_id | bigint | NO | FK | テナントID |
 | email | varchar(255) | NO |  | メールアドレス |
 | display_name | varchar(150) | NO |  | 表示名 |
+| password_hash | varchar(255) | NO |  | ハッシュ化済みパスワード。平文は保存しない |
+| password_updated_at | datetime(6) | YES |  | パスワード最終更新日時 |
 | status | varchar(30) | NO |  | ACTIVE / INVITED / SUSPENDED |
 | created_at | datetime(6) | NO |  | 作成日時 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
@@ -515,6 +553,29 @@
 |---|---|---|
 | role | role_id, role_code, role_name | ロール定義 |
 | user_role | user_role_id, tenant_id, user_id, role_id | ユーザー・ロール関連 |
+
+## 4.22A resource_alias
+
+正式名称とは別に、検索対象となる複数の呼称名・別名・略称・運用名を保持する。初期対象は `DATA_CENTER`、`RACK`、`DEVICE` とし、将来的に対象を拡張できる設計とする。
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| resource_alias_id | bigint | NO | PK | 別名ID |
+| tenant_id | bigint | NO | FK | テナントID |
+| resource_type | varchar(50) | NO |  | DATA_CENTER / RACK / DEVICE |
+| resource_id | bigint | NO |  | 対象ID |
+| alias_name | varchar(150) | NO |  | 呼称名・別名・略称・運用名 |
+| alias_type | varchar(30) | YES |  | DISPLAY / ABBREVIATION / OPERATION / OTHER |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| updated_at | datetime(6) | NO |  | 更新日時 |
+| deleted | boolean | NO |  | 論理削除 |
+
+### インデックス
+
+| 名称 | カラム | 種別 |
+|---|---|---|
+| idx_resource_alias_resource | tenant_id, resource_type, resource_id, deleted | INDEX |
+| idx_resource_alias_name | tenant_id, alias_name, deleted | INDEX |
 
 ## 4.23 cloud_account（将来拡張）
 
