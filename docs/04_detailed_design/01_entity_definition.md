@@ -65,6 +65,7 @@
 | maxRacks | Integer | ○ | ラック上限。ラック列は物理階層として管理し、課金・上限はラック数を基本とする |
 | maxDevices | Integer | ○ | 機器上限 |
 | maxIpSubnets | Integer | ○ | IPサブネット上限 |
+| maxIpAddresses | Integer | ○ | 管理対象IP数上限 |
 | trialDays | Integer | - | Freeプランのトライアル日数。標準14日 |
 | maxUsers | Integer | ○ | ユーザー上限 |
 
