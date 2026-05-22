@@ -306,6 +306,25 @@
 | 集約 | Maintenance集約 |
 | 主キー | maintenanceContractDeviceId |
 
+### 7.3 MaintenanceContractContact
+
+| 項目 | 内容 |
+|---|---|
+| エンティティ名 | MaintenanceContractContact |
+| 概要 | 保守契約と連絡先の紐付け |
+| 集約 | Maintenance集約 |
+| 主キー | maintenanceContractContactId |
+
+#### 主な属性
+
+| 属性 | 型 | 必須 | 説明 |
+|---|---:|:---:|---|
+| maintenanceContractContactId | Long | ○ | 保守契約・連絡先関連ID |
+| tenantId | Long | ○ | テナントID |
+| maintenanceContractId | Long | ○ | 保守契約ID |
+| contactId | Long | ○ | 連絡先ID |
+| contactRole | ContactRole | - | VENDOR / EMERGENCY / BILLING / OTHER 等 |
+
 ## 8. 連絡先・タグ系エンティティ
 
 ### 8.1 Contact

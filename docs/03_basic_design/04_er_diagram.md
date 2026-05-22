@@ -16,6 +16,8 @@ erDiagram
     ROLE ||--o{ USER_ROLE : assigned
     APP_USER ||--o{ USER_ROLE : has
 
+    TENANT ||--o{ REGION : has
+    REGION ||--o{ DATA_CENTER : classifies
     TENANT ||--o{ DATA_CENTER : has
     DATA_CENTER ||--o{ BUILDING : contains
     BUILDING ||--o{ FLOOR : contains
@@ -31,10 +33,12 @@ erDiagram
     TENANT ||--o{ MAINTENANCE_CONTRACT : has
     MAINTENANCE_CONTRACT ||--o{ MAINTENANCE_CONTRACT_DEVICE : includes
     DEVICE ||--o{ MAINTENANCE_CONTRACT_DEVICE : target
+    MAINTENANCE_CONTRACT ||--o{ MAINTENANCE_CONTRACT_CONTACT : has
 
     TENANT ||--o{ CONTACT : has
     DATA_CENTER ||--o{ DATA_CENTER_CONTACT : has
     CONTACT ||--o{ DATA_CENTER_CONTACT : linked
+    CONTACT ||--o{ MAINTENANCE_CONTRACT_CONTACT : linked
 
     TENANT ||--o{ TAG : has
     TAG ||--o{ TAGGED_RESOURCE : used
@@ -71,6 +75,7 @@ erDiagram
 | ip_address | IPアドレス利用状況 | ○ |
 | maintenance_contract | 保守契約 | ○ |
 | maintenance_contract_device | 保守契約対象機器 | ○ |
+| maintenance_contract_contact | 保守契約・連絡先関連 | ○ |
 | contact | 連絡先 | ○ |
 | data_center_contact | データセンター・連絡先関連 | ○ |
 | tag | タグ | ○ |
@@ -123,6 +128,7 @@ erDiagram
 | max_racks | int | NOT NULL | ラック上限 |
 | max_devices | int | NOT NULL | 機器上限 |
 | max_ip_subnets | int | NOT NULL | IPサブネット上限 |
+| max_tags | int | NOT NULL | タグマスタ件数上限 |
 | trial_days | int | NULL | Freeトライアル日数。標準14 |
 | max_users | int | NOT NULL | ユーザー上限 |
 
@@ -177,6 +183,7 @@ erDiagram
 |---|---|---|
 | maintenance_contract | maintenance_contract_id, tenant_id, contract_name, vendor_name, contract_number, start_date, end_date, notification_enabled, notification_days_before | 保守契約 |
 | maintenance_contract_device | maintenance_contract_device_id, tenant_id, maintenance_contract_id, device_id | 保守契約・機器関連 |
+| maintenance_contract_contact | maintenance_contract_contact_id, tenant_id, maintenance_contract_id, contact_id, contact_role | 保守契約・連絡先関連 |
 
 ### 4.8 contact / tag
 
@@ -184,7 +191,7 @@ erDiagram
 |---|---|---|
 | contact | contact_id, tenant_id, contact_type, name, email, phone_number | 連絡先 |
 | data_center_contact | data_center_id, contact_id | データセンターと連絡先の関連 |
-| tag | tag_id, tenant_id, tag_name, color_code | タグ |
+| tag | tag_id, tenant_id, tag_name, color_code | タグ。タグマスタ件数はプラン上限対象 |
 | tagged_resource | tagged_resource_id, tenant_id, tag_id, resource_type, resource_id | タグと対象リソースの関連 |
 
 ### 4.9 notification / CSV tables
@@ -210,6 +217,7 @@ erDiagram
 |---|---|
 | 全主要テーブル | tenant_id, deleted にインデックスを付与 |
 | 一覧検索対象 | 名称、種別、ステータス、タグ関連にインデックスを検討 |
+| タグ関連 | tenant_id + tag_id + resource_type + resource_id にインデックスを検討 |
 | ロケーション階層 | tenant_id + parent_id + name にインデックスを検討 |
 | 通知履歴 | tenant_id + notification_type + sent_at にインデックスを検討 |
 | CSV取込履歴 | tenant_id + target_type + created_at にインデックスを検討 |

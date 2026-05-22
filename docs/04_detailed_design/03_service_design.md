@@ -224,6 +224,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 
 - 保守契約登録・更新・削除
 - 保守契約と機器の紐付け
+- 保守契約と連絡先の紐付け
 - 保守期限検索
 - 保守未契約機器検索
 
@@ -236,6 +237,8 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 | delete(contractId) | 保守契約論理削除 |
 | assignDevice(contractId, deviceId) | 機器紐付け |
 | removeDevice(contractId, deviceId) | 機器紐付け解除 |
+| assignContact(contractId, contactId) | 保守契約連絡先紐付け |
+| removeContact(contractId, contactId) | 保守契約連絡先紐付け解除 |
 | findExpiringContracts(daysBefore) | 期限到来契約検索 |
 | findDevicesWithoutMaintenance(query) | 保守未契約機器検索 |
 
