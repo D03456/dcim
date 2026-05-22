@@ -47,7 +47,7 @@ com.example.dcim
 | LocationService | 棟、フロア、区画管理 |
 | RackService | ラック列、ラック管理 |
 | DeviceService | 機器管理 |
-| IpSubnetService | IPサブネット管理、サブネット上限判定 |
+| IpSubnetService | IPサブネット管理、CIDR重複判定 |
 | IpAddressService | サブネット配下のIPアドレス利用状況管理 |
 | MaintenanceContractService | 保守契約管理 |
 | ContactService | 連絡先管理 |
@@ -80,7 +80,6 @@ com.example.dcim
 | validateCanCreateDataCenter(tenantId) | DC追加可否を検証 |
 | validateCanCreateRack(tenantId) | ラック追加可否を検証 |
 | validateCanCreateDevice(tenantId) | 機器追加可否を検証 |
-| validateCanCreateIpSubnet(tenantId) | IPサブネット追加可否を検証 |
 | validateCanGenerateIpAddresses(tenantId, plannedCount) | 管理対象IP生成可否を検証 |
 | validateCanCreateTag(tenantId) | タグ追加可否を検証 |
 | validateCanCreateUser(tenantId) | ユーザー追加可否を検証 |
@@ -240,7 +239,6 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 ### IpSubnetServiceの責務
 
 - IPサブネット登録・更新・削除
-- サブネット上限チェック
 - 管理対象IP数上限チェック
 - CIDR重複チェック
 - サブネット配下IPの生成・再生成方針管理
@@ -267,8 +265,8 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 
 ### IP管理ルール
 
-- プラン上限は `ip_subnet` の有効件数と、生成・管理する `ip_address` の有効件数を別々に判定する。
-- CIDRプレフィックスはプランで固定しない。サブネット登録・個別IP生成時に、生成予定IP数を含めた管理対象IP数上限を超えないことを確認する。
+- `ip_subnet` の有効件数はプラン上限判定対象外とし、生成・管理する `ip_address` の有効件数のみを上限判定する。
+- CIDRプレフィックスはプランで固定しない。サブネット登録・個別IP生成時に、生成予定IP数を含めた管理対象IP数上限（プラン上限 + IP上限追加オプション数 × 256）を超えないことを確認する。
 - 同一テナント内でCIDRは重複不可とする。
 - 個別IPは必ず1つのIPサブネットに属する。
 - `UNUSED` または `RESERVED` のIPのみ機器へ割当可能。

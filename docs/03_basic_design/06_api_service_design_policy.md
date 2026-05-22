@@ -59,7 +59,7 @@ com.example.dcim
 | SVC-001 | AuthService | ログイン、認証情報取得 |
 | SVC-002 | TenantService | テナント情報取得、テナント状態確認 |
 | SVC-003 | SubscriptionService | プラン情報取得、利用上限算出 |
-| SVC-004 | UsageLimitService | DC、ラック、機器、IPサブネット、管理対象IP、タグ、ユーザー、Freeトライアル期間、期限超過時の更新可否チェック |
+| SVC-004 | UsageLimitService | DC、ラック、機器、管理対象IP、タグ、ユーザー、Freeトライアル期間、期限超過時の更新可否チェック |
 | SVC-005 | DataCenterService | データセンター登録、更新、検索、詳細取得 |
 | SVC-006 | LocationService | 建物、フロア、エリア、ラック列管理 |
 | SVC-006A | RegionService | 地域・都道府県分類の登録、更新、検索 |
@@ -208,8 +208,9 @@ sequenceDiagram
 
 ### 9.1 管理対象IP数上限
 
-- IPサブネット数上限とは別に、サブネット配下に生成・管理する個別IP数の上限をプラン別に持つ。
-- Free 256、Starter 512、Business 1,024、Enterprise 2,048 IPを上限とする。
+- IPサブネット数には上限を設けず、サブネット配下に生成・管理する個別IP数の上限をプラン別に持つ。
+- Free 256、Starter 512、Business 1,024、Enterprise 2,048 IPを初期上限とする。
+- IP上限追加オプションは256IP単位で、管理対象IP数上限に256件を追加する。
 - CIDRプレフィックスは固定せず、個別IP生成予定数を含めて上限判定する。
 
 ## 10. 保守期限通知方針

@@ -104,7 +104,6 @@
 | max_data_centers | int | NO |  | DC上限 |
 | max_racks | int | NO |  | ラック上限 |
 | max_devices | int | NO |  | 機器上限 |
-| max_ip_subnets | int | NO |  | IPサブネット上限 |
 | max_ip_addresses | int | NO |  | 管理対象IP数上限 |
 | max_tags | int | NO |  | タグマスタ件数上限 |
 | trial_days | int | YES |  | Freeトライアル日数。標準14 |
@@ -112,12 +111,12 @@
 
 ### 初期データ
 
-| plan_code | trial_days | max_data_centers | max_racks | max_devices | max_ip_subnets | max_ip_addresses | max_tags | max_users |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| FREE | 14 | 1 | 3 | 20 | 3 | 256 | 10 | 1 |
-| STARTER | null | 2 | 5 | 50 | 10 | 512 | 50 | 3 |
-| BUSINESS | null | 5 | 50 | 100 | 50 | 1024 | 200 | 10 |
-| ENTERPRISE | null | 10 | 100 | 1000 | 200 | 2048 | 1000 | 30 |
+| plan_code | trial_days | max_data_centers | max_racks | max_devices | max_ip_addresses | max_tags | max_users |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| FREE | 14 | 1 | 3 | 20 | 256 | 10 | 1 |
+| STARTER | null | 2 | 5 | 50 | 512 | 50 | 3 |
+| BUSINESS | null | 5 | 50 | 100 | 1024 | 200 | 10 |
+| ENTERPRISE | null | 10 | 100 | 1000 | 2048 | 1000 | 30 |
 
 ## 4.3 tenant_add_on
 
