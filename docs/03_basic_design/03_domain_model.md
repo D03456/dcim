@@ -13,12 +13,12 @@
 | テナント・契約管理 | SaaSテナント、契約プラン、利用上限、オプションを管理する | Tenant、SubscriptionPlan、UsageLimit、AddOnOption |
 | ロケーション管理 | リージョン、データセンター、建物、フロア、エリア、ラック列を管理する | Region、DataCenter、Building、Floor、Area、RackRow |
 | ラック管理 | ラックとラック内搭載位置を管理する | Rack、RackMountPosition、RackTemplate |
-| 機器管理 | サーバー、ネットワーク機器、別名、タグを管理する | Device、DeviceAlias、Tag |
+| 機器管理 | サーバー、ネットワーク機器、呼称名・別名、タグを管理する | Device、ResourceAlias、Tag |
 | IPサブネット管理 | IPサブネットと配下IPの割当状況を管理する | IpSubnet、IpAddress |
-| 保守契約管理 | 保守契約、対象機器、期限通知を管理する | MaintenanceContract、MaintenanceContractDevice、MaintenanceAlert |
+| 保守契約管理 | 保守契約、対象機器、連絡先、期限通知を管理する | MaintenanceContract、MaintenanceContractDevice、MaintenanceContractContact、MaintenanceAlert |
 | 将来拡張：クラウドリソース管理 | AWSアカウント、リージョン、EC2/EKS/コンテナ等を管理する | CloudAccount、CloudResource |
 | ユーザー・権限管理 | ユーザー、ロール、権限を管理する | UserAccount、Role、Permission |
-| 通知管理 | メール通知条件、通知先、通知履歴を管理する | NotificationSetting、NotificationHistory |
+| 通知管理 | メール/画面内通知条件、通知先、通知履歴、未読/既読を管理する | NotificationSetting、NotificationLog |
 | 将来拡張：監査ログ管理 | 操作履歴を管理する | AuditLog |
 
 ## 3. 主要エンティティ
@@ -70,7 +70,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | dataCenterId | Long | データセンターID |
 | tenantId | Long | テナントID |
 | officialName | String | 正式名称 |
-| displayName | String | 表示名 |
+| displayName | String | 代表表示名。複数の呼称名・別名はResourceAliasで保持 |
 | regionId | Long | 地域・都道府県分類ID。`Region` を参照 |
 | address | String | 所在地 |
 | status | Enum | Active / Inactive |
@@ -92,7 +92,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | rackId | Long | ラックID |
 | rackRowId | Long | ラック列ID |
 | officialName | String | 正式名称 |
-| displayName | String | 表示名 |
+| displayName | String | 代表表示名。複数の呼称名・別名はResourceAliasで保持 |
 | heightU | Integer | ラック高さU数 |
 | positionNo | String | ラック列内位置 |
 | status | Enum | Active / Reserved / Retired |
@@ -105,7 +105,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | tenantId | Long | テナントID |
 | rackId | Long | 設置ラックID |
 | officialName | String | 正式名称 |
-| displayName | String | 表示名 |
+| displayName | String | 代表表示名。複数の呼称名・別名はResourceAliasで保持 |
 | deviceType | Enum | Server / Switch / Router / Firewall / LoadBalancer / Other |
 | vendor | String | ベンダー |
 | modelName | String | 型番 |
@@ -172,11 +172,11 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | エンティティ | 説明 |
 |---|---|
 | Contact | データセンターや保守契約に紐づく連絡先 |
-| DeviceAlias | 機器の別名・呼称名 |
+| ResourceAlias | データセンター、ラック、機器など対象リソースの呼称名・別名 |
 | Tag | 検索・分類用タグ |
-| EntityTag | タグと対象エンティティの関連 |
+| TaggedResource | タグと対象リソースの関連 |
 | NotificationSetting | 通知条件、通知先、通知チャネル設定 |
-| NotificationHistory | 画面通知・メール通知の履歴 |
+| NotificationLog | 画面内通知・メール通知の履歴 |
 | CsvImportHistory | CSV取込履歴 |
 | CsvImportError | CSV取込時の行単位エラー |
 
@@ -218,6 +218,7 @@ classDiagram
     class Role
     class Contact
     class Tag
+    class ResourceAlias
 
     Tenant "1" --> "1" SubscriptionPlan
     Tenant "1" --> "0..*" AddOnOption
@@ -241,6 +242,9 @@ classDiagram
     MaintenanceContract "1" --> "0..*" Device
     DataCenter "*" --> "*" Contact
     MaintenanceContract "*" --> "*" Contact
+    DataCenter "1" --> "0..*" ResourceAlias
+    Rack "1" --> "0..*" ResourceAlias
+    Device "1" --> "0..*" ResourceAlias
 
     CloudAccount "1" --> "0..*" CloudResource
 
@@ -262,6 +266,7 @@ classDiagram
 | IpAllocationService | IPアドレス割当、解放、重複チェック |
 | MaintenanceAlertService | 保守期限2か月前通知対象の抽出 |
 | DeviceSearchService | 保守未設定機器、タグ、別名、設置場所による検索 |
+| ResourceAliasService | 対象リソースの呼称名・別名の登録、重複確認、検索 |
 | CloudResourceSyncService | 将来拡張。クラウドリソースの同期方針管理 |
 | AuthorizationService | ロール・権限による操作可否判定 |
 

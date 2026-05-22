@@ -35,12 +35,15 @@ infrastructure.repository / notification / security
 | UserApplicationService | ユーザー招待、ユーザー状態管理 |
 | AuthorizationApplicationService | 権限・ロール判定 |
 | DataCenterApplicationService | DC登録・更新・削除・検索 |
+| RegionApplicationService | 地域・都道府県分類の管理 |
+| ContactApplicationService | 連絡先管理、DC・保守契約との関連付け |
+| ResourceAliasApplicationService | 呼称名・別名管理、正式名称以外での検索補助 |
 | LocationApplicationService | 棟、フロア、区画、ラック列管理 |
 | RackApplicationService | ラック管理、U位置整合性 |
 | DeviceApplicationService | 機器管理、ラック配置、保守・IP関連付け |
 | IpManagementApplicationService | IPサブネット、IPアドレス割当管理 |
 | MaintenanceApplicationService | 保守契約、対象機器、連絡先、期限検索 |
-| NotificationApplicationService | 通知設定、通知ログ、メール送信依頼 |
+| NotificationApplicationService | 通知設定、通知ログ、メール送信依頼、画面内通知作成、未読/既読管理 |
 | CsvApplicationService | CSVエクスポート、インポート履歴、行エラー管理 |
 | SearchApplicationService | 横断検索、タグ検索 |
 | CloudResourceApplicationService | 将来拡張。クラウド資産管理 |
@@ -69,7 +72,7 @@ infrastructure.repository / notification / security
 ### 主な責務
 
 - データセンター登録・更新・削除
-- 連絡先、タグの関連付け
+- 連絡先、タグ、呼称名・別名の関連付け
 - 物理階層の起点管理
 
 ### 主な業務ルール
@@ -144,13 +147,16 @@ infrastructure.repository / notification / security
 - 通知設定の管理
 - 通知ログ作成
 - メール送信処理への依頼
+- 画面内通知の作成
+- 未読/既読管理
 - 重複通知抑止
 
 ### 主な業務ルール
 
-- 初期リリースの通知チャネルはメールを基本とする。
+- 初期リリースの通知チャネルはメールと画面内通知を基本とする。
 - 同一対象・同一宛先への保守期限通知は初期リリースでは1回のみとする。
 - メール送信失敗時は通知ログにFAILEDを記録する。
+- 画面内通知は受信ユーザー単位で未読/既読を管理する。
 
 ## 5.8 CsvApplicationService
 
