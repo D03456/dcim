@@ -48,6 +48,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | maxRacks | Integer | ラック上限 |
 | maxDevices | Integer | 機器上限 |
 | maxIpSubnets | Integer | IPサブネット上限 |
+| maxIpAddresses | Integer | 管理対象IP数上限 |
 | maxTags | Integer | タグマスタ件数上限 |
 | trialDays | Integer | Freeトライアル日数 |
 | maxUsers | Integer | ユーザー上限 |
@@ -275,7 +276,7 @@ classDiagram
 | 制約ID | 制約内容 |
 |---|---|
 | DRC-001 | すべての主要データはtenantIdで分離する |
-| DRC-002 | 契約プラン上限を超えてDC、ラック、機器、IPサブネット、タグ、ユーザーを登録できない |
+| DRC-002 | 契約プラン上限を超えてDC、ラック、機器、IPサブネット、管理対象IP、タグ、ユーザーを登録できない |
 | DRC-003 | Freeプランは14日間トライアルとし、DC 1件、ラック3本、機器20台、サブネット3件、タグ10件、ユーザー1名まで |
 | DRC-003-1 | Freeトライアル期限超過後は `TRIAL_EXPIRED` として扱い、ログイン・参照・CSVエクスポート・有料プラン変更のみ許可する |
 | DRC-004 | IPサブネットと機器台数はオプションで追加できる |

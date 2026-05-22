@@ -142,6 +142,7 @@ erDiagram
 | max_racks | int | NOT NULL | ラック上限 |
 | max_devices | int | NOT NULL | 機器上限 |
 | max_ip_subnets | int | NOT NULL | IPサブネット上限 |
+| max_ip_addresses | int | NOT NULL | 管理対象IP数上限 |
 | max_tags | int | NOT NULL | タグマスタ件数上限 |
 | trial_days | int | NULL | Freeトライアル日数。標準14 |
 | max_users | int | NOT NULL | ユーザー上限 |
