@@ -72,6 +72,7 @@ and deleted = false
 | IpAddressRepository | ip_address | IP利用状況検索 |
 | MaintenanceContractRepository | maintenance_contract | 保守契約検索 |
 | MaintenanceContractDeviceRepository | maintenance_contract_device | 保守契約・機器関連検索 |
+| MaintenanceContractContactRepository | maintenance_contract_contact | 保守契約・連絡先関連検索 |
 | ContactRepository | contact | 連絡先検索 |
 | TagRepository | tag | タグ検索 |
 | TaggedResourceRepository | tagged_resource | タグ関連検索 |
@@ -260,7 +261,29 @@ List<MaintenanceContractDevice> findByTenantIdAndMaintenanceContractIdAndDeleted
 );
 ```
 
-## 6.7 TagRepository
+## 6.7 MaintenanceContractContactRepository
+
+### 主なメソッド
+
+```java
+boolean existsByTenantIdAndMaintenanceContractIdAndContactIdAndDeletedFalse(
+    Long tenantId,
+    Long maintenanceContractId,
+    Long contactId
+);
+
+List<MaintenanceContractContact> findByTenantIdAndMaintenanceContractIdAndDeletedFalse(
+    Long tenantId,
+    Long maintenanceContractId
+);
+
+List<MaintenanceContractContact> findByTenantIdAndContactIdAndDeletedFalse(
+    Long tenantId,
+    Long contactId
+);
+```
+
+## 6.8 TagRepository
 
 ### 主なメソッド
 
@@ -272,7 +295,7 @@ Optional<Tag> findByTenantIdAndTagNameAndDeletedFalse(Long tenantId, String tagN
 boolean existsByTenantIdAndTagNameAndDeletedFalse(Long tenantId, String tagName);
 ```
 
-## 6.8 TaggedResourceRepository
+## 6.9 TaggedResourceRepository
 
 ### 主なメソッド
 
@@ -291,7 +314,7 @@ boolean existsByTenantIdAndTagIdAndResourceTypeAndResourceIdAndDeletedFalse(
 );
 ```
 
-## 6.9 NotificationLogRepository
+## 6.10 NotificationLogRepository
 
 ### 主なメソッド
 

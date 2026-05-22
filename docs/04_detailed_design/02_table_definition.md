@@ -56,17 +56,18 @@
 | 16 | ip_address | IPアドレス利用状況 |
 | 17 | maintenance_contract | 保守契約 |
 | 18 | maintenance_contract_device | 保守契約・機器関連 |
-| 19 | contact | 連絡先 |
-| 20 | data_center_contact | DC・連絡先関連 |
-| 21 | tag | タグ |
-| 22 | tagged_resource | タグ関連 |
-| 23 | notification_setting | 通知設定 |
-| 24 | notification_log | 通知ログ |
-| 25 | csv_export_history | CSVエクスポート履歴 |
-| 26 | csv_import_history | CSVインポート履歴 |
-| 27 | csv_import_error | CSVインポートエラー |
-| 28 | cloud_account | 将来拡張：クラウドアカウント |
-| 29 | cloud_resource | 将来拡張：クラウドリソース |
+| 19 | maintenance_contract_contact | 保守契約・連絡先関連 |
+| 20 | contact | 連絡先 |
+| 21 | data_center_contact | DC・連絡先関連 |
+| 22 | tag | タグ |
+| 23 | tagged_resource | タグ関連 |
+| 24 | notification_setting | 通知設定 |
+| 25 | notification_log | 通知ログ |
+| 26 | csv_export_history | CSVエクスポート履歴 |
+| 27 | csv_import_history | CSVインポート履歴 |
+| 28 | csv_import_error | CSVインポートエラー |
+| 29 | cloud_account | 将来拡張：クラウドアカウント |
+| 30 | cloud_resource | 将来拡張：クラウドリソース |
 
 ## 4. 主要テーブル定義
 
@@ -336,7 +337,31 @@
 | uk_contract_device | tenant_id, maintenance_contract_id, device_id, deleted | UNIQUE |
 | idx_contract_device_device | tenant_id, device_id, deleted | INDEX |
 
-## 4.12 contact
+## 4.12 maintenance_contract_contact
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| maintenance_contract_contact_id | bigint | NO | PK | 保守契約・連絡先関連ID |
+| tenant_id | bigint | NO | FK | テナントID |
+| maintenance_contract_id | bigint | NO | FK | 保守契約ID |
+| contact_id | bigint | NO | FK | 連絡先ID |
+| contact_role | varchar(30) | YES |  | VENDOR / EMERGENCY / BILLING / OTHER 等の用途 |
+| created_by | bigint | NO | FK | 作成者 |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
+| updated_at | datetime(6) | NO |  | 更新日時 |
+| deleted | boolean | NO |  | 論理削除 |
+
+### インデックス
+
+| 名称 | カラム | 種別 |
+|---|---|---|
+| uk_contract_contact | tenant_id, maintenance_contract_id, contact_id, deleted | UNIQUE |
+| idx_contract_contact_contact | tenant_id, contact_id, deleted | INDEX |
+
+`MaintenanceContractService.assignContact(contractId, contactId)` は、同一テナント内の保守契約と連絡先のみ関連付ける。既に有効な関連が存在する場合は重複登録せず、業務例外として扱う。
+
+## 4.13 contact
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -350,7 +375,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.13 data_center_contact
+## 4.14 data_center_contact
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -374,7 +399,7 @@
 
 `DataCenterService.assignContact(dataCenterId, contactId)` は、同一テナント内のDCと連絡先のみ関連付ける。既に有効な関連が存在する場合は重複登録せず、業務例外として扱う。
 
-## 4.14 tag
+## 4.15 tag
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -386,7 +411,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.15 tagged_resource
+## 4.16 tagged_resource
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -399,7 +424,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.16 notification_setting
+## 4.17 notification_setting
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -413,7 +438,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.17 notification_log
+## 4.18 notification_log
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -431,7 +456,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.18 csv_export_history
+## 4.19 csv_export_history
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -444,7 +469,7 @@
 | requested_by | bigint | NO | FK | 実行者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
 
-## 4.19 csv_import_history
+## 4.20 csv_import_history
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -459,7 +484,7 @@
 | requested_by | bigint | NO | FK | 実行者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
 
-## 4.20 csv_import_error
+## 4.21 csv_import_error
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -469,7 +494,7 @@
 | column_name | varchar(100) | YES |  | カラム名 |
 | error_message | varchar(500) | NO |  | エラー内容 |
 
-## 4.21 app_user / role / user_role
+## 4.22 app_user / role / user_role
 
 ### app_user
 
@@ -491,7 +516,7 @@
 | role | role_id, role_code, role_name | ロール定義 |
 | user_role | user_role_id, tenant_id, user_id, role_id | ユーザー・ロール関連 |
 
-## 4.22 cloud_account（将来拡張）
+## 4.23 cloud_account（将来拡張）
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
@@ -504,7 +529,7 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-## 4.23 cloud_resource（将来拡張）
+## 4.24 cloud_resource（将来拡張）
 
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|

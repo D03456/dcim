@@ -59,7 +59,7 @@ com.example.dcim
 | SVC-001 | AuthService | ログイン、認証情報取得 |
 | SVC-002 | TenantService | テナント情報取得、テナント状態確認 |
 | SVC-003 | SubscriptionService | プラン情報取得、利用上限算出 |
-| SVC-004 | UsageLimitService | DC、ラック、機器、IPサブネット、ユーザー、Freeトライアル期間、期限超過時の更新可否チェック |
+| SVC-004 | UsageLimitService | DC、ラック、機器、IPサブネット、タグ、ユーザー、Freeトライアル期間、期限超過時の更新可否チェック |
 | SVC-005 | DataCenterService | データセンター登録、更新、検索、詳細取得 |
 | SVC-006 | LocationService | 建物、フロア、エリア、ラック列管理 |
 | SVC-007 | RackService | ラック登録、更新、検索、詳細取得 |
@@ -208,7 +208,7 @@ sequenceDiagram
 |---|---|
 | メール通知 | 初期必須。SMTPまたはクラウドメールサービスを利用可能な設計にする |
 | AWS連携 | 将来拡張。手動登録およびAPI同期を検討する |
-| CSVインポート | 初期追加対象。機器、ラック、IPサブネット、保守契約の一括登録対象とする |
+| CSVインポート | 初期追加対象。データセンター、ラック、機器、IPサブネット/IP利用状況、保守契約の一括登録対象とする |
 | CSVエクスポート | 初期必須。一覧画面の検索結果出力として実装する |
 
 ## 12. 命名方針

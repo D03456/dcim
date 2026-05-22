@@ -39,7 +39,7 @@ infrastructure.repository / notification / security
 | RackApplicationService | ラック管理、U位置整合性 |
 | DeviceApplicationService | 機器管理、ラック配置、保守・IP関連付け |
 | IpManagementApplicationService | IPサブネット、IPアドレス割当管理 |
-| MaintenanceApplicationService | 保守契約、対象機器、期限検索 |
+| MaintenanceApplicationService | 保守契約、対象機器、連絡先、期限検索 |
 | NotificationApplicationService | 通知設定、通知ログ、メール送信依頼 |
 | CsvApplicationService | CSVエクスポート、インポート履歴、行エラー管理 |
 | SearchApplicationService | 横断検索、タグ検索 |
@@ -61,7 +61,7 @@ infrastructure.repository / notification / security
 - Freeプランは14日間トライアルとする。
 - Freeトライアル期限超過後は `TRIAL_EXPIRED` として扱い、ログイン・参照・CSVエクスポート・契約プラン確認・有料プラン変更のみ許可する。
 - 期限超過中はテナント管理者であっても登録・更新・削除・CSVインポート・ユーザー招待を不可とする。
-- プラン上限はDC、ラック、機器、IPサブネット、ユーザーを対象とする。
+- プラン上限はDC、ラック、機器、IPサブネット、タグ、ユーザーを対象とする。
 - サブネット追加は10サブネット単位、機器追加は100台単位とする。
 
 ## 5.2 DataCenterApplicationService
@@ -127,6 +127,7 @@ infrastructure.repository / notification / security
 
 - 保守契約登録・更新・削除
 - 保守契約と機器の紐付け
+- 保守契約と連絡先の紐付け
 - 保守期限検索
 - 保守未契約機器検索
 
@@ -164,6 +165,7 @@ infrastructure.repository / notification / security
 - CSVエクスポートは初期リリース必須とする。
 - CSVインポートは初期追加対象とする。
 - インポート時もプラン上限、参照存在、権限を検証する。
+- 初期追加対象はデータセンター、ラック、機器、IPサブネット/IP利用状況、保守契約とする。
 
 ## 6. 共通例外方針
 

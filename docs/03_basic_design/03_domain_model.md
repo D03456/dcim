@@ -11,7 +11,7 @@
 | コンテキスト | 概要 | 主な集約 |
 |---|---|---|
 | テナント・契約管理 | SaaSテナント、契約プラン、利用上限、オプションを管理する | Tenant、SubscriptionPlan、UsageLimit、AddOnOption |
-| ロケーション管理 | データセンター、建物、フロア、エリア、ラック列を管理する | DataCenter、Building、Floor、Area、RackRow |
+| ロケーション管理 | リージョン、データセンター、建物、フロア、エリア、ラック列を管理する | Region、DataCenter、Building、Floor、Area、RackRow |
 | ラック管理 | ラックとラック内搭載位置を管理する | Rack、RackMountPosition、RackTemplate |
 | 機器管理 | サーバー、ネットワーク機器、別名、タグを管理する | Device、DeviceAlias、Tag |
 | IPサブネット管理 | IPサブネットと配下IPの割当状況を管理する | IpSubnet、IpAddress |
@@ -48,10 +48,22 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | maxRacks | Integer | ラック上限 |
 | maxDevices | Integer | 機器上限 |
 | maxIpSubnets | Integer | IPサブネット上限 |
+| maxTags | Integer | タグマスタ件数上限 |
 | trialDays | Integer | Freeトライアル日数 |
 | maxUsers | Integer | ユーザー上限 |
 
-### 3.3 DataCenter
+### 3.3 Region
+
+| 属性 | 型 | 説明 |
+|---|---|---|
+| regionId | Long | リージョンID |
+| tenantId | Long | テナントID |
+| regionName | String | 地域名 |
+| prefecture | String | 都道府県 |
+| displayOrder | Integer | 表示順 |
+| status | Enum | Active / Inactive |
+
+### 3.4 DataCenter
 
 | 属性 | 型 | 説明 |
 |---|---|---|
@@ -59,14 +71,11 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | tenantId | Long | テナントID |
 | officialName | String | 正式名称 |
 | displayName | String | 表示名 |
-| region | String | 地域 |
-| prefecture | String | 都道府県 |
+| regionId | Long | 地域・都道府県分類ID。`Region` を参照 |
 | address | String | 所在地 |
-| contactEmail | String | 連絡先メール |
-| contactPhone | String | 連絡先電話番号 |
 | status | Enum | Active / Inactive |
 
-### 3.4 Location階層
+### 3.5 Location階層
 
 | エンティティ | 説明 |
 |---|---|
@@ -76,7 +85,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | RackRow | エリア内のラック列 |
 | Rack | ラック列内のラック |
 
-### 3.5 Rack
+### 3.6 Rack
 
 | 属性 | 型 | 説明 |
 |---|---|---|
@@ -88,7 +97,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | positionNo | String | ラック列内位置 |
 | status | Enum | Active / Reserved / Retired |
 
-### 3.6 Device
+### 3.7 Device
 
 | 属性 | 型 | 説明 |
 |---|---|---|
@@ -105,7 +114,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | rackSizeU | Integer | 搭載U数 |
 | status | Enum | Planned / Active / Maintenance / Retired |
 
-### 3.7 IpSubnet / IpAddress
+### 3.8 IpSubnet / IpAddress
 
 | 属性 | 型 | 説明 |
 |---|---|---|
@@ -119,7 +128,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | assignedDeviceId | Long | 割当機器ID |
 | purpose | String | 用途 |
 
-### 3.8 MaintenanceContract
+### 3.9 MaintenanceContract
 
 | 属性 | 型 | 説明 |
 |---|---|---|
@@ -133,7 +142,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | notifyBeforeDays | Integer | 期限通知日数。標準60日 |
 | status | Enum | Active / ExpiringSoon / Expired / Cancelled |
 
-### 3.9 CloudResource（将来拡張）
+### 3.10 CloudResource（将来拡張）
 
 | 属性 | 型 | 説明 |
 |---|---|---|
@@ -145,7 +154,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | externalResourceId | String | クラウド側ID |
 | status | String | クラウド側状態 |
 
-### 3.10 共通監査情報
+### 3.11 共通監査情報
 
 主要エンティティは、最低限の監査情報として以下を保持する。
 
@@ -158,7 +167,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 
 完全な操作履歴・変更履歴は将来拡張の監査ログ管理で扱う。
 
-### 3.11 連絡先・タグ・通知・CSV関連
+### 3.12 連絡先・タグ・通知・CSV関連
 
 | エンティティ | 説明 |
 |---|---|
@@ -192,6 +201,7 @@ classDiagram
     class Tenant
     class SubscriptionPlan
     class AddOnOption
+    class Region
     class DataCenter
     class Building
     class Floor
@@ -199,22 +209,25 @@ classDiagram
     class RackRow
     class Rack
     class Device
-    class IpSegment
+    class IpSubnet
     class IpAddress
     class MaintenanceContract
     class CloudAccount
     class CloudResource
     class UserAccount
     class Role
+    class Contact
     class Tag
 
     Tenant "1" --> "1" SubscriptionPlan
     Tenant "1" --> "0..*" AddOnOption
+    Tenant "1" --> "0..*" Region
     Tenant "1" --> "0..*" DataCenter
     Tenant "1" --> "0..*" Device
     Tenant "1" --> "0..*" UserAccount
     Tenant "1" --> "0..*" CloudAccount
 
+    Region "1" --> "0..*" DataCenter
     DataCenter "1" --> "0..*" Building
     Building "1" --> "0..*" Floor
     Floor "1" --> "0..*" Area
@@ -226,6 +239,8 @@ classDiagram
     Device "1" --> "0..*" IpAddress
 
     MaintenanceContract "1" --> "0..*" Device
+    DataCenter "*" --> "*" Contact
+    MaintenanceContract "*" --> "*" Contact
 
     CloudAccount "1" --> "0..*" CloudResource
 
@@ -233,6 +248,9 @@ classDiagram
     Device "*" --> "*" Tag
     Rack "*" --> "*" Tag
     DataCenter "*" --> "*" Tag
+    IpSubnet "*" --> "*" Tag
+    IpAddress "*" --> "*" Tag
+    MaintenanceContract "*" --> "*" Tag
 ```
 
 ## 6. ドメインサービス候補
@@ -252,8 +270,8 @@ classDiagram
 | 制約ID | 制約内容 |
 |---|---|
 | DRC-001 | すべての主要データはtenantIdで分離する |
-| DRC-002 | 契約プラン上限を超えてDC、ラック、機器、IPサブネット、ユーザーを登録できない |
-| DRC-003 | Freeプランは14日間トライアルとし、DC 1件、ラック3本、機器20台、サブネット3件、ユーザー1名まで |
+| DRC-002 | 契約プラン上限を超えてDC、ラック、機器、IPサブネット、タグ、ユーザーを登録できない |
+| DRC-003 | Freeプランは14日間トライアルとし、DC 1件、ラック3本、機器20台、サブネット3件、タグ10件、ユーザー1名まで |
 | DRC-003-1 | Freeトライアル期限超過後は `TRIAL_EXPIRED` として扱い、ログイン・参照・CSVエクスポート・有料プラン変更のみ許可する |
 | DRC-004 | IPサブネットと機器台数はオプションで追加できる |
 | DRC-005 | IPサブネット追加は10サブネット単位とする |
@@ -263,4 +281,5 @@ classDiagram
 | DRC-009 | 保守契約未設定の機器を検索可能とする |
 | DRC-010 | 保守期限の標準通知日は終了日の60日前とする |
 | DRC-011 | 正式名称とは別に表示名・別名を持てる |
-| DRC-012 | 主要エンティティにタグを付与できる |
+| DRC-012 | 主要エンティティにタグを付与できる。初期対象はDataCenter、Rack、Device、IpSubnet、IpAddress、MaintenanceContractとし、CloudResourceは将来拡張対象とする |
+| DRC-013 | タグ数上限は有効なタグマスタ件数で判定し、リソースへのタグ付け件数は対象外とする |
