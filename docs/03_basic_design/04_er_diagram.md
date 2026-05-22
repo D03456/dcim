@@ -42,6 +42,10 @@ erDiagram
 
     TENANT ||--o{ TAG : has
     TAG ||--o{ TAGGED_RESOURCE : used
+    TENANT ||--o{ RESOURCE_ALIAS : has
+    DATA_CENTER ||--o{ RESOURCE_ALIAS : aliases
+    RACK ||--o{ RESOURCE_ALIAS : aliases
+    DEVICE ||--o{ RESOURCE_ALIAS : aliases
 
     TENANT ||--o{ NOTIFICATION_SETTING : has
     TENANT ||--o{ NOTIFICATION_LOG : has
@@ -60,7 +64,7 @@ erDiagram
 | tenant | テナント | ○ |
 | subscription_plan | 契約プラン・利用上限 | ○ |
 | tenant_add_on | テナント別追加利用枠 | ○ |
-| app_user | ユーザー | ○ |
+| app_user | ユーザー。ログイン認証情報としてパスワードハッシュを保持 | ○ |
 | role | ロール | ○ |
 | user_role | ユーザー・ロール関連 | ○ |
 | region | 地域 | ○ |
@@ -80,8 +84,9 @@ erDiagram
 | data_center_contact | データセンター・連絡先関連 | ○ |
 | tag | タグ | ○ |
 | tagged_resource | タグ関連 | ○ |
+| resource_alias | 呼称名・別名 | ○ |
 | notification_setting | 通知設定 | ○ |
-| notification_log | 通知履歴・メール送信履歴 | ○ |
+| notification_log | 通知履歴・メール/画面内通知履歴 | ○ |
 | csv_export_history | CSV出力履歴 | ○ |
 | csv_import_history | CSV取込履歴 | 初期追加 |
 | csv_import_error | CSV取込エラー | 初期追加 |
@@ -117,6 +122,15 @@ erDiagram
 | trial_end_date | date | NULL | Freeトライアル終了日。Free以外はNULL可 |
 | status | varchar(30) | NOT NULL | ACTIVE / SUSPENDED / TRIAL_EXPIRED / CANCELLED |
 
+
+### 4.1A app_user / role / user_role
+
+| テーブル | 主なカラム | 説明 |
+|---|---|---|
+| app_user | user_id, tenant_id, email, display_name, password_hash, password_updated_at, status | 利用者。パスワードは平文保存せずハッシュのみ保持 |
+| role | role_id, role_code, role_name | ロール定義 |
+| user_role | user_role_id, tenant_id, user_id, role_id | ユーザー・ロール関連 |
+
 ### 4.2 subscription_plan
 
 | カラム | 型 | 制約 | 説明 |
@@ -147,12 +161,13 @@ erDiagram
 
 | テーブル | 主なカラム | 説明 |
 |---|---|---|
-| data_center | data_center_id, tenant_id, region_id, formal_name, display_name, address, status | データセンター |
+| region | region_id, tenant_id, region_code, region_name, prefecture, display_order, status | 地域・都道府県分類 |
+| data_center | data_center_id, tenant_id, region_id, formal_name, display_name, address, status | データセンター。複数の呼称名・別名は `resource_alias` で保持 |
 | building | building_id, tenant_id, data_center_id, formal_name, display_name | 棟 |
 | floor | floor_id, tenant_id, building_id, floor_name, floor_number | フロア |
 | area | area_id, tenant_id, floor_id, area_name, direction | 区画 |
 | rack_row | rack_row_id, tenant_id, area_id, row_name | ラック列 |
-| rack | rack_id, tenant_id, rack_row_id, formal_name, display_name, rack_number, height_unit, status | ラック |
+| rack | rack_id, tenant_id, rack_row_id, formal_name, display_name, rack_number, height_unit, status | ラック。複数の呼称名・別名は `resource_alias` で保持 |
 
 ### 4.5 device
 
@@ -163,7 +178,7 @@ erDiagram
 | rack_id | bigint | FK, NULL | 設置ラックID |
 | device_type | varchar(30) | NOT NULL | SERVER / SWITCH等 |
 | formal_name | varchar(150) | NOT NULL | 正式名称 |
-| display_name | varchar(150) | NULL | 表示名 |
+| display_name | varchar(150) | NULL | 代表表示名。複数の呼称名・別名は `resource_alias` で保持 |
 | hostname | varchar(150) | NULL | ホスト名 |
 | serial_number | varchar(100) | NULL | シリアル番号 |
 | rack_unit_start | int | NULL | 搭載開始U |
@@ -185,21 +200,22 @@ erDiagram
 | maintenance_contract_device | maintenance_contract_device_id, tenant_id, maintenance_contract_id, device_id | 保守契約・機器関連 |
 | maintenance_contract_contact | maintenance_contract_contact_id, tenant_id, maintenance_contract_id, contact_id, contact_role | 保守契約・連絡先関連 |
 
-### 4.8 contact / tag
+### 4.8 contact / tag / resource_alias
 
 | テーブル | 主なカラム | 説明 |
 |---|---|---|
-| contact | contact_id, tenant_id, contact_type, name, email, phone_number | 連絡先 |
-| data_center_contact | data_center_id, contact_id | データセンターと連絡先の関連 |
+| contact | contact_id, tenant_id, contact_type, organization_name, department_name, position_name, person_name, email, phone_number, address, preferred_contact_method, note, active | 連絡先 |
+| data_center_contact | data_center_contact_id, tenant_id, data_center_id, contact_id, contact_role | データセンターと連絡先の関連 |
 | tag | tag_id, tenant_id, tag_name, color_code | タグ。タグマスタ件数はプラン上限対象 |
 | tagged_resource | tagged_resource_id, tenant_id, tag_id, resource_type, resource_id | タグと対象リソースの関連 |
+| resource_alias | resource_alias_id, tenant_id, resource_type, resource_id, alias_name, alias_type | 対象リソースの呼称名・別名 |
 
 ### 4.9 notification / CSV tables
 
 | テーブル | 主なカラム | 説明 |
 |---|---|---|
-| notification_setting | notification_setting_id, tenant_id, notification_type, enabled, email_enabled, days_before | 通知設定 |
-| notification_log | notification_log_id, tenant_id, notification_type, target_type, target_id, recipient, subject, status, sent_at, error_message | 通知履歴・メール送信履歴 |
+| notification_setting | notification_setting_id, tenant_id, notification_type, enabled, email_enabled, in_app_enabled, days_before | 通知設定 |
+| notification_log | notification_log_id, tenant_id, notification_type, channel, target_type, target_id, recipient, recipient_user_id, subject, status, sent_at, read_at, error_message | 通知履歴・メール/画面内通知履歴 |
 | csv_export_history | csv_export_history_id, tenant_id, target_type, condition_summary, file_name, record_count, requested_by, created_at | CSV出力履歴 |
 | csv_import_history | csv_import_history_id, tenant_id, target_type, file_name, status, total_count, success_count, failure_count, requested_by, created_at | CSV取込履歴 |
 | csv_import_error | csv_import_error_id, csv_import_history_id, row_number, column_name, error_message | CSV取込エラー |
@@ -224,6 +240,7 @@ erDiagram
 | IPサブネット | tenant_id + cidr をユニーク制約候補とする |
 | IPアドレス | tenant_id + ip_subnet_id + ip_address をユニーク制約候補とする |
 | 機器 | tenant_id + formal_name、serial_numberを検索対象とする |
+| 呼称名・別名 | tenant_id + resource_type + resource_id、tenant_id + alias_name にインデックスを検討 |
 | 保守契約 | tenant_id + end_date にインデックスを付与 |
 | 監査ログ | 将来拡張。tenant_id + occurred_at にインデックスを付与 |
 

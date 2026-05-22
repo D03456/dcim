@@ -21,6 +21,7 @@ flowchart TD
     Dashboard --> DCList[SCR-003 データセンター一覧]
     Dashboard --> DeviceList[SCR-012 機器一覧]
     Dashboard --> MaintenanceAlert[SCR-021 保守期限アラート一覧]
+    Dashboard --> NotificationList[SCR-036 通知一覧]
     Dashboard --> Usage[SCR-030 契約プラン・利用状況]
 
     DCList --> DCDetail[SCR-004 データセンター詳細]
@@ -56,6 +57,9 @@ flowchart TD
 
     Tag[SCR-025 タグ管理]
     Notification[SCR-026 通知設定]
+    NotificationList --> Notification
+    NotificationList --> MaintenanceDetail
+    NotificationList --> DeviceDetail
     UserList[SCR-027 ユーザー一覧] --> UserEdit[SCR-028 ユーザー登録・編集]
     Role[SCR-029 権限ロール一覧]
     Usage --> Option[SCR-031 オプション追加]
@@ -80,6 +84,7 @@ flowchart TD
 | 将来拡張：クラウド | SCR-022 | クラウドアカウント・リソース管理 |
 | タグ管理 | SCR-025 | 共通タグ管理 |
 | 通知設定 | SCR-026 | 通知条件・通知先管理 |
+| 通知一覧 | SCR-036 | 未読通知確認、通知詳細、既読化 |
 | ユーザー管理 | SCR-027 | ユーザー・ロール管理 |
 | 契約プラン | SCR-030 | 利用状況・オプション管理 |
 | 将来拡張：監査ログ | SCR-032 | 操作履歴確認 |
@@ -114,7 +119,18 @@ sequenceDiagram
     User->>DeviceDetail: 対象機器を確認
 ```
 
-### 5.3 プラン上限確認とオプション追加
+### 5.3 画面内通知確認
+
+```mermaid
+sequenceDiagram
+    actor User as 利用者
+    User->>Dashboard: 未読通知を確認
+    User->>NotificationList: 通知一覧へ遷移
+    User->>NotificationList: 通知を既読化
+    User->>MaintenanceDetail: 対象契約・機器を確認
+```
+
+### 5.4 プラン上限確認とオプション追加
 
 ```mermaid
 sequenceDiagram

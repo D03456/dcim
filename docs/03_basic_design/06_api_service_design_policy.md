@@ -62,6 +62,9 @@ com.example.dcim
 | SVC-004 | UsageLimitService | DC、ラック、機器、IPサブネット、タグ、ユーザー、Freeトライアル期間、期限超過時の更新可否チェック |
 | SVC-005 | DataCenterService | データセンター登録、更新、検索、詳細取得 |
 | SVC-006 | LocationService | 建物、フロア、エリア、ラック列管理 |
+| SVC-006A | RegionService | 地域・都道府県分類の登録、更新、検索 |
+| SVC-006B | ContactService | 連絡先登録、更新、検索、関連付け |
+| SVC-006C | ResourceAliasService | 呼称名・別名の登録、更新、検索 |
 | SVC-007 | RackService | ラック登録、更新、検索、詳細取得 |
 | SVC-008 | RackTemplateService | ラックテンプレート管理 |
 | SVC-009 | RackPlacementService | ラック搭載位置チェック、空きU算出 |
@@ -72,7 +75,7 @@ com.example.dcim
 | SVC-014 | CloudAccountService | 将来拡張。クラウドアカウント管理 |
 | SVC-015 | CloudResourceService | 将来拡張。クラウドリソース管理、同期結果保存 |
 | SVC-016 | TagService | タグ登録、更新、付与、解除 |
-| SVC-017 | NotificationService | 通知設定、通知履歴管理、メール通知実行、送信失敗管理 |
+| SVC-017 | NotificationService | 通知設定、通知履歴管理、メール通知実行、画面内通知作成、未読/既読管理、送信失敗管理 |
 | SVC-021 | CsvExportService | 初期必須。検索結果と主要一覧のCSV出力 |
 | SVC-022 | CsvImportService | 初期追加対象。CSV取込、検証、エラー結果管理 |
 | SVC-018 | UserAccountService | ユーザー招待、更新、無効化、ロール変更 |
@@ -88,11 +91,18 @@ com.example.dcim
 | リソース | API例 |
 |---|---|
 | データセンター | `/api/v1/data-centers` |
+| リージョン | `/api/v1/regions` |
+| 連絡先 | `/api/v1/contacts` |
+| 呼称名・別名 | `/api/v1/resource-aliases` または `/api/v1/{resource}/{id}/aliases` |
 | ラック | `/api/v1/racks` |
 | 機器 | `/api/v1/devices` |
 | IPサブネット | `/api/v1/ip-subnets` |
 | IP利用状況 | `/api/v1/ip-addresses` |
 | 保守契約 | `/api/v1/maintenance-contracts` |
+| 通知設定 | `/api/v1/notification-settings` |
+| 通知 | `/api/v1/notifications`、`/api/v1/notifications/{id}/read` |
+| CSV出力 | `/api/v1/csv/exports` |
+| CSV取込 | `/api/v1/csv/imports` |
 | 将来拡張：クラウドアカウント | `/api/v1/cloud-accounts` |
 | 将来拡張：クラウドリソース | `/api/v1/cloud-resources` |
 | タグ | `/api/v1/tags` |
@@ -178,6 +188,7 @@ com.example.dcim
 | CSV出力 | 初期必須。一覧検索条件に基づく出力を標準化 |
 | CSV取込 | 初期追加対象。事前検証、行単位エラー、取込履歴を標準化 |
 | メール通知 | 初期必須。通知履歴、送信失敗、再送要否を管理できる構造にする |
+| 画面内通知 | 初期必須。通知ログ、未読/既読、ダッシュボード表示を管理できる構造にする |
 
 ## 9. プラン上限チェック方針
 
