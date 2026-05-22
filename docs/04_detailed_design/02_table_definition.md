@@ -82,7 +82,9 @@
 | trial_start_date | date | YES |  | Freeトライアル開始日 |
 | trial_end_date | date | YES |  | Freeトライアル終了日 |
 | status | varchar(30) | NO |  | ACTIVE / SUSPENDED / TRIAL_EXPIRED / CANCELLED |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -126,7 +128,9 @@
 | quantity_unit | int | NO |  | 追加単位数 |
 | effective_from | date | NO |  | 有効開始日 |
 | effective_to | date | YES |  | 有効終了日 |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -143,7 +147,9 @@
 | prefecture | varchar(100) | YES |  | 都道府県 |
 | display_order | int | YES |  | 表示順 |
 | status | varchar(30) | NO |  | ACTIVE / INACTIVE |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -165,7 +171,9 @@
 | display_name | varchar(150) | YES |  | 代表表示名。複数の呼称名・別名は `resource_alias` で保持する |
 | address | varchar(255) | YES |  | 所在地 |
 | status | varchar(30) | NO |  | ACTIVE / INACTIVE |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -189,7 +197,9 @@
 | data_center_id | bigint | NO | FK | DC ID |
 | formal_name | varchar(150) | NO |  | 正式名称 |
 | display_name | varchar(150) | YES |  | 代表表示名。複数の呼称名・別名は `resource_alias` で保持する |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -202,7 +212,9 @@
 | building_id | bigint | NO | FK | 棟ID |
 | floor_name | varchar(100) | NO |  | フロア名 |
 | floor_number | varchar(30) | YES |  | 階数・表記 |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -215,7 +227,9 @@
 | floor_id | bigint | NO | FK | フロアID |
 | area_name | varchar(100) | NO |  | 区画名 |
 | direction | varchar(30) | YES |  | EAST / WEST / SOUTH / NORTH / OTHER |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -227,7 +241,9 @@
 | tenant_id | bigint | NO | FK | テナントID |
 | area_id | bigint | NO | FK | 区画ID |
 | row_name | varchar(100) | NO |  | ラック列名 |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -243,7 +259,9 @@
 | rack_number | varchar(50) | NO |  | ラック番号 |
 | height_unit | int | NO |  | ラック高さ |
 | status | varchar(30) | NO |  | ACTIVE / INACTIVE |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -263,8 +281,10 @@
 | model_name | varchar(100) | YES |  | 型番 |
 | rack_unit_start | int | YES |  | 開始U位置 |
 | rack_unit_size | int | YES |  | 使用U数 |
-| lifecycle_status | varchar(30) | NO |  | ACTIVE / SPARE / RETIRED 等 |
+| lifecycle_status | varchar(30) | NO |  | ACTIVE / SPARE / PLANNED_RETIREMENT / RETIRED |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -339,7 +359,9 @@
 | end_date | date | NO |  | 終了日 |
 | notification_enabled | boolean | NO |  | 通知有効 |
 | notification_days_before | int | NO |  | 期限前通知日数。標準60 |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -351,7 +373,9 @@
 | tenant_id | bigint | NO | FK | テナントID |
 | maintenance_contract_id | bigint | NO | FK | 保守契約ID |
 | device_id | bigint | NO | FK | 機器ID |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -403,7 +427,9 @@
 | preferred_contact_method | varchar(30) | YES |  | EMAIL / PHONE / OTHER |
 | note | text | YES |  | 備考 |
 | active | boolean | NO |  | 有効フラグ |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -439,7 +465,9 @@
 | tenant_id | bigint | NO | FK | テナントID |
 | tag_name | varchar(50) | NO |  | タグ名 |
 | color_code | varchar(20) | YES |  | 表示色 |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -450,9 +478,11 @@
 | tagged_resource_id | bigint | NO | PK | 関連ID |
 | tenant_id | bigint | NO | FK | テナントID |
 | tag_id | bigint | NO | FK | タグID |
-| resource_type | varchar(50) | NO |  | DATA_CENTER / RACK / DEVICE 等 |
+| resource_type | varchar(50) | NO |  | DATA_CENTER / RACK / DEVICE / IP_SUBNET / IP_ADDRESS / MAINTENANCE_CONTRACT |
 | resource_id | bigint | NO |  | 対象ID |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -467,7 +497,9 @@
 | email_enabled | boolean | NO |  | メール通知有効 |
 | in_app_enabled | boolean | NO |  | 画面内通知有効 |
 | days_before | int | YES |  | 期限前日数 |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -488,7 +520,9 @@
 | sent_at | datetime(6) | YES |  | 送信日時 |
 | read_at | datetime(6) | YES |  | 画面内通知の既読日時 |
 | error_message | text | YES |  | エラー内容 |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -503,6 +537,7 @@
 | file_name | varchar(255) | NO |  | 出力ファイル名 |
 | record_count | int | NO |  | 出力件数 |
 | requested_by | bigint | NO | FK | 実行者 |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
 
 ## 4.20 csv_import_history
@@ -518,6 +553,7 @@
 | success_count | int | NO |  | 成功行数 |
 | failure_count | int | NO |  | 失敗行数 |
 | requested_by | bigint | NO | FK | 実行者 |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
 
 ## 4.21 csv_import_error
@@ -543,7 +579,9 @@
 | password_hash | varchar(255) | NO |  | ハッシュ化済みパスワード。平文は保存しない |
 | password_updated_at | datetime(6) | YES |  | パスワード最終更新日時 |
 | status | varchar(30) | NO |  | ACTIVE / INVITED / SUSPENDED |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -566,7 +604,9 @@
 | resource_id | bigint | NO |  | 対象ID |
 | alias_name | varchar(150) | NO |  | 呼称名・別名・略称・運用名 |
 | alias_type | varchar(30) | YES |  | DISPLAY / ABBREVIATION / OPERATION / OTHER |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -586,7 +626,9 @@
 | provider | varchar(30) | NO |  | AWS 等 |
 | account_name | varchar(150) | NO |  | アカウント名 |
 | account_identifier | varchar(150) | YES |  | AWSアカウントID等 |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
@@ -602,7 +644,9 @@
 | resource_name | varchar(150) | NO |  | リソース名 |
 | resource_identifier | varchar(255) | YES |  | インスタンスID等 |
 | status | varchar(50) | YES |  | 状態 |
+| created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
