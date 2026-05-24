@@ -113,7 +113,7 @@
 
 | plan_code | trial_days | max_data_centers | max_racks | max_devices | max_ip_addresses | max_tags | max_users |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| FREE | 14 | 1 | 3 | 20 | 256 | 10 | 1 |
+| FREE | 14 | 1 | 3 | 40 | 256 | 10 | 3 |
 | STARTER | null | 2 | 5 | 50 | 512 | 50 | 3 |
 | BUSINESS | null | 5 | 50 | 100 | 1024 | 200 | 10 |
 | ENTERPRISE | null | 10 | 100 | 1000 | 2048 | 1000 | 30 |
