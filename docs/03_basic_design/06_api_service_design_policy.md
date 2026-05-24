@@ -59,7 +59,7 @@ com.example.dcim
 | SVC-001 | AuthService | ログイン、認証情報取得 |
 | SVC-002 | TenantService | テナント情報取得、テナント状態確認 |
 | SVC-003 | SubscriptionService | プラン情報取得、利用上限算出 |
-| SVC-004 | UsageLimitService | DC、ラック、機器、IPサブネット、管理対象IP、タグ、ユーザー、Freeトライアル期間、期限超過時の更新可否チェック |
+| SVC-004 | UsageLimitService | DC、ラック、機器、管理対象IP、タグ、ユーザー、Freeトライアル期間、期限超過時の更新可否チェック |
 | SVC-005 | DataCenterService | データセンター登録、更新、検索、詳細取得 |
 | SVC-006 | LocationService | 建物、フロア、エリア、ラック列管理 |
 | SVC-006A | RegionService | 地域・都道府県分類の登録、更新、検索 |
@@ -172,6 +172,28 @@ com.example.dcim
 | `/api/v1/usage/limits` | GET | プラン上限取得 |
 | `/api/v1/add-ons` | POST | オプション追加 |
 
+### 7.5 リージョン・連絡先・呼称名
+
+| API | メソッド | 概要 |
+|---|---|---|
+| `/api/v1/regions` | GET/POST | リージョン一覧取得・登録 |
+| `/api/v1/regions/{id}` | GET/PUT/DELETE | リージョン詳細取得・更新・削除 |
+| `/api/v1/contacts` | GET/POST | 連絡先一覧取得・登録 |
+| `/api/v1/contacts/{id}` | GET/PUT/DELETE | 連絡先詳細取得・更新・削除 |
+| `/api/v1/resource-aliases` | GET/POST | 呼称名・別名検索・登録 |
+| `/api/v1/{resource}/{id}/aliases` | GET/POST | 対象リソースの呼称名・別名取得・追加 |
+
+### 7.6 通知・CSV
+
+| API | メソッド | 概要 |
+|---|---|---|
+| `/api/v1/notification-settings` | GET/PUT | 通知設定取得・更新 |
+| `/api/v1/notifications` | GET | 自分宛て通知一覧取得 |
+| `/api/v1/notifications/{id}/read` | PATCH | 通知既読化 |
+| `/api/v1/csv/exports` | POST | CSV出力要求 |
+| `/api/v1/csv/imports` | POST | CSV取込要求 |
+| `/api/v1/csv/imports/{id}` | GET | CSV取込結果・エラー確認 |
+
 ## 8. 共通処理方針
 
 | 項目 | 方針 |
@@ -208,16 +230,17 @@ sequenceDiagram
 
 ### 9.1 管理対象IP数上限
 
-- IPサブネット数上限とは別に、サブネット配下に生成・管理する個別IP数の上限をプラン別に持つ。
-- Free 256、Starter 512、Business 1,024、Enterprise 2,048 IPを上限とする。
+- IPサブネット数には上限を設けず、サブネット配下に生成・管理する個別IP数の上限をプラン別に持つ。
+- Free 256、Starter 512、Business 1,024、Enterprise 2,048 IPを初期上限とする。
+- IP上限追加オプションは256IP単位で、管理対象IP数上限に256件を追加する。
 - CIDRプレフィックスは固定せず、個別IP生成予定数を含めて上限判定する。
 
 ## 10. 保守期限通知方針
 
-- 保守契約の終了日から60日前を標準通知対象とする。
-- 通知日数は契約単位またはテナント設定で変更可能とする。
+- 保守期限通知は60日前、30日前、当日、期限切れを初期対象とする。
+- 60日前は標準通知日とし、30日前・当日・期限切れは通知設定または既定タイミングとして抽出する。
 - 通知対象はバッチまたはスケジューラで抽出する。
-- 通知履歴を保存し、同一契約への重複通知を制御する。
+- 通知履歴を保存し、`notification_type`、`channel`、対象契約、宛先または`recipient_user_id`単位で重複通知を制御する。
 
 ## 11. 外部連携方針
 

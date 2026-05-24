@@ -141,7 +141,6 @@ erDiagram
 | max_data_centers | int | NOT NULL | DC上限 |
 | max_racks | int | NOT NULL | ラック上限 |
 | max_devices | int | NOT NULL | 機器上限 |
-| max_ip_subnets | int | NOT NULL | IPサブネット上限 |
 | max_ip_addresses | int | NOT NULL | 管理対象IP数上限 |
 | max_tags | int | NOT NULL | タグマスタ件数上限 |
 | trial_days | int | NULL | Freeトライアル日数。標準14 |
@@ -184,13 +183,13 @@ erDiagram
 | serial_number | varchar(100) | NULL | シリアル番号 |
 | rack_unit_start | int | NULL | 搭載開始U |
 | rack_unit_size | int | NULL | 使用U数 |
-| lifecycle_status | varchar(30) | NOT NULL | ACTIVE / SPARE / RETIRED等 |
+| lifecycle_status | varchar(30) | NOT NULL | ACTIVE / SPARE / PLANNED_RETIREMENT / RETIRED |
 
 ### 4.6 ip_subnet / ip_address
 
 | テーブル | 主なカラム | 説明 |
 |---|---|---|
-| ip_subnet | ip_subnet_id, tenant_id, subnet_name, cidr, ip_version, status, description | IPサブネット。プラン上限対象 |
+| ip_subnet | ip_subnet_id, tenant_id, subnet_name, cidr, ip_version, status, description | IPサブネット。サブネット数はプラン上限対象外 |
 | ip_address | ip_address_id, tenant_id, ip_subnet_id, ip_address, ip_version, device_id, usage_status, description | 個別IP利用状況 |
 
 ### 4.7 maintenance_contract

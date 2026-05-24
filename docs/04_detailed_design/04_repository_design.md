@@ -76,7 +76,7 @@ and deleted = false
 | RackRowRepository | rack_row | ラック列検索 |
 | RackRepository | rack | ラック検索 |
 | DeviceRepository | device | 機器検索 |
-| IpSubnetRepository | ip_subnet | IPサブネット検索・上限件数確認 |
+| IpSubnetRepository | ip_subnet | IPサブネット検索・CIDR重複確認 |
 | IpAddressRepository | ip_address | IP利用状況検索 |
 | MaintenanceContractRepository | maintenance_contract | 保守契約検索 |
 | MaintenanceContractDeviceRepository | maintenance_contract_device | 保守契約・機器関連検索 |
