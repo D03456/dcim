@@ -28,6 +28,8 @@ flowchart TD
     DCList --> DCEdit[SCR-005 データセンター登録・編集]
     DCDetail --> DCEdit
     DCDetail --> BuildingFloor[SCR-006 建物・フロア一覧]
+    DCDetail --> ContactList[SCR-037 連絡先一覧]
+    ContactList --> ContactEdit[SCR-038 連絡先登録・編集]
     BuildingFloor --> RackRow[SCR-007 ラック列一覧]
     RackRow --> RackList[SCR-008 ラック一覧]
     RackList --> RackDetail[SCR-009 ラック詳細]
@@ -48,6 +50,7 @@ flowchart TD
     MaintenanceList --> MaintenanceEdit[SCR-019 保守契約登録・編集]
     MaintenanceDetail --> MaintenanceEdit
     MaintenanceDetail --> DeviceDetail
+    MaintenanceDetail --> ContactList
     NoMaintenance[SCR-020 保守未設定機器一覧] --> DeviceDetail
     MaintenanceAlert --> MaintenanceDetail
 
@@ -66,6 +69,8 @@ flowchart TD
     FutureAudit[将来拡張: SCR-032 監査ログ]
     SystemSetting[SCR-033 システム設定]
     CsvImport[SCR-034 CSVインポート画面]
+    Region[SCR-035 リージョン管理画面]
+    ContactMenu[SCR-037 連絡先一覧] --> ContactEdit
 ```
 
 ## 4. メニュー構成
@@ -90,6 +95,8 @@ flowchart TD
 | 将来拡張：監査ログ | SCR-032 | 操作履歴確認 |
 | システム設定 | SCR-033 | テナント設定 |
 | CSVインポート | SCR-034 | 初期追加対象。一括取込・エラー確認 |
+| リージョン管理 | SCR-035 | 地域・都道府県分類の管理 |
+| 連絡先管理 | SCR-037〜SCR-038 | DC・保守契約に紐づく連絡先の管理 |
 
 ## 5. 代表的な業務遷移
 

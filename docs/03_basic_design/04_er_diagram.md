@@ -183,7 +183,7 @@ erDiagram
 | serial_number | varchar(100) | NULL | シリアル番号 |
 | rack_unit_start | int | NULL | 搭載開始U |
 | rack_unit_size | int | NULL | 使用U数 |
-| lifecycle_status | varchar(30) | NOT NULL | ACTIVE / SPARE / RETIRED等 |
+| lifecycle_status | varchar(30) | NOT NULL | ACTIVE / SPARE / PLANNED_RETIREMENT / RETIRED |
 
 ### 4.6 ip_subnet / ip_address
 

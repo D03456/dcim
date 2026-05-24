@@ -95,7 +95,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | displayName | String | 代表表示名。複数の呼称名・別名はResourceAliasで保持 |
 | heightU | Integer | ラック高さU数 |
 | positionNo | String | ラック列内位置 |
-| status | Enum | Active / Reserved / Retired |
+| status | Enum | ACTIVE / INACTIVE |
 
 ### 3.7 Device
 
@@ -112,7 +112,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | serialNumber | String | シリアル番号 |
 | rackStartU | Integer | 搭載開始U |
 | rackSizeU | Integer | 搭載U数 |
-| status | Enum | Planned / Active / Maintenance / Retired |
+| lifecycleStatus | Enum | ACTIVE / SPARE / PLANNED_RETIREMENT / RETIRED |
 
 ### 3.8 IpSubnet / IpAddress
 
@@ -122,11 +122,12 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | tenantId | Long | テナントID |
 | cidr | String | CIDR表記 |
 | name | String | サブネット名 |
-| status | Enum | Active / Reserved / Deprecated |
+| status | Enum | ACTIVE / RESERVED / RETIRED |
 | ipAddressId | Long | 個別IP利用状況ID |
 | address | String | IPアドレス |
 | assignedDeviceId | Long | 割当機器ID |
 | purpose | String | 用途 |
+| usageStatus | Enum | UNUSED / IN_USE / RESERVED / RETIRED |
 
 ### 3.9 MaintenanceContract
 
@@ -139,8 +140,8 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | contractNo | String | 契約番号 |
 | startDate | Date | 開始日 |
 | endDate | Date | 終了日 |
-| notifyBeforeDays | Integer | 期限通知日数。標準60日 |
-| status | Enum | Active / ExpiringSoon / Expired / Cancelled |
+| notificationEnabled | Boolean | 通知有効フラグ |
+| notificationDaysBefore | Integer | 主通知日数。標準60日。30日前・当日・期限切れは通知設定/バッチ条件で扱う |
 
 ### 3.10 CloudResource（将来拡張）
 
@@ -179,6 +180,8 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | NotificationLog | 画面内通知・メール通知の履歴 |
 | CsvImportHistory | CSV取込履歴 |
 | CsvImportError | CSV取込時の行単位エラー |
+| MaintenanceContractDevice | 保守契約と対象機器の関連 |
+| MaintenanceContractContact | 保守契約と連絡先の関連 |
 
 ## 4. 値オブジェクト候補
 
@@ -212,6 +215,11 @@ classDiagram
     class IpSubnet
     class IpAddress
     class MaintenanceContract
+    class MaintenanceContractDevice
+    class MaintenanceContractContact
+    class NotificationSetting
+    class NotificationLog
+    class TaggedResource
     class CloudAccount
     class CloudResource
     class UserAccount
@@ -239,9 +247,11 @@ classDiagram
     IpSubnet "1" --> "0..*" IpAddress
     Device "1" --> "0..*" IpAddress
 
-    MaintenanceContract "1" --> "0..*" Device
+    MaintenanceContract "1" --> "0..*" MaintenanceContractDevice
+    MaintenanceContractDevice "*" --> "1" Device
+    MaintenanceContract "1" --> "0..*" MaintenanceContractContact
+    MaintenanceContractContact "*" --> "1" Contact
     DataCenter "*" --> "*" Contact
-    MaintenanceContract "*" --> "*" Contact
     DataCenter "1" --> "0..*" ResourceAlias
     Rack "1" --> "0..*" ResourceAlias
     Device "1" --> "0..*" ResourceAlias
@@ -249,12 +259,15 @@ classDiagram
     CloudAccount "1" --> "0..*" CloudResource
 
     UserAccount "*" --> "1" Role
-    Device "*" --> "*" Tag
-    Rack "*" --> "*" Tag
-    DataCenter "*" --> "*" Tag
-    IpSubnet "*" --> "*" Tag
-    IpAddress "*" --> "*" Tag
-    MaintenanceContract "*" --> "*" Tag
+    Device "*" --> "0..*" TaggedResource
+    Rack "*" --> "0..*" TaggedResource
+    DataCenter "*" --> "0..*" TaggedResource
+    IpSubnet "*" --> "0..*" TaggedResource
+    IpAddress "*" --> "0..*" TaggedResource
+    MaintenanceContract "*" --> "0..*" TaggedResource
+    TaggedResource "*" --> "1" Tag
+    NotificationSetting "1" --> "0..*" NotificationLog
+    NotificationLog "*" --> "0..1" MaintenanceContract
 ```
 
 ## 6. ドメインサービス候補
@@ -284,7 +297,7 @@ classDiagram
 | DRC-007 | ラック内のU位置は同一ラック内で重複不可とする |
 | DRC-008 | 保守契約には複数の機器をひもづけ可能とする |
 | DRC-009 | 保守契約未設定の機器を検索可能とする |
-| DRC-010 | 保守期限の標準通知日は終了日の60日前とする |
+| DRC-010 | 保守期限通知は60日前、30日前、当日、期限切れを初期対象とし、通知ログでチャネル・受信者単位に重複抑止する |
 | DRC-011 | 正式名称とは別に表示名・別名を持てる |
 | DRC-012 | 主要エンティティにタグを付与できる。初期対象はDataCenter、Rack、Device、IpSubnet、IpAddress、MaintenanceContractとし、CloudResourceは将来拡張対象とする |
 | DRC-013 | タグ数上限は有効なタグマスタ件数で判定し、リソースへのタグ付け件数は対象外とする |

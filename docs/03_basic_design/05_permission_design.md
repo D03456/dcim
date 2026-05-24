@@ -39,6 +39,12 @@
 | PERM_CLOUD_VIEW | クラウド閲覧 | 将来拡張。クラウドリソースを閲覧できる |
 | PERM_CLOUD_EDIT | クラウド編集 | 将来拡張。クラウド情報を登録・編集できる |
 | PERM_TAG_EDIT | タグ編集 | タグを登録・編集できる |
+| PERM_CONTACT_VIEW | 連絡先閲覧 | 連絡先を閲覧できる |
+| PERM_CONTACT_EDIT | 連絡先編集 | 連絡先を登録・編集できる |
+| PERM_REGION_VIEW | リージョン閲覧 | リージョンを閲覧できる |
+| PERM_REGION_EDIT | リージョン編集 | リージョンを登録・編集できる |
+| PERM_CSV_IMPORT | CSVインポート | CSV取込を実行できる |
+| PERM_NOTIFICATION_VIEW | 通知閲覧 | 自分宛ての通知を閲覧・既読化できる |
 | PERM_NOTIFICATION_EDIT | 通知設定編集 | 通知設定を編集できる |
 | PERM_USER_VIEW | ユーザー閲覧 | ユーザー一覧を閲覧できる |
 | PERM_USER_EDIT | ユーザー編集 | ユーザー招待・権限変更ができる |
@@ -65,6 +71,12 @@
 | クラウド閲覧 | ○ | ○ | ○ | △ | ○ |
 | クラウド編集 | ○ | ○ | × | × | × |
 | タグ編集 | ○ | ○ | × | × | × |
+| 連絡先閲覧 | ○ | ○ | ○ | △ | ○ |
+| 連絡先編集 | ○ | ○ | × | × | × |
+| リージョン閲覧 | ○ | ○ | ○ | △ | ○ |
+| リージョン編集 | ○ | ○ | × | × | × |
+| CSVインポート | ○ | ○ | × | × | × |
+| 通知閲覧 | ○ | ○ | ○ | ○ | ○ |
 | 通知設定編集 | ○ | × | × | × | × |
 | ユーザー閲覧 | ○ | × | × | × | × |
 | ユーザー編集 | ○ | × | × | × | × |
@@ -93,6 +105,10 @@
 | SCR-030〜031 | 契約プラン | PERM_PLAN_VIEW / PERM_PLAN_EDIT |
 | SCR-032 | 監査ログ | 将来拡張。PERM_AUDIT_VIEW |
 | SCR-033 | システム設定 | PERM_SYSTEM_SETTING_EDIT |
+| SCR-034 | CSVインポート | PERM_CSV_IMPORT |
+| SCR-035 | リージョン管理 | PERM_REGION_VIEW / PERM_REGION_EDIT |
+| SCR-036 | 通知一覧 | PERM_NOTIFICATION_VIEW |
+| SCR-037〜038 | 連絡先管理 | PERM_CONTACT_VIEW / PERM_CONTACT_EDIT |
 
 ## 7. データアクセス制御
 
