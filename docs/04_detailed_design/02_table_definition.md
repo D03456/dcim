@@ -51,6 +51,8 @@
 | 11 | area | 区画 |
 | 12 | rack_row | ラック列 |
 | 13 | rack | ラック |
+| 13A | rack_template | ラックテンプレート |
+| 13B | rack_template_item | ラックテンプレート明細 |
 | 14 | device | 機器 |
 | 15 | ip_subnet | IPサブネット |
 | 16 | ip_address | IPアドレス利用状況 |
@@ -124,7 +126,7 @@
 |---|---|---:|---|---|
 | tenant_add_on_id | bigint | NO | PK | 追加枠ID |
 | tenant_id | bigint | NO | FK | テナントID |
-| add_on_type | varchar(30) | NO |  | IP_SUBNET / DEVICE |
+| add_on_type | varchar(30) | NO |  | IP_ADDRESS / DEVICE |
 | quantity_unit | int | NO |  | 追加単位数 |
 | effective_from | date | NO |  | 有効開始日 |
 | effective_to | date | YES |  | 有効終了日 |
@@ -259,6 +261,41 @@
 | rack_number | varchar(50) | NO |  | ラック番号 |
 | height_unit | int | NO |  | ラック高さ |
 | status | varchar(30) | NO |  | ACTIVE / INACTIVE |
+| created_by | bigint | NO | FK | 作成者 |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
+| updated_at | datetime(6) | NO |  | 更新日時 |
+| deleted | boolean | NO |  | 論理削除 |
+
+## 4.6A rack_template / rack_template_item
+
+### rack_template
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| rack_template_id | bigint | NO | PK | ラックテンプレートID |
+| tenant_id | bigint | NO | FK | テナントID |
+| template_name | varchar(150) | NO |  | テンプレート名 |
+| height_unit | int | NO |  | ラック高さU数 |
+| category | varchar(100) | YES |  | 用途・カテゴリ |
+| active | boolean | NO |  | 有効フラグ |
+| created_by | bigint | NO | FK | 作成者 |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
+| updated_at | datetime(6) | NO |  | 更新日時 |
+| deleted | boolean | NO |  | 論理削除 |
+
+### rack_template_item
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| rack_template_item_id | bigint | NO | PK | 明細ID |
+| tenant_id | bigint | NO | FK | テナントID |
+| rack_template_id | bigint | NO | FK | ラックテンプレートID |
+| item_type | varchar(30) | NO |  | DEVICE_PLACEHOLDER / RESERVED_U / BLANK_PANEL 等 |
+| start_unit | int | NO |  | 開始U |
+| unit_size | int | NO |  | 使用U数 |
+| label | varchar(150) | YES |  | 表示ラベル |
 | created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
 | updated_by | bigint | NO | FK | 更新者 |
@@ -578,6 +615,19 @@
 | display_name | varchar(150) | NO |  | 表示名 |
 | password_hash | varchar(255) | NO |  | ハッシュ化済みパスワード。平文は保存しない |
 | password_updated_at | datetime(6) | YES |  | パスワード最終更新日時 |
+
+### password_reset_token
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| password_reset_token_id | bigint | NO | PK | トークンID |
+| tenant_id | bigint | NO | FK | テナントID |
+| user_id | bigint | NO | FK | 対象ユーザーID |
+| token_hash | varchar(255) | NO |  | ハッシュ化済み再設定トークン |
+| expires_at | datetime(6) | NO |  | 有効期限 |
+| used_at | datetime(6) | YES |  | 使用日時 |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| deleted | boolean | NO |  | 論理削除 |
 | status | varchar(30) | NO |  | ACTIVE / INVITED / SUSPENDED |
 | created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |

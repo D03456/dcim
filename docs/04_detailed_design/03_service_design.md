@@ -107,6 +107,8 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 - ユーザー無効化
 - 初期テナント管理者の削除・無効化保護
 - パスワードハッシュ保存・更新日時管理
+- パスワード再設定依頼、再設定トークン発行・検証・使用済み化
+- 管理者によるパスワード再設定メール再送
 
 ### 主なメソッド
 
@@ -117,6 +119,9 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 | changeRoles(userId, roleIds) | ロール変更 |
 | suspend(userId) | ユーザー停止。ただし初期テナント管理者は通常フローでは不可 |
 | updatePasswordHash(userId, passwordHash) | パスワードハッシュ更新 |
+| requestPasswordReset(email) | パスワード再設定メール送信依頼。メール存在有無を画面に出さない |
+| resetPassword(token, newPassword) | 再設定トークン検証後に新パスワードを設定 |
+| resendPasswordReset(userId) | 管理者による再設定メール再送 |
 
 ### 業務ルール
 
@@ -125,6 +130,9 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 - ユーザー作成前に `PlanLimitService.validateCanCreateUser()` を実行する。
 - テナント初期作成時に登録される初期テナント管理者は、通常のユーザー無効化・削除対象にできない。
 - 初期テナント管理者を利用停止扱いにする場合は、テナント解約フローでテナント状態変更と合わせて行う。
+- パスワード再設定トークンはハッシュ化して保存し、有効期限付き・一度限り利用とする。
+- パスワード再設定依頼時は、メールアドレスの存在有無を推測できない共通メッセージを返す。
+- 再設定トークン、仮パスワード、平文パスワードはログ・DB・通知本文に残さない。
 
 ## 5.3 DataCenterService
 
@@ -206,6 +214,32 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 - `rack_unit_start + rack_unit_size - 1` が `height_unit` を超えないこと。
 - 同一ラック内で使用U範囲が既存機器と重複しないこと。
 
+## 5.5A RackTemplateService
+
+### 責務
+
+- ラックテンプレート登録・更新・複製・無効化
+- テンプレート明細（標準搭載構成・予約U範囲）の管理
+- テンプレートからラックを作成する
+
+### 主なメソッド
+
+| メソッド | 概要 |
+|---|---|
+| createTemplate(command) | ラックテンプレート登録 |
+| updateTemplate(templateId, command) | ラックテンプレート更新 |
+| copyTemplate(templateId) | ラックテンプレート複製 |
+| disableTemplate(templateId) | ラックテンプレート無効化 |
+| createRackFromTemplate(templateId, command) | テンプレートからラック作成 |
+
+### 業務ルール
+
+- 同一テナント内でテンプレート名を重複させない。
+- テンプレート明細の`startUnit + unitSize - 1`は`heightUnit`を超えない。
+- テンプレート明細同士のU範囲は重複させない。
+- テンプレートから作成したラックも通常のラック上限対象に含める。
+- テンプレート適用は作成時コピーを基本とし、テンプレート変更を既存ラックへ自動反映しない。
+
 ## 5.6 DeviceService
 
 ### 責務
@@ -214,6 +248,8 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 - ラック配置
 - 機器種別管理
 - 保守契約との関連確認
+- 機器別名の追加・更新・削除
+- 機器タグの付与・解除
 - 保守未契約機器の検索
 
 ### 主なメソッド
@@ -225,6 +261,10 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 | delete(deviceId) | 機器論理削除 |
 | assignRack(deviceId, rackId, rackUnitStart, rackUnitSize) | ラック配置 |
 | assignIpAddress(deviceId, ipAddressId) | IP割当 |
+| addAlias(deviceId, aliasName, aliasType) | 機器別名追加 |
+| removeAlias(deviceId, aliasId) | 機器別名削除 |
+| assignTag(deviceId, tagId) | 機器タグ付与 |
+| removeTag(deviceId, tagId) | 機器タグ解除 |
 | findWithoutMaintenance(query) | 保守未紐付け機器検索 |
 | search(query) | 機器検索 |
 
@@ -235,7 +275,8 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 3. 正式名称・ホスト名・シリアル番号の重複を確認する。
 4. ラック指定がある場合、ラック存在確認とU位置重複チェックを行う。
 5. 機器を保存する。
-6. タグ指定がある場合は `TagService` で関連付ける。
+6. 別名指定がある場合は `ResourceAliasService` で関連付ける。
+7. タグ指定がある場合は `TagService` で関連付ける。
 
 ## 5.7 IpSubnetService / IpAddressService
 
@@ -396,6 +437,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 
 - 同一対象内で同じ別名を重複登録しない。
 - 正式名称と同一の別名は登録不可とする。
+- 機器の別名は正式名称・代表表示名と合わせて機器一覧、詳細検索、横断検索の検索対象に含める。
 
 ## 5.13 TagService
 
@@ -407,6 +449,8 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 - タグによる検索条件提供
 
 ### 対象リソース
+
+初期対象は `DATA_CENTER`、`RACK`、`DEVICE`、`IP_SUBNET`、`IP_ADDRESS`、`MAINTENANCE_CONTRACT` とする。機器タグは機器一覧、詳細検索、横断検索の検索対象に含める。
 
 - DataCenter
 - Rack

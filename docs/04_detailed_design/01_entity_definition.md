@@ -195,6 +195,44 @@
 | heightUnit | Integer | ○ | ラック高さ。例: 42U |
 | status | RackStatus | ○ | 利用状態 |
 
+### 5.8 RackTemplate
+
+| 項目 | 内容 |
+|---|---|
+| エンティティ名 | RackTemplate |
+| 概要 | ラック作成時に利用する標準ラック構成テンプレート |
+| 集約 | RackTemplate集約 |
+| 主キー | rackTemplateId |
+
+#### 主な属性
+
+| 属性 | 型 | 必須 | 説明 |
+|---|---:|:---:|---|
+| rackTemplateId | Long | ○ | ラックテンプレートID |
+| tenantId | Long | ○ | テナントID |
+| templateName | String | ○ | テンプレート名 |
+| heightUnit | Integer | ○ | ラック高さU数 |
+| category | String | - | 用途・カテゴリ |
+| active | Boolean | ○ | 有効フラグ |
+
+### 5.9 RackTemplateItem
+
+| 項目 | 内容 |
+|---|---|
+| エンティティ名 | RackTemplateItem |
+| 概要 | テンプレート内の標準搭載構成・予約U範囲 |
+| 集約 | RackTemplate集約 |
+| 主キー | rackTemplateItemId |
+
+| 属性 | 型 | 必須 | 説明 |
+|---|---:|:---:|---|
+| rackTemplateItemId | Long | ○ | 明細ID |
+| rackTemplateId | Long | ○ | ラックテンプレートID |
+| itemType | RackTemplateItemType | ○ | DEVICE_PLACEHOLDER / RESERVED_U 等 |
+| startUnit | Integer | ○ | 開始U |
+| unitSize | Integer | ○ | 使用U数 |
+| label | String | - | 表示ラベル |
+
 ## 6. 機器系エンティティ
 
 ### 6.1 Device
@@ -458,6 +496,23 @@
 | displayName | String | ○ | 表示名 |
 | passwordHash | String | ○ | ハッシュ化済みパスワード。平文パスワードは保持しない |
 | passwordUpdatedAt | LocalDateTime | - | パスワード最終更新日時 |
+
+### 11.1A PasswordResetToken
+
+| 項目 | 内容 |
+|---|---|
+| エンティティ名 | PasswordResetToken |
+| 概要 | パスワード再設定用の有効期限付きワンタイムトークン。平文トークンは保持しない |
+| 主キー | passwordResetTokenId |
+
+| 属性 | 型 | 必須 | 説明 |
+|---|---:|:---:|---|
+| passwordResetTokenId | Long | ○ | トークンID |
+| tenantId | Long | ○ | テナントID |
+| userId | Long | ○ | 対象ユーザーID |
+| tokenHash | String | ○ | ハッシュ化済みトークン |
+| expiresAt | LocalDateTime | ○ | 有効期限 |
+| usedAt | LocalDateTime | - | 使用日時 |
 | status | UserStatus | ○ | ACTIVE / INVITED / SUSPENDED |
 
 ### 11.2 Role
@@ -480,7 +535,7 @@
 | IpSubnetStatus | ACTIVE, RESERVED, RETIRED |
 | IpUsageStatus | UNUSED, IN_USE, RESERVED, RETIRED |
 | DeviceLifecycleStatus | ACTIVE, SPARE, PLANNED_RETIREMENT, RETIRED |
-| NotificationType | MAINTENANCE_EXPIRY, PLAN_LIMIT, TRIAL_EXPIRY, SYSTEM |
+| NotificationType | MAINTENANCE_EXPIRY, PLAN_LIMIT, TRIAL_EXPIRY, PASSWORD_RESET, USER_INVITATION, SYSTEM |
 | NotificationStatus | PENDING, SENT, FAILED, SKIPPED |
 | NotificationChannel | EMAIL, IN_APP |
 | RegionStatus | ACTIVE, INACTIVE |
@@ -490,7 +545,8 @@
 | UserStatus | ACTIVE, INVITED, SUSPENDED |
 | DataCenterStatus | ACTIVE, INACTIVE |
 | RackStatus | ACTIVE, INACTIVE |
+| RackTemplateItemType | DEVICE_PLACEHOLDER, RESERVED_U, BLANK_PANEL, NETWORK_AREA, OTHER |
 | ContactType | DC, VENDOR, INTERNAL |
 | ContactRole | PRIMARY, VENDOR, EMERGENCY, BILLING, OTHER |
-| AddOnType | IP_SUBNET, DEVICE |
+| AddOnType | IP_ADDRESS, DEVICE |
 | Direction | EAST, WEST, SOUTH, NORTH, OTHER |

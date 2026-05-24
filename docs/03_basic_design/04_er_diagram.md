@@ -65,6 +65,7 @@ erDiagram
 | subscription_plan | 契約プラン・利用上限 | ○ |
 | tenant_add_on | テナント別追加利用枠 | ○ |
 | app_user | ユーザー。ログイン認証情報としてパスワードハッシュを保持 | ○ |
+| password_reset_token | パスワード再設定トークン | ○ |
 | role | ロール | ○ |
 | user_role | ユーザー・ロール関連 | ○ |
 | region | 地域 | ○ |
@@ -74,6 +75,8 @@ erDiagram
 | area | 区画 | ○ |
 | rack_row | ラック列 | ○ |
 | rack | ラック | ○ |
+| rack_template | ラックテンプレート | ○ |
+| rack_template_item | ラックテンプレート明細 | ○ |
 | device | 機器 | ○ |
 | ip_subnet | IPサブネット | ○ |
 | ip_address | IPアドレス利用状況 | ○ |
@@ -128,6 +131,7 @@ erDiagram
 | テーブル | 主なカラム | 説明 |
 |---|---|---|
 | app_user | user_id, tenant_id, email, display_name, password_hash, password_updated_at, status | 利用者。パスワードは平文保存せずハッシュのみ保持 |
+| password_reset_token | password_reset_token_id, tenant_id, user_id, token_hash, expires_at, used_at | パスワード再設定用トークン。平文トークンは保存しない |
 | role | role_id, role_code, role_name | ロール定義 |
 | user_role | user_role_id, tenant_id, user_id, role_id | ユーザー・ロール関連 |
 
@@ -152,7 +156,7 @@ erDiagram
 |---|---|---|---|
 | tenant_add_on_id | bigint | PK | 追加枠ID |
 | tenant_id | bigint | FK, NOT NULL | テナントID |
-| add_on_type | varchar(30) | NOT NULL | IP_SUBNET / DEVICE |
+| add_on_type | varchar(30) | NOT NULL | IP_ADDRESS / DEVICE |
 | quantity_unit | int | NOT NULL | 追加単位数 |
 | effective_from | date | NOT NULL | 有効開始日 |
 | effective_to | date | NULL | 有効終了日 |
@@ -168,6 +172,8 @@ erDiagram
 | area | area_id, tenant_id, floor_id, area_name, direction | 区画 |
 | rack_row | rack_row_id, tenant_id, area_id, row_name | ラック列 |
 | rack | rack_id, tenant_id, rack_row_id, formal_name, display_name, rack_number, height_unit, status | ラック。複数の呼称名・別名は `resource_alias` で保持 |
+| rack_template | rack_template_id, tenant_id, template_name, height_unit, category, active | ラック作成時に利用する標準構成テンプレート |
+| rack_template_item | rack_template_item_id, tenant_id, rack_template_id, item_type, start_unit, unit_size, label | テンプレート内の標準搭載構成・予約U範囲 |
 
 ### 4.5 device
 

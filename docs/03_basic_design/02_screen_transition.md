@@ -35,7 +35,8 @@ flowchart TD
     RackList --> RackDetail[SCR-009 ラック詳細]
     RackList --> RackEdit[SCR-010 ラック登録・編集]
     RackDetail --> RackEdit
-    FutureRackTemplate[将来拡張: SCR-011 ラックテンプレート一覧]
+    RackTemplate[SCR-011 ラックテンプレート一覧]
+    RackTemplate --> RackEdit
     RackDetail --> DeviceDetail[SCR-013 機器詳細]
 
     DeviceList --> DeviceDetail
@@ -80,7 +81,7 @@ flowchart TD
 | ダッシュボード | SCR-002 | ログイン後の初期画面 |
 | データセンター | SCR-003 | DC、建物、フロア、エリア管理の入口。フロア図はグリッド表示を基本とする |
 | ラック | SCR-008 | ラック管理の入口。ラック詳細ではU単位グリッドで搭載状態を表示する |
-| 将来拡張：ラックテンプレート | SCR-011 | ラックテンプレート管理 |
+| ラックテンプレート | SCR-011 | ラックテンプレート管理、テンプレートからラック作成 |
 | 機器 | SCR-012 | サーバー/NW機器管理の入口 |
 | IPサブネット | SCR-015 | IPサブネット・IP利用状況管理の入口 |
 | 保守契約 | SCR-017 | 保守契約管理の入口 |
