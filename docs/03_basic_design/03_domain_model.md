@@ -97,6 +97,19 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | positionNo | String | ラック列内位置 |
 | status | Enum | ACTIVE / INACTIVE |
 
+### 3.6A RackTemplate
+
+| 属性 | 型 | 説明 |
+|---|---|---|
+| rackTemplateId | Long | ラックテンプレートID |
+| tenantId | Long | テナントID |
+| templateName | String | テンプレート名 |
+| heightU | Integer | ラック高さU数 |
+| category | String | 用途・カテゴリ |
+| active | Boolean | 有効フラグ |
+| note | String | 備考 |
+| templateItems | List | 標準搭載構成・予約U範囲。作成時コピーとしてラックへ反映 |
+
 ### 3.7 Device
 
 | 属性 | 型 | 説明 |
@@ -211,6 +224,7 @@ classDiagram
     class Area
     class RackRow
     class Rack
+    class RackTemplate
     class Device
     class IpSubnet
     class IpAddress
@@ -242,6 +256,7 @@ classDiagram
     Floor "1" --> "0..*" Area
     Area "1" --> "0..*" RackRow
     RackRow "1" --> "0..*" Rack
+    RackTemplate "1" --> "0..*" Rack
     Rack "1" --> "0..*" Device
 
     IpSubnet "1" --> "0..*" IpAddress
@@ -295,6 +310,7 @@ classDiagram
 | DRC-005 | IP上限追加は256IP単位とする |
 | DRC-006 | 機器追加は100台単位とする |
 | DRC-007 | ラック内のU位置は同一ラック内で重複不可とする |
+| DRC-007-1 | ラックテンプレートの標準搭載構成・予約U範囲もU重複不可とし、ラック作成時コピーを基本とする |
 | DRC-008 | 保守契約には複数の機器をひもづけ可能とする |
 | DRC-009 | 保守契約未設定の機器を検索可能とする |
 | DRC-010 | 保守期限通知は60日前、30日前、当日、期限切れを初期対象とし、通知ログでチャネル・受信者単位に重複抑止する |

@@ -56,7 +56,7 @@ com.example.dcim
 
 | サービスID | サービス名 | 主な責務 |
 |---|---|---|
-| SVC-001 | AuthService | ログイン、認証情報取得 |
+| SVC-001 | AuthService | ログイン、認証情報取得、パスワード再設定依頼、再設定トークン検証、パスワード更新 |
 | SVC-002 | TenantService | テナント情報取得、テナント状態確認 |
 | SVC-003 | SubscriptionService | プラン情報取得、利用上限算出 |
 | SVC-004 | UsageLimitService | DC、ラック、機器、管理対象IP、タグ、ユーザー、Freeトライアル期間、期限超過時の更新可否チェック |
@@ -66,9 +66,9 @@ com.example.dcim
 | SVC-006B | ContactService | 連絡先登録、更新、検索、関連付け |
 | SVC-006C | ResourceAliasService | 呼称名・別名の登録、更新、検索 |
 | SVC-007 | RackService | ラック登録、更新、検索、詳細取得 |
-| SVC-008 | RackTemplateService | ラックテンプレート管理 |
+| SVC-008 | RackTemplateService | ラックテンプレート登録、編集、複製、無効化、テンプレートからラック作成 |
 | SVC-009 | RackPlacementService | ラック搭載位置チェック、空きU算出 |
-| SVC-010 | DeviceService | 機器登録、更新、検索、詳細取得 |
+| SVC-010 | DeviceService | 機器登録、更新、検索、詳細取得、機器別名・タグ操作 |
 | SVC-011 | IpSubnetService | IPサブネット登録、配下IP割当、解放、検索 |
 | SVC-012 | MaintenanceContractService | 保守契約登録、対象機器ひもづけ、検索 |
 | SVC-013 | MaintenanceAlertService | 保守期限通知対象抽出、保守未設定機器抽出 |
@@ -132,6 +132,15 @@ com.example.dcim
 
 ## 7. 代表API案
 
+### 7.0 認証
+
+| API | メソッド | 概要 |
+|---|---|---|
+| `/api/v1/auth/password-reset-requests` | POST | パスワード再設定メール送信依頼 |
+| `/api/v1/auth/password-resets/{token}` | GET | 再設定トークン検証 |
+| `/api/v1/auth/password-resets/{token}` | POST | 新パスワード設定 |
+| `/api/v1/users/{id}/password-reset-requests` | POST | 管理者による再設定メール再送 |
+
 ### 7.1 データセンター
 
 | API | メソッド | 概要 |
@@ -152,6 +161,10 @@ com.example.dcim
 | `/api/v1/devices/{id}` | PUT | 機器更新 |
 | `/api/v1/devices/{id}/maintenance-contracts` | GET | 機器に紐づく保守契約取得 |
 | `/api/v1/devices/without-maintenance` | GET | 保守未設定機器一覧取得 |
+| `/api/v1/devices/{id}/aliases` | GET/POST | 機器別名一覧取得・追加 |
+| `/api/v1/devices/{id}/aliases/{aliasId}` | PUT/DELETE | 機器別名更新・削除 |
+| `/api/v1/devices/{id}/tags` | GET/POST | 機器タグ一覧取得・付与 |
+| `/api/v1/devices/{id}/tags/{tagId}` | DELETE | 機器タグ解除 |
 
 ### 7.3 保守契約
 
@@ -171,6 +184,15 @@ com.example.dcim
 | `/api/v1/usage` | GET | 現在の利用状況取得 |
 | `/api/v1/usage/limits` | GET | プラン上限取得 |
 | `/api/v1/add-ons` | POST | オプション追加 |
+
+### 7.4A ラックテンプレート
+
+| API | メソッド | 概要 |
+|---|---|---|
+| `/api/v1/rack-templates` | GET/POST | ラックテンプレート一覧取得・登録 |
+| `/api/v1/rack-templates/{id}` | GET/PUT/DELETE | ラックテンプレート詳細取得・更新・無効化 |
+| `/api/v1/rack-templates/{id}/copy` | POST | ラックテンプレート複製 |
+| `/api/v1/rack-templates/{id}/racks` | POST | テンプレートからラック作成 |
 
 ### 7.5 リージョン・連絡先・呼称名
 
