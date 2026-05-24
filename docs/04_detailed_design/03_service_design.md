@@ -105,6 +105,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 - ユーザー情報更新
 - ロール付与・変更
 - ユーザー無効化
+- 初期テナント管理者の削除・無効化保護
 - パスワードハッシュ保存・更新日時管理
 
 ### 主なメソッド
@@ -114,7 +115,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 | invite(command) | ユーザー招待 |
 | update(userId, command) | ユーザー情報更新 |
 | changeRoles(userId, roleIds) | ロール変更 |
-| suspend(userId) | ユーザー停止 |
+| suspend(userId) | ユーザー停止。ただし初期テナント管理者は通常フローでは不可 |
 | updatePasswordHash(userId, passwordHash) | パスワードハッシュ更新 |
 
 ### 業務ルール
@@ -122,6 +123,8 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 - 同一テナント内でメールアドレスを重複させない。
 - パスワード平文は保存しない。保存対象はハッシュ値のみとする。
 - ユーザー作成前に `PlanLimitService.validateCanCreateUser()` を実行する。
+- テナント初期作成時に登録される初期テナント管理者は、通常のユーザー無効化・削除対象にできない。
+- 初期テナント管理者を利用停止扱いにする場合は、テナント解約フローでテナント状態変更と合わせて行う。
 
 ## 5.3 DataCenterService
 

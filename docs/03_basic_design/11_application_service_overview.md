@@ -32,7 +32,7 @@ infrastructure.repository / notification / security
 |---|---|
 | TenantApplicationService | テナント情報、状態管理 |
 | SubscriptionApplicationService | 契約プラン、Freeトライアル、オプション管理 |
-| UserApplicationService | ユーザー招待、ユーザー状態管理 |
+| UserApplicationService | ユーザー招待、ユーザー状態管理、初期テナント管理者の削除・無効化保護 |
 | AuthorizationApplicationService | 権限・ロール判定 |
 | DataCenterApplicationService | DC登録・更新・削除・検索 |
 | RegionApplicationService | 地域・都道府県分類の管理 |
@@ -64,6 +64,7 @@ infrastructure.repository / notification / security
 - Freeプランは14日間トライアルとする。
 - Freeトライアル期限超過後は `TRIAL_EXPIRED` として扱い、ログイン・参照・CSVエクスポート・契約プラン確認・有料プラン変更のみ許可する。
 - 期限超過中はテナント管理者であっても登録・更新・削除・CSVインポート・ユーザー招待を不可とする。
+- 初期テナント管理者は通常のユーザー無効化・削除対象外とし、テナント解約時のみ利用停止扱いにする。
 - プラン上限はDC、ラック、機器、管理対象IP、タグ、ユーザーを対象とする。
 - IP上限追加は256IP単位、機器追加は100台単位とする。
 
