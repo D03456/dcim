@@ -30,10 +30,10 @@ infrastructure.repository / notification / security
 
 | Service | 主な責務 |
 |---|---|
-| TenantApplicationService | テナント情報、状態管理 |
+| TenantApplicationService | システム管理者向けテナント登録・編集・解約、テナント情報、状態管理 |
 | SubscriptionApplicationService | 契約プラン、Freeトライアル、オプション管理 |
 | UserApplicationService | ユーザー招待、ユーザー状態管理、初期テナント管理者の削除・無効化保護 |
-| AuthorizationApplicationService | 権限・ロール判定 |
+| AuthorizationApplicationService | 7ロール・権限・RolePermission判定 |
 | DataCenterApplicationService | DC登録・更新・削除・検索 |
 | RegionApplicationService | 地域・都道府県分類の管理 |
 | ContactApplicationService | 連絡先管理、DC・保守契約との関連付け |
@@ -41,11 +41,12 @@ infrastructure.repository / notification / security
 | LocationApplicationService | 棟、フロア、区画、ラック列管理 |
 | RackApplicationService | ラック管理、U位置整合性 |
 | DeviceApplicationService | 機器管理、ラック配置、保守・IP関連付け |
-| IpManagementApplicationService | IPサブネット、IPアドレス割当管理 |
-| MaintenanceApplicationService | 保守契約、対象機器、連絡先、期限検索 |
+| IpManagementApplicationService | IPv4/IPv6別IPサブネット、IPアドレス割当管理 |
+| MaintenanceApplicationService | 保守契約、対象機器、連絡先、タグ、期限検索 |
 | NotificationApplicationService | 通知設定、通知ログ、メール送信依頼、画面内通知作成、未読/既読管理 |
-| CsvApplicationService | CSVエクスポート、インポート履歴、行エラー管理 |
-| SearchApplicationService | 横断検索、タグ検索 |
+| CsvApplicationService | CSVエクスポート、初期追加フェーズのインポート履歴・行エラー管理 |
+| SearchApplicationService | 横断検索、正式名称・表示名・別名・タグ検索 |
+| AuditLogApplicationService | 初期必須の操作履歴保存・検索・閲覧 |
 | CloudResourceApplicationService | 将来拡張。クラウド資産管理 |
 
 ## 5. 主要Service概要
@@ -68,6 +69,21 @@ infrastructure.repository / notification / security
 - プラン上限はDC、ラック、機器、管理対象IP、タグ、ユーザーを対象とする。
 - IP上限追加は256IP単位、機器追加は100台単位とする。
 - テナント管理者・契約管理者はプラン変更・オプション追加を申請できるが、契約確定処理はシステム管理者または外部課金/契約運用側で行う。
+
+## 5.1A TenantApplicationService
+
+### 主な責務
+
+- システム管理者向けテナント登録、編集、状態変更、解約
+- 初期テナント管理者の作成・保護
+- テナント契約プランの初期設定
+- テナント状態に応じた利用可否判定
+
+### 主な業務ルール
+
+- テナント登録・編集・解約はシステム管理者のみ実行できる。
+- テナント解約時は初期テナント管理者を含む利用停止を行い、業務データは保持期間中参照可能な状態で保持する。
+- テナント操作は操作履歴に記録する。
 
 ## 5.2 DataCenterApplicationService
 
@@ -158,7 +174,9 @@ infrastructure.repository / notification / security
 
 ### 主な責務
 
-- IPサブネット登録・更新・削除
+- IPv4/IPv6別のIPサブネット登録・更新・削除
+- IPv4サブネット配下の個別IP範囲生成
+- IPv6サブネット配下の個別IP明示登録
 - サブネット配下のIP利用状況管理
 - 機器へのIP割当・解除
 
@@ -166,6 +184,8 @@ infrastructure.repository / notification / security
 
 - プラン上限は管理対象IP数で判定し、IPサブネット数には上限を設けない。
 - CIDRプレフィックスはプランで固定せず、サブネット配下に生成・管理する個別IP数がプラン上限 + IP上限追加オプション数 × 256 を超えないことを確認する。
+- IPv4は範囲生成または明示登録を許可し、生成予定数を上限カウントに含める。
+- IPv6は全範囲生成を行わず、利用・予約する個別IPのみ明示登録する。明示登録したIPv6アドレスを上限カウントに含める。
 - 同一テナント内でCIDRを重複させない。
 - 個別IPは所属サブネット範囲内であること。
 
@@ -176,6 +196,7 @@ infrastructure.repository / notification / security
 - 保守契約登録・更新・削除
 - 保守契約と機器の紐付け
 - 保守契約と連絡先の紐付け
+- 保守契約へのタグ付与・解除
 - 契約内容、備考、更新状態の管理
 - 保守期限検索
 - 保守未契約機器検索
@@ -185,6 +206,7 @@ infrastructure.repository / notification / security
 - 保守契約の終了日は開始日以降とする。
 - 同一保守契約に同一機器を重複紐付けしない。
 - 保守期限通知は60日前、30日前、当日、期限切れを初期対象とする。
+- 期限切れ通知は初回送信後7日ごとに再通知し、更新済み/終了/通知無効/削除で停止する。
 - 期限状態は終了日と基準日から算出し、一覧・検索DTOに含める。永続化は原則行わない。
 - 更新状態は契約業務上の状態として永続化し、期限状態とは別に検索条件・表示項目として扱う。
 
@@ -202,6 +224,7 @@ infrastructure.repository / notification / security
 ### 主な業務ルール
 
 - 初期リリースの通知チャネルはメールと画面内通知を基本とする。
+- 通知対象者は通知種別ごとに統一し、保守期限通知はテナント管理者、運用管理者、編集者、契約管理者、保守契約連絡先を対象とする。
 - 同一通知種別・同一チャネル・同一対象・同一宛先または受信ユーザーへの保守期限通知は重複作成しない。
 - メール送信失敗時は通知ログにFAILEDを記録する。
 - 画面内通知は受信ユーザー単位で未読/既読を管理する。
@@ -213,15 +236,44 @@ infrastructure.repository / notification / security
 ### 主な責務
 
 - CSVエクスポート
-- CSVインポート
+- CSVインポート（初期追加フェーズ）
 - 取込履歴・行単位エラー管理
 
 ### 主な業務ルール
 
-- CSVエクスポートは初期リリース必須とする。
-- CSVインポートは初期追加対象とする。
+- CSVエクスポートは初期リリース必須とし、データセンター、ラック、機器、IPサブネット/IP利用状況、保守契約、保守未加入機器一覧、保守期限接近一覧を対象とする。
+- CSVインポートは初期追加対象とし、初期リリースでは画面/API/権限を無効化する。
 - インポート時もプラン上限、参照存在、権限を検証する。
 - 初期追加対象はデータセンター、ラック、機器、IPサブネット/IP利用状況、保守契約とする。
+
+
+## 5.9 SearchApplicationService
+
+### 主な責務
+
+- データセンター、ラック、機器、IPサブネット/IPアドレス、保守契約の横断検索
+- 正式名称、代表表示名、別名、タグ、契約番号、CIDR、IPアドレスによる検索
+- 利用者権限に応じた検索結果のフィルタリング
+
+### 主な業務ルール
+
+- 検索結果には種別、表示名、補足情報、設置場所、タグ、最終更新日時、詳細画面URLを含める。
+- 閲覧権限のないデータは検索結果に表示しない。
+- 契約管理者には利用状況確認目的の限定項目のみ表示する。
+
+## 5.10 AuditLogApplicationService
+
+### 主な責務
+
+- 登録、更新、削除、招待、再招待、招待取消、権限変更、契約変更申請、通知設定変更、テナント管理操作の履歴保存
+- 操作ユーザー、対象種別、対象ID、操作種別、結果、IPアドレス、発生日時による検索
+- テナント管理者、監査担当者、システム管理者への閲覧提供
+
+### 主な業務ルール
+
+- 操作履歴は初期リリース必須とし、変更差分を含む完全な変更履歴は将来拡張とする。
+- 保持期間は初期値1年を目安とし、運用設計で最終決定する。
+- 操作履歴は原則物理削除しない。
 
 ## 6. 共通例外方針
 

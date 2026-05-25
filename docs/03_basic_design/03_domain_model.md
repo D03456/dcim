@@ -17,9 +17,9 @@
 | IPサブネット管理 | IPサブネットと配下IPの割当状況を管理する | IpSubnet、IpAddress |
 | 保守契約管理 | 保守契約、対象機器、連絡先、期限通知を管理する | MaintenanceContract、MaintenanceContractDevice、MaintenanceContractContact、MaintenanceAlert |
 | 将来拡張：クラウドリソース管理 | AWSアカウント、リージョン、EC2/EKS/コンテナ等を管理する | CloudAccount、CloudResource |
-| ユーザー・権限管理 | ユーザー、ロール、権限を管理する | UserAccount、Role、Permission |
+| ユーザー・権限管理 | ユーザー、ロール、権限、招待を管理する | UserAccount、Role、Permission、RolePermission、UserInvitationToken |
 | 通知管理 | メール/画面内通知条件、通知先、通知履歴、未読/既読を管理する | NotificationSetting、NotificationLog |
-| 将来拡張：監査ログ管理 | 操作履歴を管理する | AuditLog |
+| 操作履歴管理 | 初期必須の操作履歴保存・検索・閲覧を管理する | AuditLog |
 
 ## 3. 主要エンティティ
 
@@ -135,12 +135,14 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | tenantId | Long | テナントID |
 | cidr | String | CIDR表記 |
 | name | String | サブネット名 |
+| ipVersion | Enum | IPv4 / IPv6 |
 | status | Enum | ACTIVE / RESERVED / RETIRED |
 | ipAddressId | Long | 個別IP利用状況ID |
 | address | String | IPアドレス |
 | assignedDeviceId | Long | 割当機器ID |
 | purpose | String | 用途 |
 | usageStatus | Enum | UNUSED / IN_USE / RESERVED / RETIRED |
+| registrationMode | Enum | RANGE_GENERATED / MANUAL。IPv4は範囲生成、IPv6は明示登録を基本とする |
 
 ### 3.9 MaintenanceContract
 
@@ -183,7 +185,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | updatedBy | Long | 更新者 |
 | updatedAt | DateTime | 更新日時 |
 
-完全な操作履歴・変更履歴は将来拡張の監査ログ管理で扱う。
+初期リリースでは操作履歴をAuditLogに保存する。変更差分を含む完全な変更履歴は将来拡張で扱う。
 
 ### 3.12 連絡先・タグ・通知・CSV関連
 
@@ -195,10 +197,31 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | TaggedResource | タグと対象リソースの関連 |
 | NotificationSetting | 通知条件、通知先、通知チャネル設定 |
 | NotificationLog | 画面内通知・メール通知の履歴 |
+| UserInvitationToken | ユーザー招待トークン。有効期限、一度限り利用、取消、再招待を管理 |
+| AuditLog | 操作履歴。登録、更新、削除、招待、権限変更、契約変更、通知設定変更などを保存 |
 | CsvImportHistory | CSV取込履歴 |
 | CsvImportError | CSV取込時の行単位エラー |
 | MaintenanceContractDevice | 保守契約と対象機器の関連 |
 | MaintenanceContractContact | 保守契約と連絡先の関連 |
+### 3.13 権限・操作履歴・招待
+
+| エンティティ | 説明 |
+|---|---|
+| Role | 要件定義の7ロールを保持する |
+| Permission | 固定権限IDをDBへ初期投入し、画面/API認可で参照する |
+| RolePermission | ロールと権限の標準対応を保持する。初期リリースでは標準ロールの権限変更は行わない |
+| UserInvitationToken | 招待メールに含める一度限りのトークンハッシュ、有効期限、使用日時、取消日時を保持する |
+| AuditLog | 操作履歴を保持する。変更差分を含む完全な変更履歴は将来拡張とする |
+
+### 3.14 IPv4/IPv6管理方式
+
+| 区分 | サブネット登録 | 個別IP登録 | 上限カウント |
+|---|---|---|---|
+| IPv4 | CIDR登録後、必要範囲の個別IPを範囲生成できる | 範囲生成または明示登録 | 生成・明示登録した個別IP数を管理対象IP数としてカウント |
+| IPv6 | CIDR情報は登録するが、全範囲生成は行わない | 利用・予約するアドレスのみ明示登録 | 明示登録した個別IPv6数を管理対象IP数としてカウント |
+
+IPv6はアドレス空間が大きいため、初期リリースではサブネット情報と明示登録IPのみを扱う。IPv4の範囲生成でも、生成予定数がプラン上限を超える場合は登録不可とする。
+
 
 ## 4. 値オブジェクト候補
 
@@ -320,6 +343,7 @@ classDiagram
 | DRC-010 | 保守期限通知は60日前、30日前、当日、期限切れを初期対象とし、通知ログでチャネル・受信者単位に重複抑止する |
 | DRC-010-1 | 保守契約の期限状態は、原則として永続化せず、検索・一覧表示時に終了日と基準日から算出する。大量検索で性能上必要な場合のみ詳細設計でキャッシュ列を検討する |
 | DRC-010-2 | 保守契約の更新状態は契約業務上の状態として永続化し、期限状態とは別に検索条件・表示項目として扱う |
+| DRC-010-3 | 期限切れ通知は初回期限切れ日に送信し、その後は7日ごとに再通知する。保守契約の更新状態がRENEWEDまたはTERMINATEDになった場合、または通知無効化時に停止する |
 | DRC-011 | 正式名称とは別に表示名・別名を持てる |
 | DRC-012 | 主要エンティティにタグを付与できる。初期対象はDataCenter、Rack、Device、IpSubnet、IpAddress、MaintenanceContractとし、CloudResourceは将来拡張対象とする |
 | DRC-013 | タグ数上限は有効なタグマスタ件数で判定し、リソースへのタグ付け件数は対象外とする |

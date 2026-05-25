@@ -23,12 +23,19 @@ flowchart TD
     PasswordResetForm --> Login
     PasswordResetForm --> PasswordResetError[期限切れ・使用済み・不正トークン]
     PasswordResetError --> PasswordResetRequest
+    InvitationMail[招待メール] -. メールリンク .-> InvitationAccept[SCR-001C 招待承諾・初回パスワード設定]
+    InvitationAccept --> Login
 
     Dashboard --> DCList[SCR-003 データセンター一覧]
     Dashboard --> DeviceList[SCR-012 機器一覧]
     Dashboard --> MaintenanceAlert[SCR-021 保守期限アラート一覧]
     Dashboard --> NotificationList[SCR-036 通知一覧]
     Dashboard --> Usage[SCR-030 契約プラン・利用状況]
+    Dashboard --> CrossSearch[SCR-041 横断検索]
+    CrossSearch --> DCDetail
+    CrossSearch --> DeviceDetail
+    CrossSearch --> MaintenanceDetail
+    SystemTenantList[SCR-039 テナント一覧] --> SystemTenantEdit[SCR-040 テナント登録・編集]
 
     DCList --> DCDetail[SCR-004 データセンター詳細]
     DCList --> DCEdit[SCR-005 データセンター登録・編集]
@@ -73,7 +80,7 @@ flowchart TD
     UserList[SCR-027 ユーザー一覧] --> UserEdit[SCR-028 ユーザー登録・編集]
     Role[SCR-029 権限ロール一覧]
     Usage --> Option[SCR-031 オプション追加]
-    FutureAudit[将来拡張: SCR-032 監査ログ]
+    AuditLog[SCR-032 操作履歴]
     SystemSetting[SCR-033 システム設定]
     CsvImport[SCR-034 CSVインポート画面]
     Region[SCR-035 リージョン管理画面]
@@ -85,6 +92,9 @@ flowchart TD
 | メニュー | 遷移先 | 備考 |
 |---|---|---|
 | パスワード再設定 | SCR-001A〜SCR-001B | ログイン画面から遷移。メールリンク経由で新パスワード設定へ進む |
+| 招待承諾 | SCR-001C | 招待メールリンクから遷移。初回パスワード設定後にログインへ誘導する |
+| テナント管理 | SCR-039〜SCR-040 | システム管理者専用。テナント登録・編集・解約を行う |
+| 横断検索 | SCR-041 | キーワード、別名、タグから主要リソースを横断検索する |
 | ダッシュボード | SCR-002 | ログイン後の初期画面 |
 | データセンター | SCR-003 | DC、建物、フロア、エリア管理の入口。フロア図はグリッド表示を基本とする |
 | ラック | SCR-008 | ラック管理の入口。ラック詳細ではU単位グリッドで搭載状態を表示する |
@@ -100,9 +110,9 @@ flowchart TD
 | 通知一覧 | SCR-036 | 未読通知確認、通知詳細、既読化 |
 | ユーザー管理 | SCR-027 | ユーザー・ロール管理 |
 | 契約プラン | SCR-030 | 利用状況・オプション管理 |
-| 将来拡張：監査ログ | SCR-032 | 操作履歴確認 |
+| 操作履歴 | SCR-032 | 初期必須の操作履歴検索・閲覧。変更差分履歴は将来拡張 |
 | システム設定 | SCR-033 | テナント設定 |
-| CSVインポート | SCR-034 | 初期追加対象。一括取込・エラー確認 |
+| CSVインポート | SCR-034 | 初期追加対象。初期リリースでは非表示または無効化 |
 | リージョン管理 | SCR-035 | 地域・都道府県分類の管理 |
 | 連絡先管理 | SCR-037〜SCR-038 | DC・保守契約に紐づく連絡先の管理 |
 
@@ -112,7 +122,7 @@ flowchart TD
 
 ```mermaid
 sequenceDiagram
-    actor User as 管理者/運用者
+    actor User as テナント管理者/運用管理者/編集者
     User->>Dashboard: ログイン後表示
     User->>DCList: データセンター一覧へ遷移
     User->>DCEdit: データセンター登録
@@ -127,7 +137,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor User as 管理者/運用者
+    actor User as テナント管理者/運用管理者/編集者
     User->>Dashboard: 保守期限アラート確認
     User->>MaintenanceAlert: 保守期限アラート一覧へ遷移
     User->>MaintenanceDetail: 対象契約を確認
@@ -169,6 +179,43 @@ sequenceDiagram
         PasswordResetForm-->>User: 設定完了、ログイン画面へ誘導
     else 期限切れ・使用済み・不正
         PasswordResetForm-->>User: エラー表示、再設定依頼へ誘導
+    end
+```
+### 5.6 横断検索
+
+```mermaid
+sequenceDiagram
+    actor User as 利用者
+    User->>CrossSearch: キーワード・種別・タグで検索
+    CrossSearch-->>User: 権限のある結果のみ表示
+    User->>CrossSearch: 結果を選択
+    CrossSearch-->>User: 対象詳細画面へ遷移
+```
+
+### 5.7 テナント管理
+
+```mermaid
+sequenceDiagram
+    actor SysAdmin as システム管理者
+    SysAdmin->>SystemTenantList: テナント一覧を確認
+    SysAdmin->>SystemTenantEdit: テナント登録・編集
+    SysAdmin->>SystemTenantEdit: 解約/状態変更
+    SystemTenantEdit-->>SysAdmin: 操作履歴を記録
+```
+
+
+### 5.8 ユーザー招待承諾
+
+```mermaid
+sequenceDiagram
+    actor Invitee as 招待ユーザー
+    Invitee->>InvitationAccept: 招待メールリンクからアクセス
+    InvitationAccept-->>Invitee: トークン検証結果を表示
+    alt トークン有効
+        Invitee->>InvitationAccept: 初回パスワード設定
+        InvitationAccept-->>Invitee: 利用開始完了、ログイン画面へ誘導
+    else 期限切れ・取消・使用済み
+        InvitationAccept-->>Invitee: エラー表示、管理者への再招待依頼を案内
     end
 ```
 
