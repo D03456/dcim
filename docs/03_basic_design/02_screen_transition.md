@@ -17,6 +17,12 @@
 ```mermaid
 flowchart TD
     Login[SCR-001 ログイン] --> Dashboard[SCR-002 ダッシュボード]
+    Login --> PasswordResetRequest[SCR-001A パスワード再設定依頼]
+    PasswordResetRequest --> PasswordResetMail[再設定メール送信完了]
+    PasswordResetMail -. メールリンク .-> PasswordResetForm[SCR-001B 新パスワード設定]
+    PasswordResetForm --> Login
+    PasswordResetForm --> PasswordResetError[期限切れ・使用済み・不正トークン]
+    PasswordResetError --> PasswordResetRequest
 
     Dashboard --> DCList[SCR-003 データセンター一覧]
     Dashboard --> DeviceList[SCR-012 機器一覧]
@@ -78,6 +84,7 @@ flowchart TD
 
 | メニュー | 遷移先 | 備考 |
 |---|---|---|
+| パスワード再設定 | SCR-001A〜SCR-001B | ログイン画面から遷移。メールリンク経由で新パスワード設定へ進む |
 | ダッシュボード | SCR-002 | ログイン後の初期画面 |
 | データセンター | SCR-003 | DC、建物、フロア、エリア管理の入口。フロア図はグリッド表示を基本とする |
 | ラック | SCR-008 | ラック管理の入口。ラック詳細ではU単位グリッドで搭載状態を表示する |
@@ -142,10 +149,27 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor Admin as 管理者
-    Admin->>Usage: 契約プラン・利用状況確認
-    Admin->>Option: オプション追加画面へ遷移
-    Admin->>Usage: 追加後の上限を確認
+    actor Billing as 管理者/契約管理者
+    Billing->>Usage: 契約プラン・利用状況確認
+    Billing->>Option: オプション追加画面へ遷移
+    Billing->>Option: オプション追加を申請
+    Billing->>Usage: 申請状態を確認
+```
+
+### 5.5 パスワード再設定
+
+```mermaid
+sequenceDiagram
+    actor User as 未認証ユーザー
+    User->>Login: パスワード再設定を選択
+    User->>PasswordResetRequest: メールアドレスを入力
+    PasswordResetRequest-->>User: 存在有無を推測させない完了表示
+    User->>PasswordResetForm: メールリンクから新パスワード設定
+    alt トークン有効
+        PasswordResetForm-->>User: 設定完了、ログイン画面へ誘導
+    else 期限切れ・使用済み・不正
+        PasswordResetForm-->>User: エラー表示、再設定依頼へ誘導
+    end
 ```
 
 ## 6. 遷移制御

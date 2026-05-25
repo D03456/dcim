@@ -170,10 +170,10 @@ com.example.dcim
 
 | API | メソッド | 概要 |
 |---|---|---|
-| `/api/v1/maintenance-contracts` | GET | 保守契約一覧取得 |
-| `/api/v1/maintenance-contracts/{id}` | GET | 保守契約詳細取得 |
-| `/api/v1/maintenance-contracts` | POST | 保守契約登録 |
-| `/api/v1/maintenance-contracts/{id}` | PUT | 保守契約更新 |
+| `/api/v1/maintenance-contracts` | GET | 保守契約一覧取得。期限状態、更新状態、契約番号、ベンダー、対象機器で検索可能 |
+| `/api/v1/maintenance-contracts/{id}` | GET | 保守契約詳細取得。契約内容、備考、期限状態、更新状態を含む |
+| `/api/v1/maintenance-contracts` | POST | 保守契約登録。契約内容、備考、更新状態を指定可能 |
+| `/api/v1/maintenance-contracts/{id}` | PUT | 保守契約更新。契約内容、備考、更新状態を更新可能 |
 | `/api/v1/maintenance-contracts/{id}/devices` | POST | 対象機器ひもづけ |
 | `/api/v1/maintenance-contracts/alerts` | GET | 保守期限アラート取得 |
 
@@ -183,7 +183,8 @@ com.example.dcim
 |---|---|---|
 | `/api/v1/usage` | GET | 現在の利用状況取得 |
 | `/api/v1/usage/limits` | GET | プラン上限取得 |
-| `/api/v1/add-ons` | POST | オプション追加 |
+| `/api/v1/plan-change-requests` | POST | プラン変更申請 |
+| `/api/v1/add-on-change-requests` | POST | オプション追加申請 |
 
 ### 7.4A ラックテンプレート
 
@@ -233,6 +234,19 @@ com.example.dcim
 | CSV取込 | 初期追加対象。事前検証、行単位エラー、取込履歴を標準化 |
 | メール通知 | 初期必須。通知履歴、送信失敗、再送要否を管理できる構造にする |
 | 画面内通知 | 初期必須。通知ログ、未読/既読、ダッシュボード表示を管理できる構造にする |
+
+### 8.1 操作エラー通知方針
+
+操作エラー通知は `OPERATION_ERROR` として、一般的な `SYSTEM` 通知とは分離する。
+
+| 発火契機 | 通知先 | チャネル | 備考 |
+|---|---|---|---|
+| CSV取込失敗・行エラー閾値超過 | 実行者、テナント管理者 | 画面内通知、必要に応じてメール | 取込履歴・エラー詳細へ遷移できること |
+| メール送信失敗 | テナント管理者、システム管理者 | 画面内通知、運用メール | `notification_log` にFAILEDを記録 |
+| 外部連携失敗 | テナント管理者、連携設定管理者 | 画面内通知、必要に応じてメール | 将来拡張の外部連携にも同じ通知種別を適用 |
+| バッチ処理失敗 | テナント管理者、システム管理者 | 画面内通知、運用メール | バッチID・対象日・再実行要否を記録 |
+
+重複抑止は `notification_type=OPERATION_ERROR`、`target_type`、`target_id`、`channel`、受信者単位で行う。同一原因の連続失敗は通知を集約し、通知ログには発生回数または最新エラー内容を保持する。
 
 ## 9. プラン上限チェック方針
 

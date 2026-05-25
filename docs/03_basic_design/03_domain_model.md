@@ -151,10 +151,14 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | contractName | String | 契約名 |
 | vendorName | String | ベンダー名 |
 | contractNo | String | 契約番号 |
+| contractDescription | Text | 契約内容。サポート範囲、SLA、更新条件などの要約 |
+| renewalStatus | Enum | 更新状態。ACTIVE / RENEWAL_REQUIRED / RENEWED / TERMINATED など |
 | startDate | Date | 開始日 |
 | endDate | Date | 終了日 |
+| expiryStatus | Enum | 期限状態。OK / DUE_SOON / EXPIRES_TODAY / EXPIRED。原則としてendDateと基準日から算出し、検索用DTOに保持する |
 | notificationEnabled | Boolean | 通知有効フラグ |
 | notificationDaysBefore | Integer | 主通知日数。標準60日。30日前・当日・期限切れは通知設定/バッチ条件で扱う |
+| note | Text | 備考 |
 
 ### 3.10 CloudResource（将来拡張）
 
@@ -203,7 +207,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | TenantId | テナント識別子 |
 | DataCenterId | データセンター識別子 |
 | RackPosition | ラック内U位置 |
-| IpSubnetCidr | IPサブネットCIDR
+| IpSubnetCidr | IPサブネットCIDR |
 | IpAddressValue | IPアドレス値 |
 | ContactInfo | メール・電話番号 |
 | DateRange | 開始日・終了日の期間 |
@@ -305,7 +309,7 @@ classDiagram
 | DRC-001 | すべての主要データはtenantIdで分離する |
 | DRC-002 | 契約プラン上限を超えてDC、ラック、機器、管理対象IP、タグ、ユーザーを登録できない |
 | DRC-003 | Freeプランは14日間トライアルとし、DC 1件、ラック3本、機器40台、管理対象IP 256件、タグ10件、ユーザー3名まで。IPサブネット数には上限を設けない |
-| DRC-003-1 | Freeトライアル期限超過後は `TRIAL_EXPIRED` として扱い、ログイン・参照・CSVエクスポート・有料プラン変更のみ許可する |
+| DRC-003-1 | Freeトライアル期限超過後は `TRIAL_EXPIRED` として扱い、ログイン・参照・CSVエクスポート・有料プラン変更申請のみ許可する |
 | DRC-004 | 管理対象IP数上限と機器台数はオプションで追加できる |
 | DRC-005 | IP上限追加は256IP単位とする |
 | DRC-006 | 機器追加は100台単位とする |
@@ -314,6 +318,8 @@ classDiagram
 | DRC-008 | 保守契約には複数の機器をひもづけ可能とする |
 | DRC-009 | 保守契約未設定の機器を検索可能とする |
 | DRC-010 | 保守期限通知は60日前、30日前、当日、期限切れを初期対象とし、通知ログでチャネル・受信者単位に重複抑止する |
+| DRC-010-1 | 保守契約の期限状態は、原則として永続化せず、検索・一覧表示時に終了日と基準日から算出する。大量検索で性能上必要な場合のみ詳細設計でキャッシュ列を検討する |
+| DRC-010-2 | 保守契約の更新状態は契約業務上の状態として永続化し、期限状態とは別に検索条件・表示項目として扱う |
 | DRC-011 | 正式名称とは別に表示名・別名を持てる |
 | DRC-012 | 主要エンティティにタグを付与できる。初期対象はDataCenter、Rack、Device、IpSubnet、IpAddress、MaintenanceContractとし、CloudResourceは将来拡張対象とする |
 | DRC-013 | タグ数上限は有効なタグマスタ件数で判定し、リソースへのタグ付け件数は対象外とする |
