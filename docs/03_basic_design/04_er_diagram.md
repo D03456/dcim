@@ -15,6 +15,9 @@ erDiagram
     TENANT ||--o{ APP_USER : has
     ROLE ||--o{ USER_ROLE : assigned
     APP_USER ||--o{ USER_ROLE : has
+    ROLE ||--o{ ROLE_PERMISSION : has
+    PERMISSION ||--o{ ROLE_PERMISSION : granted
+    APP_USER ||--o{ USER_INVITATION_TOKEN : invited
 
     TENANT ||--o{ REGION : has
     REGION ||--o{ DATA_CENTER : classifies
@@ -49,6 +52,7 @@ erDiagram
 
     TENANT ||--o{ NOTIFICATION_SETTING : has
     TENANT ||--o{ NOTIFICATION_LOG : has
+    TENANT ||--o{ AUDIT_LOG : records
     TENANT ||--o{ CSV_EXPORT_HISTORY : has
     TENANT ||--o{ CSV_IMPORT_HISTORY : has
     CSV_IMPORT_HISTORY ||--o{ CSV_IMPORT_ERROR : has
@@ -66,7 +70,10 @@ erDiagram
 | tenant_add_on | テナント別追加利用枠 | ○ |
 | app_user | ユーザー。ログイン認証情報としてパスワードハッシュを保持 | ○ |
 | password_reset_token | パスワード再設定トークン | ○ |
-| role | ロール | ○ |
+| user_invitation_token | ユーザー招待トークン | ○ |
+| role | 要件定義7ロール | ○ |
+| permission | 権限マスタ | ○ |
+| role_permission | ロール・権限関連 | ○ |
 | user_role | ユーザー・ロール関連 | ○ |
 | region | 地域 | ○ |
 | data_center | データセンター | ○ |
@@ -95,7 +102,7 @@ erDiagram
 | csv_import_error | CSV取込エラー | 初期追加 |
 | cloud_account | 将来拡張：クラウドアカウント | 将来 |
 | cloud_resource | 将来拡張：クラウドリソース | 将来 |
-| audit_log | 将来拡張：監査ログ | 将来 |
+| audit_log | 初期必須：操作履歴。変更差分の完全履歴は将来拡張 | ○ |
 
 ## 4. テーブル定義案
 
@@ -112,7 +119,7 @@ erDiagram
 | updated_at | datetime(6) | NOT NULL | 更新日時 |
 | deleted | boolean | NOT NULL | 論理削除フラグ |
 
-完全な操作履歴を記録する `audit_log` は将来拡張として扱う。
+初期リリースでは `audit_log` に操作履歴を記録する。変更差分を含む完全な変更履歴は将来拡張として扱う。
 
 ### 4.1 tenant
 
@@ -132,6 +139,9 @@ erDiagram
 |---|---|---|
 | app_user | user_id, tenant_id, email, display_name, password_hash, password_updated_at, status | 利用者。パスワードは平文保存せずハッシュのみ保持 |
 | password_reset_token | password_reset_token_id, tenant_id, user_id, token_hash, expires_at, used_at | パスワード再設定用トークン。平文トークンは保存しない |
+| user_invitation_token | invitation_token_id, tenant_id, email, role_id, token_hash, expires_at, accepted_at, cancelled_at, invited_by | 招待承諾用トークン。期限付き・一度限り。再招待時は旧トークンを取消する |
+| permission | permission_id, permission_code, permission_name | 権限マスタ。標準権限を初期投入する |
+| role_permission | role_permission_id, role_id, permission_id | ロール別標準権限。初期リリースでは固定マスタとして扱う |
 | role | role_id, role_code, role_name | ロール定義 |
 | user_role | user_role_id, tenant_id, user_id, role_id | ユーザー・ロール関連 |
 
@@ -196,7 +206,7 @@ erDiagram
 | テーブル | 主なカラム | 説明 |
 |---|---|---|
 | ip_subnet | ip_subnet_id, tenant_id, subnet_name, cidr, ip_version, status, description | IPサブネット。サブネット数はプラン上限対象外 |
-| ip_address | ip_address_id, tenant_id, ip_subnet_id, ip_address, ip_version, device_id, usage_status, description | 個別IP利用状況 |
+| ip_address | ip_address_id, tenant_id, ip_subnet_id, ip_address, ip_version, device_id, usage_status, registration_mode, description | 個別IP利用状況。IPv4は範囲生成/明示登録、IPv6は明示登録のみ |
 
 ### 4.7 maintenance_contract
 
@@ -221,10 +231,11 @@ erDiagram
 | テーブル | 主なカラム | 説明 |
 |---|---|---|
 | notification_setting | notification_setting_id, tenant_id, notification_type, enabled, email_enabled, in_app_enabled, days_before | 通知設定 |
-| notification_log | notification_log_id, tenant_id, notification_type, channel, target_type, target_id, recipient, recipient_user_id, subject, status, sent_at, read_at, error_message | 通知履歴・メール/画面内通知履歴 |
+| notification_log | notification_log_id, tenant_id, notification_type, channel, target_type, target_id, recipient, recipient_user_id, subject, status, sent_at, read_at, error_message, occurrence_count | 通知履歴・メール/画面内通知履歴。OPERATION_ERRORの集約にも利用 |
 | csv_export_history | csv_export_history_id, tenant_id, target_type, condition_summary, file_name, record_count, requested_by, created_at | CSV出力履歴 |
 | csv_import_history | csv_import_history_id, tenant_id, target_type, file_name, status, total_count, success_count, failure_count, requested_by, created_at | CSV取込履歴 |
 | csv_import_error | csv_import_error_id, csv_import_history_id, row_number, column_name, error_message | CSV取込エラー |
+| audit_log | audit_log_id, tenant_id, actor_user_id, action_type, target_type, target_id, result, ip_address, occurred_at, summary | 操作履歴。登録/更新/削除/招待/権限変更/契約変更/通知設定変更等を保存 |
 
 ### 4.10 cloud_account / cloud_resource（将来拡張）
 
@@ -243,13 +254,13 @@ erDiagram
 | ロケーション階層 | tenant_id + parent_id + name にインデックスを検討 |
 | 通知履歴 | tenant_id + notification_type + sent_at にインデックスを検討 |
 | CSV取込履歴 | tenant_id + target_type + created_at にインデックスを検討 |
-| IPサブネット | tenant_id + cidr をユニーク制約候補とする |
+| IPサブネット | tenant_id + ip_version + cidr をユニーク制約候補とする |
 | IPアドレス | tenant_id + ip_subnet_id + ip_address をユニーク制約候補とする |
 | 機器 | tenant_id + formal_name、serial_numberを検索対象とする |
 | 呼称名・別名 | tenant_id + resource_type + resource_id、tenant_id + alias_name にインデックスを検討 |
 | 保守契約 | tenant_id + end_date にインデックスを付与 |
 | 保守契約番号 | tenant_id + contract_number にユニーク制約候補を設定し、削除済みを含めて重複禁止とする |
-| 監査ログ | 将来拡張。tenant_id + occurred_at にインデックスを付与 |
+| 操作履歴 | tenant_id + occurred_at、actor_user_id + occurred_at、target_type + target_id にインデックスを付与 |
 
 ## 5.1 論理削除と一意性制約
 
@@ -270,4 +281,4 @@ DB制約だけで論理削除条件を表現しづらい項目は、Application 
 | 主要マスタ | 論理削除を原則とし、deletedを共通項目とする |
 | 関連テーブル | 業務上の履歴性が低いものは物理削除可。ただし整合性に注意する |
 | 通知ログ・CSV履歴 | 問い合わせ対応・監査補助のため原則保持する |
-| 監査ログ | 将来拡張。原則削除しない。保持期間は運用設計で定義 |
+| 操作履歴 | 初期必須。原則削除しない。初期保持期間は1年を目安とし、詳細は運用設計で定義 |
