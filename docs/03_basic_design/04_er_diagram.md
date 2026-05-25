@@ -202,7 +202,7 @@ erDiagram
 
 | テーブル | 主なカラム | 説明 |
 |---|---|---|
-| maintenance_contract | maintenance_contract_id, tenant_id, contract_name, vendor_name, contract_number, start_date, end_date, notification_enabled, notification_days_before | 保守契約 |
+| maintenance_contract | maintenance_contract_id, tenant_id, contract_name, vendor_name, contract_number, contract_description, renewal_status, start_date, end_date, notification_enabled, notification_days_before, note | 保守契約。期限状態は原則としてend_dateから算出し永続化しない |
 | maintenance_contract_device | maintenance_contract_device_id, tenant_id, maintenance_contract_id, device_id | 保守契約・機器関連 |
 | maintenance_contract_contact | maintenance_contract_contact_id, tenant_id, maintenance_contract_id, contact_id, contact_role | 保守契約・連絡先関連 |
 
@@ -248,7 +248,20 @@ erDiagram
 | 機器 | tenant_id + formal_name、serial_numberを検索対象とする |
 | 呼称名・別名 | tenant_id + resource_type + resource_id、tenant_id + alias_name にインデックスを検討 |
 | 保守契約 | tenant_id + end_date にインデックスを付与 |
+| 保守契約番号 | tenant_id + contract_number にユニーク制約候補を設定し、削除済みを含めて重複禁止とする |
 | 監査ログ | 将来拡張。tenant_id + occurred_at にインデックスを付与 |
+
+## 5.1 論理削除と一意性制約
+
+通常の一覧・検索では `deleted = false` を条件にする。ただし、業務上の識別子は削除済みデータを含めて重複禁止とする。
+
+| 区分 | 対象例 | 方針 |
+|---|---|---|
+| 削除済みを含めて重複禁止 | ユーザーメール、機器シリアル番号、保守契約番号、IPサブネットCIDR、有効IPアドレス | DBのユニーク制約またはService側チェックで担保する。論理削除後も同一識別子の再利用は不可 |
+| 有効データ内で重複禁止 | データセンター正式名称、ラック名、タグ名、地域名、別名 | `deleted = false` の範囲で重複禁止とし、削除後の名称再利用は業務影響を確認して許容する |
+| 履歴テーブル | 通知ログ、CSV履歴、将来の監査ログ | 原則として削除せず、識別子再利用判定の対象外 |
+
+DB制約だけで論理削除条件を表現しづらい項目は、Application Serviceで削除済みを含めて検索し、登録・更新時に業務例外とする。
 
 ## 6. 削除方針
 
