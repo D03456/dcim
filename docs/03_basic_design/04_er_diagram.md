@@ -10,7 +10,7 @@
 
 ```mermaid
 erDiagram
-    TENANT ||--|| SUBSCRIPTION_PLAN : uses
+    SUBSCRIPTION_PLAN ||--o{ TENANT : used_by
     TENANT ||--o{ TENANT_ADD_ON : has
     TENANT ||--o{ APP_USER : has
     ROLE ||--o{ USER_ROLE : assigned
@@ -281,4 +281,4 @@ DB制約だけで論理削除条件を表現しづらい項目は、Application 
 | 主要マスタ | 論理削除を原則とし、deletedを共通項目とする |
 | 関連テーブル | 業務上の履歴性が低いものは物理削除可。ただし整合性に注意する |
 | 通知ログ・CSV履歴 | 問い合わせ対応・監査補助のため原則保持する |
-| 操作履歴 | 初期必須。原則削除しない。初期保持期間は1年を目安とし、詳細は運用設計で定義 |
+| 操作履歴 | 初期必須。Free 7日、Starter 30日、Business 1年、Enterprise 個別契約のプラン別保持期間に従って保持・整理する |

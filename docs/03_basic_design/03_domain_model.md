@@ -31,7 +31,8 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 |---|---|---|
 | tenantId | Long | テナントID |
 | name | String | テナント名 |
-| planType | Enum | Free / Starter / Business / Enterprise |
+| planId | Long | 契約プランID。SubscriptionPlanマスタを参照 |
+| planType | Enum | Free / Starter / Business / Enterprise。画面表示・判定用にSubscriptionPlanから取得 |
 | status | Enum | Active / Suspended / TrialExpired / Cancelled |
 | trialStartDate | Date | Freeトライアル開始日。Free以外はnull可 |
 | trialEndDate | Date | Freeトライアル終了日。Free以外はnull可 |
@@ -269,7 +270,7 @@ classDiagram
     class Tag
     class ResourceAlias
 
-    Tenant "1" --> "1" SubscriptionPlan
+    SubscriptionPlan "1" --> "0..*" Tenant
     Tenant "1" --> "0..*" AddOnOption
     Tenant "1" --> "0..*" Region
     Tenant "1" --> "0..*" DataCenter
