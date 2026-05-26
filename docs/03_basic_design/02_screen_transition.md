@@ -33,7 +33,9 @@ flowchart TD
     Dashboard --> Usage[SCR-030 契約プラン・利用状況]
     Dashboard --> CrossSearch[SCR-041 横断検索]
     CrossSearch --> DCDetail
+    CrossSearch --> RackDetail
     CrossSearch --> DeviceDetail
+    CrossSearch --> IPList
     CrossSearch --> MaintenanceDetail
     SystemTenantList[SCR-039 テナント一覧] --> SystemTenantEdit[SCR-040 テナント登録・編集]
 
@@ -189,7 +191,7 @@ sequenceDiagram
     User->>CrossSearch: キーワード・種別・タグで検索
     CrossSearch-->>User: 権限のある結果のみ表示
     User->>CrossSearch: 結果を選択
-    CrossSearch-->>User: 対象詳細画面へ遷移
+    CrossSearch-->>User: DC詳細、ラック詳細、機器詳細、IPサブネット一覧、保守契約詳細へ遷移
 ```
 
 ### 5.7 テナント管理
