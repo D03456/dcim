@@ -33,6 +33,8 @@
 | tenantName | String | ○ | テナント名 |
 | planType | PlanType | ○ | 契約プラン |
 | status | TenantStatus | ○ | 利用状態。ACTIVE / SUSPENDED / TRIAL_EXPIRED など |
+| trialStartDate | LocalDate | △ | Freeトライアル開始日。有料プランではNULL可 |
+| trialEndDate | LocalDate | △ | Freeトライアル終了日。有料プランではNULL可 |
 | createdAt | LocalDateTime | ○ | 作成日時 |
 | updatedAt | LocalDateTime | ○ | 更新日時 |
 
@@ -42,6 +44,7 @@
 - 利用停止
 - 利用再開
 - プラン上限判定の起点
+- Freeトライアル期限判定の起点
 
 ## 4. 契約・プラン系エンティティ
 
@@ -251,7 +254,7 @@
 | deviceId | Long | ○ | 機器ID |
 | tenantId | Long | ○ | テナントID |
 | rackId | Long | - | 設置ラックID |
-| deviceType | DeviceType | ○ | SERVER / SWITCH / ROUTER / FIREWALL / LOAD_BALANCER / CLOUD など |
+| deviceType | DeviceType | ○ | SERVER / SWITCH / ROUTER / FIREWALL / LOAD_BALANCER / STORAGE / OTHER など。クラウドリソースは初期対象外のため含めない |
 | formalName | String | ○ | 正式名称 |
 | displayName | String | - | 代表表示名。複数の呼称名・別名はResourceAliasで保持 |
 | hostname | String | - | ホスト名 |
@@ -530,7 +533,7 @@
 |---|---|
 | PlanType | FREE, STARTER, BUSINESS, ENTERPRISE |
 | TenantStatus | ACTIVE, SUSPENDED, TRIAL_EXPIRED, CANCELLED |
-| DeviceType | SERVER, SWITCH, ROUTER, FIREWALL, LOAD_BALANCER, STORAGE, OTHER |
+| DeviceType | SERVER, SWITCH, ROUTER, FIREWALL, LOAD_BALANCER, STORAGE, OTHER。CLOUDは初期対象外で、将来拡張のCloudResource側で扱う |
 | IpVersion | IPV4, IPV6 |
 | IpSubnetStatus | ACTIVE, RESERVED, RETIRED |
 | IpUsageStatus | UNUSED, IN_USE, RESERVED, RETIRED |

@@ -42,9 +42,14 @@
 | 2 | subscription_plan | 契約プラン |
 | 3 | tenant_add_on | 追加利用枠 |
 | 4 | app_user | 利用者 |
-| 5 | role | ロール |
-| 6 | user_role | ユーザー・ロール関連 |
-| 7 | region | 地域 |
+| 5 | password_reset_token | パスワード再設定トークン |
+| 6 | user_invitation_token | ユーザー招待トークン |
+| 7 | role | ロール |
+| 8 | permission | 権限マスタ |
+| 9 | role_permission | ロール・権限関連 |
+| 10 | user_role | ユーザー・ロール関連 |
+| 11 | audit_log | 操作履歴 |
+| 12 | region | 地域 |
 | 8 | data_center | データセンター |
 | 9 | building | 棟 |
 | 10 | floor | フロア |
@@ -71,6 +76,8 @@
 | 28 | csv_import_error | CSVインポートエラー |
 | 29 | cloud_account | 将来拡張：クラウドアカウント |
 | 30 | cloud_resource | 将来拡張：クラウドリソース |
+
+> Noは分類用の整理番号であり、追加テーブルにより一部枝番・既存番号が残る場合がある。実装時はテーブル名を正とする。
 
 ## 4. 主要テーブル定義
 
@@ -603,7 +610,7 @@
 | column_name | varchar(100) | YES |  | カラム名 |
 | error_message | varchar(500) | NO |  | エラー内容 |
 
-## 4.22 app_user / role / user_role
+## 4.22 app_user / password_reset_token / user_invitation_token / role / permission / role_permission / user_role / audit_log
 
 ### app_user
 
@@ -615,6 +622,12 @@
 | display_name | varchar(150) | NO |  | 表示名 |
 | password_hash | varchar(255) | NO |  | ハッシュ化済みパスワード。平文は保存しない |
 | password_updated_at | datetime(6) | YES |  | パスワード最終更新日時 |
+| status | varchar(30) | NO |  | ACTIVE / INVITED / SUSPENDED |
+| created_by | bigint | NO | FK | 作成者 |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| updated_by | bigint | NO | FK | 更新者 |
+| updated_at | datetime(6) | NO |  | 更新日時 |
+| deleted | boolean | NO |  | 論理削除 |
 
 ### password_reset_token
 
@@ -628,19 +641,49 @@
 | used_at | datetime(6) | YES |  | 使用日時 |
 | created_at | datetime(6) | NO |  | 作成日時 |
 | deleted | boolean | NO |  | 論理削除 |
-| status | varchar(30) | NO |  | ACTIVE / INVITED / SUSPENDED |
-| created_by | bigint | NO | FK | 作成者 |
+
+### user_invitation_token
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| user_invitation_token_id | bigint | NO | PK | 招待トークンID |
+| tenant_id | bigint | NO | FK | テナントID |
+| user_id | bigint | NO | FK | 招待対象ユーザーID |
+| token_hash | varchar(255) | NO |  | ハッシュ化済み招待トークン |
+| invited_email | varchar(255) | NO |  | 招待先メールアドレス |
+| status | varchar(30) | NO |  | ACTIVE / ACCEPTED / CANCELLED / EXPIRED |
+| expires_at | datetime(6) | NO |  | 有効期限 |
+| accepted_at | datetime(6) | YES |  | 承諾日時 |
+| cancelled_at | datetime(6) | YES |  | 取消日時 |
+| created_by | bigint | NO | FK | 招待実行者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
-| updated_by | bigint | NO | FK | 更新者 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
-### role / user_role
+### role / permission / role_permission / user_role
 
 | テーブル | 主なカラム | 説明 |
 |---|---|---|
-| role | role_id, role_code, role_name | ロール定義 |
-| user_role | user_role_id, tenant_id, user_id, role_id | ユーザー・ロール関連 |
+| role | role_id, role_code, role_name | `ROLE_SYSTEM_ADMIN` / `ROLE_TENANT_ADMIN` / `ROLE_BILLING_ADMIN` / `ROLE_OPERATION_ADMIN` / `ROLE_EDITOR` / `ROLE_VIEWER` / `ROLE_AUDITOR` のロール定義 |
+| permission | permission_id, permission_code, permission_name | 画面・Service操作単位の権限マスタ |
+| role_permission | role_permission_id, role_id, permission_id | 標準ロールと権限の関連。初期ロール権限の正本 |
+| user_role | user_role_id, tenant_id, user_id, role_id | ユーザー・ロール関連。システム管理者はtenant_idをNULL可とする |
+
+### audit_log
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| audit_log_id | bigint | NO | PK | 操作履歴ID |
+| tenant_id | bigint | YES | FK | 対象テナントID。システム管理操作ではNULL可 |
+| user_id | bigint | YES | FK | 操作ユーザーID。未認証ログイン失敗ではNULL可 |
+| action_type | varchar(50) | NO |  | LOGIN_SUCCESS / LOGIN_FAILURE / CREATE / UPDATE / DELETE / INVITE / ROLE_CHANGE / CSV_EXPORT / PLAN_CHANGE_REQUEST 等 |
+| resource_type | varchar(50) | YES |  | 操作対象種別 |
+| resource_id | bigint | YES |  | 操作対象ID |
+| result | varchar(20) | NO |  | SUCCESS / FAILURE |
+| reason | varchar(500) | YES |  | 失敗理由・操作理由。機密情報は含めない |
+| ip_address | varchar(45) | YES |  | 操作元IP |
+| user_agent | varchar(255) | YES |  | User-Agent。長文は切り詰める |
+| created_at | datetime(6) | NO |  | 操作日時 |
 
 ## 4.22A resource_alias
 

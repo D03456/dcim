@@ -55,6 +55,7 @@ com.example.dcim
 | TagService | タグ管理 |
 | NotificationService | 通知作成・送信 |
 | MaintenanceNotificationService | 保守期限通知処理 |
+| AuditLogService | 操作履歴保存・検索 |
 | CloudResourceService | 将来拡張：クラウド資産管理 |
 | CsvExportService | CSVエクスポート |
 | CsvImportService | CSVインポート（初期追加対象） |
@@ -345,7 +346,7 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 
 ```text
 通知対象日 = 契約終了日 - notification_days_before
-現在日付 >= 通知対象日 かつ 契約終了日 >= 現在日付
+現在日付 >= 通知対象日。期限切れ通知では契約終了日 < 現在日付も対象に含める
 ```
 
 標準は60日前通知とする。
@@ -391,6 +392,26 @@ Freeトライアル期限超過時は、テナント状態を `TRIAL_EXPIRED` �
 | 実行時刻 | 09:00 |
 | 対象 | notification_enabled = true の保守契約 |
 | 標準通知 | 60日前 |
+
+
+## 5.10A AuditLogService
+
+### 責務
+
+- 初期必須の操作履歴を保存する。
+- ログイン成功/失敗、主要データの登録・更新・削除、ユーザー招待、権限変更、CSVエクスポート、プラン変更申請を記録する。
+- SCR-032 操作履歴画面向けに、権限に応じた検索結果を返す。
+- パスワード、トークン、APIキー、CSV内容そのものなどの秘密情報は保存しない。
+
+### 主なメソッド
+
+| メソッド | 概要 |
+|---|---|
+| `recordLoginSuccess(command)` | ログイン成功を記録 |
+| `recordLoginFailure(command)` | ログイン失敗を記録。未認証のためuserIdはNULL可 |
+| `recordDataChange(command)` | CRUD、招待、権限変更、契約変更などを記録 |
+| `recordCsvExport(command)` | CSV出力操作を記録 |
+| `searchAuditLogs(query)` | 操作履歴画面向け検索 |
 
 ## 5.11 ContactService
 
