@@ -21,6 +21,12 @@ com.example.dcim.domain.repository
   ├─ SubscriptionPlanRepository.java
   ├─ TenantAddOnRepository.java
   ├─ AppUserRepository.java
+  ├─ PasswordResetTokenRepository.java
+  ├─ UserInvitationTokenRepository.java
+  ├─ RoleRepository.java
+  ├─ PermissionRepository.java
+  ├─ RolePermissionRepository.java
+  ├─ AuditLogRepository.java
   ├─ RegionRepository.java
   ├─ DataCenterRepository.java
   ├─ RackRepository.java
@@ -71,6 +77,12 @@ and deleted = false
 | SubscriptionPlanRepository | subscription_plan | プラン上限取得 |
 | TenantAddOnRepository | tenant_add_on | 追加枠取得 |
 | AppUserRepository | app_user | ユーザー取得・メール重複確認 |
+| PasswordResetTokenRepository | password_reset_token | パスワード再設定トークン検索・使用済み更新 |
+| UserInvitationTokenRepository | user_invitation_token | 招待トークン検索・承諾/取消更新 |
+| RoleRepository | role | ロール取得 |
+| PermissionRepository | permission | 権限取得 |
+| RolePermissionRepository | role_permission | ロール権限取得 |
+| AuditLogRepository | audit_log | 操作履歴保存・検索 |
 | RegionRepository | region | リージョン検索 |
 | DataCenterRepository | data_center | DC検索 |
 | RackRowRepository | rack_row | ラック列検索 |
@@ -107,6 +119,24 @@ Optional<AppUser> findByTenantIdAndEmailAndDeletedFalse(Long tenantId, String em
 boolean existsByTenantIdAndEmailAndDeletedFalse(Long tenantId, String email);
 
 long countByTenantIdAndDeletedFalse(Long tenantId);
+```
+
+### 認証・権限・操作履歴Repository
+
+```java
+Optional<PasswordResetToken> findByTokenHashAndDeletedFalse(String tokenHash);
+
+Optional<UserInvitationToken> findByTokenHashAndDeletedFalse(String tokenHash);
+
+List<Role> findByRoleCodeIn(Collection<String> roleCodes);
+
+List<Permission> findByPermissionCodeIn(Collection<String> permissionCodes);
+
+List<RolePermission> findByRoleIdIn(Collection<Long> roleIds);
+
+AuditLog save(AuditLog auditLog);
+
+Page<AuditLog> search(AuditLogSearchCriteria criteria, Pageable pageable);
 ```
 
 ## 6.2 RegionRepository
@@ -243,7 +273,7 @@ List<IpAddress> findByTenantIdAndDeviceIdAndDeletedFalse(Long tenantId, Long dev
 boolean existsByTenantIdAndIpSubnetIdAndIpAddressAndDeletedFalse(Long tenantId, Long ipSubnetId, String ipAddress);
 ```
 
-プラン上限判定では `IpSubnetRepository.countByTenantIdAndDeletedFalse()` を利用し、個別IPアドレス数は上限カウントに含めない。
+プラン上限判定では `IpAddressRepository.countByTenantIdAndDeletedFalse()` など管理対象の個別IPアドレス数を利用する。IPサブネット数は上限なしのため、`IpSubnetRepository.countByTenantIdAndDeletedFalse()` はプラン上限判定に利用しない。
 
 ## 6.7 MaintenanceContractRepository
 
