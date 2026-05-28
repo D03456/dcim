@@ -362,7 +362,7 @@
 
 | 名称 | カラム | 種別 |
 |---|---|---|
-| uk_ip_subnet_cidr | tenant_id, cidr, deleted | UNIQUE |
+| uk_ip_subnet_cidr | tenant_id, cidr | UNIQUE |
 | idx_ip_subnet_tenant | tenant_id, deleted | INDEX |
 
 ## 4.9 ip_address
