@@ -112,14 +112,14 @@ erDiagram
 
 | カラム | 型 | 制約 | 説明 |
 |---|---|---|---|
-| tenant_id | bigint | 原則NOT NULL | テナント分離用ID |
+| tenant_id | bigint | 原則NOT NULL | テナント分離用ID。`audit_log` などシステム管理操作・未認証操作を扱う履歴系テーブルではNULL可の例外を認める |
 | created_by | bigint | NOT NULL | 作成者ユーザーID |
 | created_at | datetime(6) | NOT NULL | 作成日時 |
 | updated_by | bigint | NOT NULL | 更新者ユーザーID |
 | updated_at | datetime(6) | NOT NULL | 更新日時 |
 | deleted | boolean | NOT NULL | 論理削除フラグ |
 
-初期リリースでは `audit_log` に操作履歴を記録する。変更差分を含む完全な変更履歴は将来拡張として扱う。
+初期リリースでは `audit_log` に操作履歴を記録する。`audit_log.tenant_id` はシステム管理操作、`actor_user_id` は未認証ログイン失敗でNULL可とする。変更差分を含む完全な変更履歴は将来拡張として扱う。
 
 ### 4.1 tenant
 
@@ -235,7 +235,7 @@ erDiagram
 | csv_export_history | csv_export_history_id, tenant_id, target_type, condition_summary, file_name, record_count, requested_by, created_at | CSV出力履歴 |
 | csv_import_history | csv_import_history_id, tenant_id, target_type, file_name, status, total_count, success_count, failure_count, requested_by, created_at | CSV取込履歴 |
 | csv_import_error | csv_import_error_id, csv_import_history_id, row_number, column_name, error_message | CSV取込エラー |
-| audit_log | audit_log_id, tenant_id, actor_user_id, action_type, target_type, target_id, result, ip_address, occurred_at, summary | 操作履歴。登録/更新/削除/招待/権限変更/契約変更/通知設定変更等を保存 |
+| audit_log | audit_log_id, tenant_id, actor_user_id, action_type, target_type, target_id, result, ip_address, occurred_at, summary | 操作履歴。登録/更新/削除/招待/権限変更/契約変更/通知設定変更等を保存。システム管理操作ではtenant_id、未認証ログイン失敗ではactor_user_idをNULL可とする |
 
 ### 4.10 cloud_account / cloud_resource（将来拡張）
 
@@ -270,7 +270,8 @@ erDiagram
 |---|---|---|
 | 削除済みを含めて重複禁止 | ユーザーメール、機器シリアル番号、保守契約番号、IPサブネットCIDR、有効IPアドレス | DBのユニーク制約またはService側チェックで担保する。論理削除後も同一識別子の再利用は不可 |
 | 有効データ内で重複禁止 | データセンター正式名称、ラック名、タグ名、地域名、別名 | `deleted = false` の範囲で重複禁止とし、削除後の名称再利用は業務影響を確認して許容する |
-| 履歴テーブル | 通知ログ、CSV履歴、将来の監査ログ | 原則として削除せず、識別子再利用判定の対象外 |
+| 履歴テーブル | 通知ログ、CSV履歴 | 原則として削除せず、識別子再利用判定の対象外 |
+| 操作履歴 | audit_log | プラン別保持期間内は検索可能とし、期限超過後は削除またはアーカイブする |
 
 DB制約だけで論理削除条件を表現しづらい項目は、Application Serviceで削除済みを含めて検索し、登録・更新時に業務例外とする。
 

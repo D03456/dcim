@@ -31,7 +31,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 |---|---|---|
 | tenantId | Long | テナントID |
 | name | String | テナント名 |
-| planId | Long | 契約プランID。SubscriptionPlanマスタを参照 |
+| planCode | String | 契約プランコード。SubscriptionPlanマスタのplanCodeを参照 |
 | planType | Enum | Free / Starter / Business / Enterprise。画面表示・判定用にSubscriptionPlanから取得 |
 | status | Enum | Active / Suspended / TrialExpired / Cancelled |
 | trialStartDate | Date | Freeトライアル開始日。Free以外はnull可 |
@@ -44,6 +44,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | 属性 | 型 | 説明 |
 |---|---|---|
 | planId | Long | プランID |
+| planCode | String | プランコード。FREE / STARTER / BUSINESS / ENTERPRISE |
 | planType | Enum | プラン種別 |
 | maxDataCenters | Integer | DC上限 |
 | maxRacks | Integer | ラック上限 |
@@ -301,7 +302,7 @@ classDiagram
 
     CloudAccount "1" --> "0..*" CloudResource
 
-    UserAccount "*" --> "1" Role
+    UserAccount "*" --> "*" Role
     Device "*" --> "0..*" TaggedResource
     Rack "*" --> "0..*" TaggedResource
     DataCenter "*" --> "0..*" TaggedResource
@@ -333,7 +334,7 @@ classDiagram
 | DRC-001 | すべての主要データはtenantIdで分離する |
 | DRC-002 | 契約プラン上限を超えてDC、ラック、機器、管理対象IP、タグ、ユーザーを登録できない |
 | DRC-003 | Freeプランは14日間トライアルとし、DC 1件、ラック3本、機器40台、管理対象IP 256件、タグ10件、ユーザー3名まで。IPサブネット数には上限を設けない |
-| DRC-003-1 | Freeトライアル期限超過後は `TRIAL_EXPIRED` として扱い、ログイン・参照・CSVエクスポート・有料プラン変更申請のみ許可する |
+| DRC-003-1 | Freeトライアル期限超過後は `TRIAL_EXPIRED` として扱い、ログイン・参照・CSVエクスポート・契約プラン確認・有料プラン変更申請のみ許可する |
 | DRC-004 | 管理対象IP数上限と機器台数はオプションで追加できる |
 | DRC-005 | IP上限追加は256IP単位とする |
 | DRC-006 | 機器追加は100台単位とする |
