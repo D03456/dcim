@@ -578,3 +578,24 @@ Optional<IpSubnet> findByIpSubnetIdAndTenantIdForUpdate(Long ipSubnetId, Long te
 ```
 
 DB制約とRepositoryロックを併用し、Service層の事前チェックだけに依存しない。
+
+<!-- issue-fixes-219-221-222 -->
+
+## 付録A. Issue対応追補: Repository境界の補完
+
+### A.1 CSV履歴Repositoryとdeleted条件
+
+CSV履歴テーブルに `deleted` を持たせる場合のみ `findByTenantIdAndDeletedFalse` を使用する。履歴系として `deleted` を持たせない場合は、Repositoryメソッドを `findByTenantId` / `findByTenantIdAndStatus` に統一する。Table定義とRepositoryメソッド名の不一致を禁止する。
+
+### A.2 CsvImportErrorRepository
+
+`csv_import_error` は親履歴のテナント境界を確認してから取得する。
+
+| メソッド | 方針 |
+|---|---|
+| `findByHistoryForTenant(tenantId, historyId)` | 親履歴を `tenantId` 付きで検証してから明細を返す |
+| `findByCsvImportHistoryId(historyId)` | Service外へ公開しない内部用途に限定 |
+
+### A.3 TaggedResourceRepository
+
+タグ付与はDB FKで対象リソースを表現できないため、Service層で `resourceType` ごとのRepositoryを使って存在確認・同一テナント確認・削除済みでないことを検証する。Repositoryでは同一対象への重複付与を防ぐため、`tenantId, resourceType, resourceId, tagId` の有効データ一意制約を前提にする。

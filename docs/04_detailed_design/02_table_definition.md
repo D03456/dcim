@@ -828,3 +828,56 @@ MariaDBでは `tenant_id, name, deleted` の単純なUNIQUEだけでは、論理
 ### 4.x 競合更新制約
 
 ラックU配置は `tenant_id, rack_id, rack_unit_start, rack_unit_size` の重複をServiceで範囲判定し、保存時は対象ラックを悲観ロックする。IP割当は `tenant_id, ip_subnet_id, ip_address, active_unique_key` のUNIQUEで同時登録を防ぐ。プラン上限判定はテナントまたは利用量カウンタ行をロックし、カウント取得から保存までを同一トランザクションに含める。
+
+<!-- issue-fixes-216-219-221-228 -->
+
+## 付録A. Issue対応追補: Table定義の実装補足
+
+### A.1 ラックテンプレート適用結果の保持
+
+ラックテンプレートは「作成時コピー」を正本とする。テンプレート適用後にテンプレートを変更しても、既存ラックの予約U・標準構成は自動変更しない。
+
+初期リリースでは以下の方針を採用する。
+
+| 項目 | 方針 |
+|---|---|
+| 元テンプレート | `rack.source_template_id` を任意項目として保持する |
+| 適用結果 | `rack_mount_item` 相当のラック実体側明細にコピーして保持する |
+| 対象種別 | DEVICE / RESERVED_U / BLANK_PANEL |
+| U位置 | `rack_id`, `unit_start`, `unit_size` で保持し、重複禁止 |
+| テンプレート変更時 | 既存ラックへは反映しない。再適用する場合は明示操作とする |
+
+物理DDL化時に `rack.source_template_id` とラック実体側明細テーブルを追加する。ラック実体側明細は、機器未搭載の予約Uやブランクパネルもラック図に表示できる粒度で保持する。
+
+### A.2 CSV履歴の論理削除方針
+
+CSV履歴は監査・問い合わせ用途の履歴系データとして、通常の業務マスタとは異なり物理的な削除操作を画面から提供しない。ただしRepository設計と整合させるため、初期リリースでは以下のいずれかに統一する。
+
+| 対象 | 方針 |
+|---|---|
+| `csv_export_history` | `deleted` を持たせる場合はRepositoryを `findByTenantIdAndDeletedFalse` とする。持たせない場合は `findByTenantId` に統一する |
+| `csv_import_history` | 初期追加時に同じ方針を採用する |
+| `csv_import_error` | 親履歴に追随し、単独削除は行わない |
+
+本設計では、履歴検索Repository名とTable定義の `deleted` 有無を必ず一致させることを実装前確認事項とする。
+
+### A.3 csv_import_errorのテナント境界
+
+`csv_import_error` を参照する際は、必ず親の `csv_import_history` を `tenant_id` 条件付きで取得してから明細を取得する。初期追加フェーズでテーブルを物理設計する際は、誤参照防止のため `csv_import_error.tenant_id` を冗長保持する案も許容する。
+
+| 方式 | 採用条件 |
+|---|---|
+| 親履歴経由 | Repositoryで `csv_import_history_id` 単独検索を外部公開しない |
+| `tenant_id` 冗長保持 | 一覧・検索性能、Service実装の安全性を優先する場合 |
+
+### A.4 request_id / correlation_idのDB履歴保持
+
+障害調査時にアプリログとDB履歴を相互参照できるよう、以下の履歴テーブルは `request_id` を保持する。バッチや非同期処理で複数処理を束ねる場合は `correlation_id` も保持する。
+
+| テーブル | `request_id` | `correlation_id` | 備考 |
+|---|:---:|:---:|---|
+| `audit_log` | ○ | △ | 画面操作・API操作の問い合わせID |
+| `notification_log` | ○ | ○ | 通知生成元の処理単位を追跡 |
+| `csv_export_history` | ○ | △ | 出力要求とダウンロードを追跡 |
+| `csv_import_history` | ○ | ○ | ファイル単位・行単位処理を束ねる |
+| `batch_execution_log` | - | ○ | バッチ1回の実行単位 |

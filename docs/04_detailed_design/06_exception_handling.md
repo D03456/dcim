@@ -256,3 +256,16 @@ try {
 | Repositoryテスト | DB制約違反の確認 |
 | 画面テスト | エラー表示確認 |
 | バッチテスト | 通知失敗時に処理継続されること |
+
+<!-- issue-fixes-237 -->
+
+## 付録A. Issue対応追補: 例外クラス配置方針
+
+| 種別 | 配置先 | 例 |
+|---|---|---|
+| 共通基底例外 | `common.error` | `DcimException`, `ErrorCode` |
+| 入力・認可・状態不正 | `common.error` または `application.error` | `ValidationException`, `AuthorizationException`, `ConflictException` |
+| 業務ルール例外 | `domain.exception` | `PlanLimitExceededException`, `RackUnitConflictException`, `InvalidCidrException` |
+| インフラ例外 | `infrastructure.error` | `MailSendException`, `FileStorageException` |
+
+Application ServiceはDomain例外を捕捉して画面/API向けのメッセージコードへ変換する。内部詳細、SQL、トークン、個人情報は例外メッセージに含めない。

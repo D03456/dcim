@@ -306,3 +306,36 @@ infrastructure.repository / notification / security
 | API公開範囲 | 初期はVaadin内部利用を前提とし、外部REST API公開は将来拡張で検討する |
 | CSV非同期化 | 初期は小規模同期処理を基本とし、大量データ対応時に非同期化する |
 | クラウド資産Service | 将来拡張フェーズで対象クラウド・同期方式を決定する |
+
+<!-- issue-fixes-250-251-252-253-255-256 -->
+
+## 付録A. Issue対応追補: Application Service補完
+
+### A.1 AuthApplicationService
+
+`AuthApplicationService` を追加し、ログイン、ログアウト、パスワード再設定依頼、新パスワード設定、招待承諾、認証系監査ログ記録の起点を担当する。通知送信はNotificationApplicationService、操作履歴保存はAuditLogApplicationServiceへ委譲する。
+
+### A.2 REST Controllerの初期実装範囲
+
+初期リリースではVaadin ViewからApplication Serviceを直接呼び出す。REST Controllerは将来拡張の設計方針とし、初期必須実装には含めない。内部APIとして実装する場合も、Application Serviceを経由し、同じ認可・監査ログ・テナント分離を適用する。
+
+### A.3 関連付け操作
+
+DataCenterApplicationServiceとMaintenanceApplicationServiceは、連絡先・機器の関連付けと解除を明示メソッドとして提供する。
+
+| Service | メソッド例 |
+|---|---|
+| DataCenterApplicationService | `addContact`, `removeContact` |
+| MaintenanceApplicationService | `addDevice`, `removeDevice`, `addContact`, `removeContact` |
+
+### A.4 通知対象の分離
+
+NotificationApplicationServiceは、メール通知対象と画面内通知対象を別々に解決する。外部連絡先はメールのみとし、画面内通知は `app_user` を持つ受信者に限定する。
+
+### A.5 CSVエクスポート
+
+CsvApplicationServiceは、同期ダウンロードと非同期生成の両方を扱える設計とする。生成履歴、保存先、有効期限、再ダウンロード時認可を管理する。
+
+### A.6 プラン上限警告
+
+SubscriptionApplicationServiceは、使用率80%以上、100%到達、上限超過、改善時の状態を区別し、通知重複抑止に必要な通知レベルをNotificationApplicationServiceへ渡す。

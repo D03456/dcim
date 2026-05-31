@@ -426,3 +426,48 @@ Freeプランの14日間トライアル期限を超過したテナントは `TRI
 | ユーザー招待 | × | テナント拡張扱いのため不可 |
 
 更新不可時は業務例外として扱い、利用者には有料プラン変更を促す日本語メッセージを表示する。
+
+<!-- issue-fixes-217-218-222-235-236 -->
+
+## 付録A. Issue対応追補: バリデーション仕様
+
+### A.1 機器のラック搭載項目
+
+| 状態 | `rackId` | `rackUnitStart` | `rackUnitSize` | 判定 |
+|---|---:|---:|---:|---|
+| 未搭載 | NULL | NULL | NULL | 許可 |
+| 搭載 | NOT NULL | NOT NULL | NOT NULL | 許可 |
+| 一部のみ入力 | NULL/NOT NULL混在 | NULL/NOT NULL混在 | NULL/NOT NULL混在 | 不可 |
+
+搭載時は `rackUnitStart >= 1`、`rackUnitSize >= 1`、`rackUnitStart + rackUnitSize - 1 <= rack.heightUnit`、同一ラック内の有効機器・予約Uとの重複なしを検証する。
+
+### A.2 ラックU番号の基準
+
+ラックU番号は **下から1U** を正本とする。画面表示、CSV、Repository検索、重複判定はすべてこの基準で扱う。画面で上から描画する場合も、内部値は下からのU番号を保持し、表示時に変換する。
+
+### A.3 TaggedResource
+
+`resourceType/resourceId/tagId` 登録時は以下を検証する。
+
+- `tagId` が同一テナントの有効タグであること
+- `resourceType` が初期対象種別であること
+- 対象リソースが同一テナントに存在し、削除済みでないこと
+- 同一対象に同一タグが未付与であること
+- タグ数上限・対象リソース権限を満たすこと
+
+### A.4 RackTemplate.heightUnit
+
+`RackTemplate.heightUnit` は初期リリースでは `Rack.heightUnit` と同じく `1〜60` とする。将来、特殊ラックを扱う場合はテンプレート専用上限を別Issueで再定義する。
+
+### A.5 Rack/Device項目名対応
+
+| 概念 | Javaプロパティ | DBカラム | 画面表示名 |
+|---|---|---|---|
+| ラック高さ | `heightUnit` | `height_unit` | U数 / ラック高さ |
+| ラック搭載開始U | `rackUnitStart` | `rack_unit_start` | 搭載開始U |
+| ラック搭載U数 | `rackUnitSize` | `rack_unit_size` | 使用U数 |
+| 機器メーカー | `manufacturer` | `manufacturer` | メーカー |
+| 機器型番 | `modelNumber` | `model_number` | 型番 |
+| ホスト名 | `hostName` | `host_name` | ホスト名 |
+
+`heightU`、`vendor` などの別名表記は説明文に限定し、Command/DTO/Entityでは上記の正規名を使う。

@@ -375,3 +375,40 @@ Freeトライアル期限超過テナントは `TRIAL_EXPIRED` として扱い�
 | 登録・更新・削除API | × | 期限超過中は不可 |
 | CSVインポート | × | 新規登録扱いのため不可 |
 | ユーザー招待 | × | テナント拡張扱いのため不可 |
+
+<!-- issue-fixes-251-252-253 -->
+
+## 付録A. Issue対応追補: API/Controller方針
+
+### A.1 初期リリースのREST Controller
+
+初期リリースではVaadin ViewからApplication Serviceを直接呼び出す構成を基本とする。`/api/v1/...` のREST Controllerは、将来の外部API化・非Vaadinクライアント向けの設計方針として扱い、初期実装必須ではない。実装する場合も内部利用に限定し、認可・CSRF・監査ログを必須とする。
+
+### A.2 AuthApplicationService
+
+認証系ユースケースの責務を明確化するため、`AuthApplicationService` を追加する。
+
+| ユースケース | 責務 |
+|---|---|
+| ログイン | 認証結果、失敗回数、監査ログ記録 |
+| パスワード再設定依頼 | トークン発行、通知依頼、ユーザー存在推測防止 |
+| 新パスワード設定 | トークン検証、パスワード更新、使用済み化 |
+| 招待承諾 | 招待トークン検証、初回パスワード設定、ユーザー有効化 |
+| ログアウト | セッション破棄、必要に応じて監査ログ |
+
+通知送信はNotificationApplicationService、操作履歴保存はAuditLogApplicationServiceへ委譲する。
+
+### A.3 関連付け/解除API方針
+
+代表APIには以下の関連付け・解除操作を含める。
+
+| 操作 | API方針 |
+|---|---|
+| 保守契約へ機器追加 | `POST /maintenance-contracts/{id}/devices` |
+| 保守契約から機器解除 | `DELETE /maintenance-contracts/{id}/devices/{deviceId}` |
+| 保守契約へ連絡先追加 | `POST /maintenance-contracts/{id}/contacts` |
+| 保守契約から連絡先解除 | `DELETE /maintenance-contracts/{id}/contacts/{contactId}` |
+| DCへ連絡先追加 | `POST /data-centers/{id}/contacts` |
+| DCから連絡先解除 | `DELETE /data-centers/{id}/contacts/{contactId}` |
+
+初期リリースでREST Controllerを実装しない場合も、Application Serviceのメソッドとして同等の操作を提供する。

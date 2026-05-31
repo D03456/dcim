@@ -556,3 +556,40 @@
 | ContactRole | PRIMARY, VENDOR, EMERGENCY, BILLING, OTHER |
 | AddOnType | IP_ADDRESS, DEVICE |
 | Direction | EAST, WEST, SOUTH, NORTH, OTHER |
+
+<!-- issue-fixes-214-215-223 -->
+
+## 付録A. Issue対応追補: Entity定義の正本補足
+
+### A.1 Tenantの契約プラン参照
+
+Tenantは永続化上、`subscription_plan.plan_code` を参照する `planCode` を契約プランの正本として保持する。Domain層で `PlanType` enum を利用する場合は、`planCode` から変換する判定・表示用の派生値として扱い、Tenantの保存値・外部キーは `planCode` に統一する。
+
+| 項目 | 方針 |
+|---|---|
+| 永続化正本 | `tenant.plan_code` |
+| 参照先 | `subscription_plan.plan_code` |
+| Java表現 | `planCode: String` または `SubscriptionPlan` 参照を基本とし、`PlanType` は変換値 |
+| プラン上限判定 | `SubscriptionPlan` と `TenantAddOn` を合算して判定 |
+
+### A.2 Building / Floor / Area / RackRowの主要属性
+
+物理階層のEntityは、Table定義と同じくテナント分離と親子関係を正本として持つ。
+
+| Entity | 主要属性 | 主な振る舞い |
+|---|---|---|
+| Building | `buildingId`, `tenantId`, `dataCenterId`, `buildingName`, `displayOrder`, `status` | 名称変更、表示順変更、利用停止、配下Floor有無による削除可否判定 |
+| Floor | `floorId`, `tenantId`, `buildingId`, `floorName`, `floorNumber`, `displayOrder`, `status` | 名称変更、表示順変更、利用停止、配下Area/RackRow有無による削除可否判定 |
+| Area | `areaId`, `tenantId`, `floorId`, `areaName`, `gridX`, `gridY`, `width`, `height`, `displayOrder`, `status` | グリッド位置変更、表示順変更、配下RackRow有無による削除可否判定 |
+| RackRow | `rackRowId`, `tenantId`, `areaId`, `rowName`, `direction`, `gridX`, `gridY`, `displayOrder`, `status` | 方向・位置変更、ラック本数集計、配下Rack有無による削除可否判定 |
+
+親Entityと子Entityの `tenantId` は必ず一致させる。削除は論理削除を基本とし、配下に有効データがある場合は削除不可または無効化に限定する。
+
+### A.3 Tag / TaggedResourceの主要属性
+
+| Entity | 主要属性 | 主な振る舞い |
+|---|---|---|
+| Tag | `tagId`, `tenantId`, `tagName`, `colorCode`, `description`, `status` | タグ作成、名称/色変更、利用件数確認、削除可否判定 |
+| TaggedResource | `taggedResourceId`, `tenantId`, `tagId`, `resourceType`, `resourceId` | 対象リソースへのタグ付与、タグ解除、重複付与防止 |
+
+同一テナント・同一対象リソース・同一タグの重複付与は禁止する。タグ対象種別は初期リリースでは DataCenter / Rack / Device / IpSubnet / MaintenanceContract を対象とし、Cloud系は将来拡張とする。

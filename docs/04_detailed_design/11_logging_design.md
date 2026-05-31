@@ -79,8 +79,33 @@
 - 通知・CSV・操作履歴は専用テーブルに履歴を残し、アプリログだけに依存しない。
 
 
-## 6. request_id / correlation_id
+## 9. request_id / correlation_id（基本方針）
 
 画面操作・Service処理・通知・バッチには `request_id` を採番し、MDCへ設定してアプリケーションログと業務ログに出力する。バッチや通知の子処理では親の `correlation_id` を引き継ぎ、利用者向けエラー画面には内部詳細ではなく問い合わせIDとして `request_id` を表示する。
 
 `audit_log` には操作画面で検索・表示できる粒度として `actor_user_id`、`occurred_at`、`summary`、`target_name`、必要に応じてマスキング済み `detail_json` を保持する。秘密情報、パスワード、トークン、メール本文中の機微情報は保存しない。
+
+<!-- issue-fixes-228-230-238 -->
+
+## 10. request_id / correlation_id（DB履歴連携）
+
+アプリログの `request_id` は、監査ログ・通知ログ・CSV履歴などDB履歴にも可能な限り保存する。バッチや非同期処理では `correlation_id` を処理全体の追跡キーとして保存する。
+
+| 履歴 | 追跡キー |
+|---|---|
+| `audit_log` | `request_id` |
+| `notification_log` | `request_id`, `correlation_id` |
+| `csv_export_history` | `request_id` |
+| `csv_import_history` | `request_id`, `correlation_id` |
+| `batch_execution_log` | `correlation_id` |
+
+## 11. 履歴保持期間の暫定方針
+
+| 対象 | 暫定保持期間 | 備考 |
+|---|---:|---|
+| アプリログ | 90日 | 個人情報・秘密情報は出力禁止 |
+| 監査ログ | 1年 | プラン要件で延長する可能性あり |
+| 通知ログ | 180日〜365日 | 失敗ログは長めに保持 |
+| CSV履歴 | 90日〜180日 | 一時ファイルはより短く保持 |
+
+正式な保持期間は運用設計で確定するが、初期リリース時点では上記を実装の暫定値とする。

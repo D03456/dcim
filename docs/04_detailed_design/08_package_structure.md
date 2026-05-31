@@ -114,3 +114,12 @@ infrastructure.persistence -> domain.repository
 - Command / Query / DTOは用途ごとに分け、肥大化させない。
 - MapperはInfrastructure側に置き、Domainを永続化技術から分離する。
 - 小規模実装で開始する場合も、PresentationからRepositoryへの直接呼び出しは避ける。
+
+<!-- issue-fixes-234-237 -->
+
+## 付録A. Issue対応追補: Service/Exception配置
+
+- Application Serviceは `application.service` 配下に `XxxApplicationService` として配置する。
+- Domain Serviceは `domain.service` 配下に `XxxDomainService` として配置する。
+- 共通例外・エラーコードは `common.error`、業務固有例外は `domain.exception`、外部連携例外は `infrastructure.error` に配置する。
+- Presentation層はRepositoryを直接参照せず、Application Serviceのみを呼び出す。
