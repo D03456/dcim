@@ -655,3 +655,73 @@ CSVインポートは初期追加フェーズ対象であり、初期リリー�
 | Infrastructure Service | `XxxClient` / `XxxGateway` | メール送信、外部連携、ファイル保存など |
 
 例: `DeviceApplicationService` は機器登録ユースケースを担当し、ラックU重複判定の純粋な業務ルールは `RackPlacementDomainService` に分離できる。`PlanLimitDomainService` は上限判定に限定し、申請・画面表示は `SubscriptionApplicationService` が担当する。
+
+<!-- issue-fixes-270-271-272-273-275 -->
+
+## 付録B. Issue対応追補: Application Service詳細
+
+### B.1 AuthApplicationService
+
+| メソッド例 | 責務 | 主な例外 |
+|---|---|---|
+| `login(email, password)` | メールログイン、失敗回数更新、監査ログ依頼 | AuthenticationFailedException, TenantSuspendedException |
+| `requestPasswordReset(email)` | 再設定トークン発行、通知依頼、ユーザー存在推測防止 | RateLimitExceededException |
+| `resetPassword(token, newPassword)` | トークン検証、パスワード更新、使用済み化 | InvalidTokenException, TokenExpiredException |
+| `acceptInvitation(token, password)` | 招待承諾、初回パスワード設定、ユーザー有効化 | InvalidInvitationException |
+
+通知送信はNotificationApplicationServiceへ、操作履歴はAuditLogServiceへ委譲する。
+
+### B.2 SubscriptionApplicationService / TenantApplicationService
+
+| Service | メソッド例 | 責務 |
+|---|---|---|
+| SubscriptionApplicationService | `requestPlanChange`, `requestAddOnChange`, `approveRequest`, `rejectRequest`, `getUsageLimit` | 契約変更申請、利用量/上限取得、Free期限判定 |
+| TenantApplicationService | `createTenant`, `updateTenant`, `suspendTenant`, `resumeTenant`, `cancelTenant`, `expireTrialTenants` | システム管理者向けテナント管理、状態変更、初期管理者保護 |
+| AuthorizationApplicationService | `hasPermission`, `canAccessScreen`, `canOperateResource` | RolePermissionを正本にした認可判定 |
+
+契約変更申請は `ContractChangeRequest` を正本とし、申請中の同種リクエスト重複を禁止する。承認/却下/取消は監査ログ対象とする。
+
+### B.3 IPv4 / IPv6 IP管理
+
+`IpSubnetService` と `IpAddressService` はIPバージョンごとに処理を分岐する。
+
+| IPバージョン | 登録方式 | 上限カウント |
+|---|---|---|
+| IPv4 | CIDRから範囲生成可。必要に応じて明示登録も可 | 生成予定または明示登録した個別IP数 |
+| IPv6 | 全範囲生成は禁止。利用・予約する個別IPのみ明示登録 | 明示登録したIPv6アドレス数のみ |
+
+IPv6 CIDRに対して `generateAddresses` を実行してはならない。UI/APIでもIPv6の全生成導線は表示しない。
+
+### B.4 期限切れ保守通知の7日ごと再通知
+
+期限切れ保守契約は、期限切れ初回通知後、更新済み/終了/通知無効/削除になるまで7日ごとに再通知する。
+
+| 項目 | 方針 |
+|---|---|
+| 初回期限切れ通知 | `endDate < currentDate` になった最初のバッチ日 |
+| 再通知周期 | 前回期限切れ通知の `referenceDate` から7日以上経過 |
+| 重複キー | tenantId, notificationType, maintenanceContractId, timing=EXPIRED, referenceDate, channel, recipient |
+| 停止条件 | 更新済み、終了、通知無効、契約削除、対象者なし |
+| 送信失敗 | FAILEDを記録し、次回バッチで再評価する |
+
+通知ログ作成とメール送信は、契約単位または通知単位で失敗分離する。
+
+### B.5 Region重複判定
+
+Regionの一意条件は、同一テナント内の有効データで `regionName + prefecture` とする。`regionCode` は任意項目だが、入力される場合は同一テナント内で重複不可とする。
+
+### B.6 AuditLogService対象イベント
+
+AuditLogServiceは以下を初期必須イベントとして記録する。
+
+| イベント | 例 |
+|---|---|
+| 認証 | ログイン成功/失敗、ログアウト、パスワード再設定依頼/完了 |
+| ユーザー管理 | 招待、再招待、招待取消、権限変更、無効化 |
+| CRUD | DC、ラック、機器、IP、保守契約、タグ、連絡先の登録/更新/削除 |
+| CSV | エクスポート要求、ダウンロード、インポート実行/失敗 |
+| 契約 | プラン変更申請、オプション変更申請、承認、却下、取消 |
+| 通知 | 通知設定変更、通知送信失敗の運用イベント |
+| システム管理 | テナント登録、編集、停止、再開、解約 |
+
+共通Commandには `eventType`, `tenantId`, `actorUserId`, `targetType`, `targetId`, `result`, `requestId`, `detail` を含める。

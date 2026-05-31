@@ -269,3 +269,25 @@ try {
 | インフラ例外 | `infrastructure.error` | `MailSendException`, `FileStorageException` |
 
 Application ServiceはDomain例外を捕捉して画面/API向けのメッセージコードへ変換する。内部詳細、SQL、トークン、個人情報は例外メッセージに含めない。
+
+<!-- issue-fixes-274 -->
+
+## 付録B. Issue対応追補: ValidationException詳細
+
+ValidationExceptionは複数エラーを保持できる構造とする。
+
+```java
+public class ValidationErrorDetail {
+    private String field;
+    private String messageCode;
+    private String message;
+    private Object rejectedValue; // 秘密情報は必ずマスク済みにする
+}
+
+public class ValidationException extends DcimException {
+    private List<ValidationErrorDetail> fieldErrors;
+    private List<ValidationErrorDetail> globalErrors;
+}
+```
+
+Controller/APIを提供する場合も同じ構造をレスポンスへ変換する。Vaadinでは `field` があるものを項目横、`field` がないものを画面上部に表示する。

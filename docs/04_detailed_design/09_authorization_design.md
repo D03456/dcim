@@ -135,3 +135,18 @@ Freeトライアル期限超過時は、通常ロールより前にテナント�
 | `canDeleteResource(user, resourceType, resourceId)` | 削除操作可否 |
 
 Service層の更新・削除・CSV出力・管理系操作では必ずPermission Serviceを呼び出す。
+
+<!-- issue-fixes-266 -->
+
+## 付録B. Issue対応追補: TRIAL_EXPIREDとPermissionの関係
+
+テナント状態制御は、通常のロール/Permission判定を置き換えるものではなく、追加の許可/禁止条件として適用する。`TRIAL_EXPIRED` で「参照」「CSVエクスポート」「契約プラン確認」が許可されるのは、当該ユーザーが通常状態でも必要Permissionを持つ場合に限る。
+
+| 操作 | TRIAL_EXPIRED時の扱い |
+|---|---|
+| 参照 | 対象画面のVIEW権限がある場合のみ可 |
+| CSVエクスポート | `PERM_CSV_EXPORT` + 対象閲覧権限がある場合のみ可 |
+| 契約プラン確認/変更申請 | 契約管理権限がある場合のみ可 |
+| 登録/更新/削除/CSVインポート/招待 | Permissionがあっても追加拒否 |
+
+テストでは、契約管理者などCSV権限を持たないロールにCSVエクスポートが許可されないことを確認する。

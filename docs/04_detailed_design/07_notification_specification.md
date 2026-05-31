@@ -427,3 +427,34 @@ public void execute() {
 | 通知ログ失敗 | 365日 | 障害調査用に長めに保持 |
 | 画面内通知既読 | 180日 | 既読かつ期限超過を整理 |
 | 画面内通知未読 | 365日 | 未読のまま期限超過したものは管理者確認後整理 |
+
+<!-- issue-fixes-264-265-272 -->
+
+## 付録B. Issue対応追補: 通知条件詳細
+
+### B.1 Freeトライアル期限通知
+
+Freeトライアル期限通知は「以内」ではなく通知タイミングごとの完全一致で抽出する。
+
+| 通知タイミング | 抽出条件 |
+|---|---|
+| 3日前 | `trial_end_date = current_date + 3` |
+| 期限日 | `trial_end_date = current_date` |
+| 期限超過後 | TRIAL_EXPIRED状態遷移通知として別種別で扱う。日次再送はしない |
+
+重複キーには `tenantId`, `notificationType`, `timing`, `referenceDate`, `recipient`, `channel` を含める。
+
+### B.2 プラン上限通知レベル
+
+| レベル | 条件 | 再通知/抑止 |
+|---|---|---|
+| WARNING | 使用率80%以上100%未満 | 同一対象・同一レベルは1日1回まで |
+| REACHED | 100%到達 | 到達時に通知し、改善まで同一レベル抑止 |
+| EXCEEDED | 上限超過 | 初回通知後、継続時は週1回などに集約 |
+| RECOVERED | 80%未満へ改善 | 抑止状態を解除。必要に応じて回復通知 |
+
+`notification_setting` 初期行には PLAN_LIMIT_WARNING / PLAN_LIMIT_REACHED / PLAN_LIMIT_EXCEEDED を含める。
+
+### B.3 期限切れ保守通知の再通知
+
+期限切れ通知は初回送信後、7日ごとの `referenceDate` を重複キーに含めて再通知する。更新済み、終了、通知無効、削除、宛先なしの場合は停止する。送信失敗時もFAILEDログを残し、次回バッチで同じ条件を再評価する。
