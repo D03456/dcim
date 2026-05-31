@@ -47,7 +47,7 @@
 
 保守契約の終了日が近づいた場合、対象テナントの管理者または設定された連絡先へ通知する。
 
-標準は「保守切れ2か月前」、つまり60日前通知とする。
+標準タイミングは60日前・30日前・当日・期限切れとする。テナント単位で無効化できるが、初期設定では4タイミングすべて有効とする。
 
 ## 5.2 抽出条件
 
@@ -56,8 +56,8 @@
 | notification_enabled | true |
 | deleted | false |
 | end_date | 期限前/当日通知では現在日付以降、期限切れ通知では現在日付より前も対象 |
-| 通知対象日 | `end_date - notification_days_before <= 現在日付` |
-| 重複送信 | 同一対象・同一通知種別・同一宛先に送信済みでない |
+| 通知対象日 | 通知設定の `timing_code` / `days_before` ごとに、60日前・30日前・当日・期限切れを個別判定する |
+| 重複送信 | 同一対象・同一通知種別・同一通知タイミング・同一宛先に送信済みでない |
 
 ## 5.3 標準通知タイミング
 
@@ -169,19 +169,26 @@ Freeプランのトライアル期限が近づいた場合、または期限日�
 | enabled | 通知有効フラグ |
 | email_enabled | メール有効フラグ |
 | in_app_enabled | 画面内通知有効フラグ |
+| timing_code | 通知タイミング。60_DAYS_BEFORE / 30_DAYS_BEFORE / DUE_DATE / EXPIRED 等 |
 | days_before | 期限前日数 |
+| target_roles | 通知対象ロール。通知種別別に変更可能 |
 
 ## 7.2 初期設定
 
-| 通知種別 | enabled | email_enabled | in_app_enabled | days_before |
-|---|:---:|:---:|:---:|---:|
-| MAINTENANCE_EXPIRY | true | true | true | 60 |
-| PLAN_LIMIT | true | true | true | null |
-| TRIAL_EXPIRY | true | true | true | 3 |
-| PASSWORD_RESET | true | true | false | null |
-| USER_INVITATION | true | true | false | null |
-| OPERATION_ERROR | true | true | true | null |
-| SYSTEM | true | true | true | null |
+| 通知種別 | enabled | email_enabled | in_app_enabled | timing_code | days_before | target_roles |
+|---|:---:|:---:|:---:|---|---:|---|
+| MAINTENANCE_EXPIRY | true | true | true | 60_DAYS_BEFORE | 60 | ROLE_TENANT_ADMIN,ROLE_OPERATION_ADMIN,ROLE_EDITOR |
+| MAINTENANCE_EXPIRY | true | true | true | 30_DAYS_BEFORE | 30 | ROLE_TENANT_ADMIN,ROLE_OPERATION_ADMIN,ROLE_EDITOR |
+| MAINTENANCE_EXPIRY | true | true | true | DUE_DATE | 0 | ROLE_TENANT_ADMIN,ROLE_OPERATION_ADMIN,ROLE_EDITOR |
+| MAINTENANCE_EXPIRY | true | true | true | EXPIRED | null | ROLE_TENANT_ADMIN,ROLE_OPERATION_ADMIN,ROLE_EDITOR |
+| PLAN_LIMIT | true | true | true | WARNING | null | ROLE_TENANT_ADMIN,ROLE_BILLING_ADMIN |
+| PLAN_LIMIT | true | true | true | REACHED | null | ROLE_TENANT_ADMIN,ROLE_BILLING_ADMIN |
+| TRIAL_EXPIRY | true | true | true | 3_DAYS_BEFORE | 3 | ROLE_TENANT_ADMIN,ROLE_BILLING_ADMIN |
+| TRIAL_EXPIRY | true | true | true | DUE_DATE | 0 | ROLE_TENANT_ADMIN,ROLE_BILLING_ADMIN |
+| PASSWORD_RESET | true | true | false | null | null | null |
+| USER_INVITATION | true | true | false | null | null | null |
+| OPERATION_ERROR | true | true | true | ERROR | null | ROLE_TENANT_ADMIN,ROLE_OPERATION_ADMIN |
+| SYSTEM | true | true | true | null | null | ROLE_TENANT_ADMIN |
 
 ## 8. 通知ログ
 
@@ -198,6 +205,15 @@ Freeプランのトライアル期限が近づいた場合、または期限日�
 | recipient | 送信先メールアドレス。画面内通知ではNULL可 |
 | recipient_user_id | 画面内通知の受信ユーザーID |
 | subject | 件名 |
+| body | 本文 |
+| summary | 一覧表示用概要 |
+| action_url | 詳細画面へのリンク |
+| timing_code | 通知タイミング |
+| notification_level | WARNING / REACHED / ERROR 等 |
+| reference_date | 保守終了日・トライアル終了日などの基準日 |
+| source_process | OPERATION_ERRORの発生元処理 |
+| retry_required | 再実行要否 |
+| occurrence_count | 操作エラー集約件数。通常通知は1 |
 | status | PENDING / SENT / FAILED / SKIPPED |
 | sent_at | 送信日時 |
 | read_at | 画面内通知の既読日時 |
@@ -225,6 +241,8 @@ FAILED  -> SENT    ※再送成功時
 | channel | EMAIL / IN_APP |
 | target_type | 対象種別 |
 | target_id | 対象ID |
+| timing_code | 保守期限60日前/30日前/当日/期限切れ、Trial期限、Plan警告などを区別 |
+| notification_level | WARNING / REACHED / ERROR など、同一通知種別内のレベルを区別 |
 | recipient | メール通知の宛先。EMAILの場合に利用 |
 | recipient_user_id | 画面内通知の受信ユーザー。IN_APPの場合に利用 |
 | status | SENT |
@@ -363,3 +381,12 @@ public void execute() {
 | Free期限通知重複抑止 | 同一テナント・同一宛先に同日重複送信されないこと |
 | プラン上限通知 | 管理対象IP数を含む対象で80%警告・100%到達通知が送信されること |
 | 招待/操作エラー通知 | USER_INVITATION と OPERATION_ERROR が通知ログに残ること |
+
+
+## 17. 操作エラー通知の集約
+
+`OPERATION_ERROR` は同一テナント・発生元処理・対象・通知レベル・当日内で集約し、`occurrence_count` を加算する。再実行が必要な失敗は `retry_required=true` とし、運用担当が画面内通知から該当履歴へ遷移できるよう `action_url` を保持する。
+
+## 18. 外部連絡先メール未設定時の扱い
+
+保守契約連絡先にメールアドレスが未設定の場合、メール通知はSKIPPEDとして `notification_log` に残す。画面内通知はユーザーに紐づく通知先のみ作成する。登録時点ではメール必須にせず、通知対象連絡先として利用する場合に警告を表示する。
