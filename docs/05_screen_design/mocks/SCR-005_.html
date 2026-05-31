@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SCR-005 データセンター登録・編集 - DCIM Mock</title>
+  <link rel="stylesheet" href="styles/dcim-vaadin-mock.css" />
+</head>
+<body>
+<div class="dcim-layout">
+  <div class="dcim-body">
+    <nav class="dcim-side-menu">
+<div class="dcim-menu-brand"><strong>DCIM</strong><span>Data Center Asset & Infrastructure Manager</span></div>
+<div class="dcim-menu-section">ダッシュボード</div>
+<a class="dcim-menu-item" href="SCR-002_.html"><span>▸</span><span>SCR-002 ダッシュボード</span></a>
+<div class="dcim-menu-section">DC・ロケーション</div>
+<a class="dcim-menu-item" href="SCR-003_.html"><span>▸</span><span>SCR-003 データセンター一覧</span></a>
+<a class="dcim-menu-item" href="SCR-004_.html"><span>▸</span><span>SCR-004 データセンター詳細</span></a>
+<a class="dcim-menu-item active" href="SCR-005_.html"><span>▸</span><span>SCR-005 データセンター登録・編集</span></a>
+<a class="dcim-menu-item" href="SCR-006_.html"><span>▸</span><span>SCR-006 建物・フロア一覧</span></a>
+<a class="dcim-menu-item" href="SCR-035_.html"><span>▸</span><span>SCR-035 リージョン管理画面</span></a>
+<a class="dcim-menu-item" href="SCR-037_.html"><span>▸</span><span>SCR-037 連絡先一覧</span></a>
+<a class="dcim-menu-item" href="SCR-038_.html"><span>▸</span><span>SCR-038 連絡先登録・編集</span></a>
+<div class="dcim-menu-section">ラック</div>
+<a class="dcim-menu-item" href="SCR-007_.html"><span>▸</span><span>SCR-007 ラック列一覧</span></a>
+<a class="dcim-menu-item" href="SCR-008_.html"><span>▸</span><span>SCR-008 ラック一覧</span></a>
+<a class="dcim-menu-item" href="SCR-009_.html"><span>▸</span><span>SCR-009 ラック詳細</span></a>
+<a class="dcim-menu-item" href="SCR-010_.html"><span>▸</span><span>SCR-010 ラック登録・編集</span></a>
+<a class="dcim-menu-item" href="SCR-011_.html"><span>▸</span><span>SCR-011 ラックテンプレート一覧</span></a>
+<div class="dcim-menu-section">機器・IP</div>
+<a class="dcim-menu-item" href="SCR-012_.html"><span>▸</span><span>SCR-012 機器一覧</span></a>
+<a class="dcim-menu-item" href="SCR-013_.html"><span>▸</span><span>SCR-013 機器詳細</span></a>
+<a class="dcim-menu-item" href="SCR-014_.html"><span>▸</span><span>SCR-014 機器登録・編集</span></a>
+<a class="dcim-menu-item" href="SCR-015_IP.html"><span>▸</span><span>SCR-015 IPサブネット一覧</span></a>
+<a class="dcim-menu-item" href="SCR-016_IP.html"><span>▸</span><span>SCR-016 IPサブネット登録・編集</span></a>
+<div class="dcim-menu-section">保守契約</div>
+<a class="dcim-menu-item" href="SCR-017_.html"><span>▸</span><span>SCR-017 保守契約一覧</span></a>
+<a class="dcim-menu-item" href="SCR-018_.html"><span>▸</span><span>SCR-018 保守契約詳細</span></a>
+<a class="dcim-menu-item" href="SCR-019_.html"><span>▸</span><span>SCR-019 保守契約登録・編集</span></a>
+<a class="dcim-menu-item" href="SCR-020_.html"><span>▸</span><span>SCR-020 保守未設定機器一覧</span></a>
+<a class="dcim-menu-item" href="SCR-021_.html"><span>▸</span><span>SCR-021 保守期限アラート一覧</span></a>
+<div class="dcim-menu-section">通知・検索</div>
+<a class="dcim-menu-item" href="SCR-026_.html"><span>▸</span><span>SCR-026 通知設定・管理者向け通知履歴画面</span></a>
+<a class="dcim-menu-item" href="SCR-036_.html"><span>▸</span><span>SCR-036 通知一覧画面</span></a>
+<a class="dcim-menu-item" href="SCR-041_.html"><span>▸</span><span>SCR-041 横断検索画面</span></a>
+<div class="dcim-menu-section">ユーザー・権限</div>
+<a class="dcim-menu-item" href="SCR-027_.html"><span>▸</span><span>SCR-027 ユーザー一覧</span></a>
+<a class="dcim-menu-item" href="SCR-028_.html"><span>▸</span><span>SCR-028 ユーザー登録・編集</span></a>
+<a class="dcim-menu-item" href="SCR-029_.html"><span>▸</span><span>SCR-029 権限ロール一覧</span></a>
+<a class="dcim-menu-item" href="SCR-032_.html"><span>▸</span><span>SCR-032 操作履歴画面</span></a>
+<a class="dcim-menu-item" href="SCR-033_.html"><span>▸</span><span>SCR-033 システム設定画面</span></a>
+<div class="dcim-menu-section">契約・テナント</div>
+<a class="dcim-menu-item" href="SCR-030_.html"><span>▸</span><span>SCR-030 契約プラン・利用状況画面</span></a>
+<a class="dcim-menu-item" href="SCR-031_.html"><span>▸</span><span>SCR-031 オプション追加画面</span></a>
+<a class="dcim-menu-item" href="SCR-039_.html"><span>▸</span><span>SCR-039 テナント一覧</span></a>
+<a class="dcim-menu-item" href="SCR-040_.html"><span>▸</span><span>SCR-040 テナント登録・編集</span></a>
+<div class="dcim-menu-section">初期追加・将来</div>
+<a class="dcim-menu-item" href="SCR-034_CSV.html"><span>▸</span><span>SCR-034 CSVインポート画面</span></a>
+<a class="dcim-menu-item" href="SCR-022_.html"><span>▸</span><span>SCR-022 クラウドアカウント一覧</span></a>
+<a class="dcim-menu-item" href="SCR-023_.html"><span>▸</span><span>SCR-023 クラウドリソース一覧</span></a>
+<a class="dcim-menu-item" href="SCR-024_.html"><span>▸</span><span>SCR-024 クラウドリソース詳細</span></a>
+</nav>
+    <main class="dcim-main">
+      <header class="dcim-header">
+        <div><h1>SCR-005 データセンター登録・編集</h1><p>データセンター情報を登録・更新する</p></div>
+        <div class="dcim-header-actions"><span class="dcim-badge">テナント管理者、運用管理者、編集者</span><button class="dcim-button primary">主要操作</button></div>
+      </header>
+      <div class="dcim-content">
+        <section class="dcim-card">
+  <h2>データセンター登録・編集フォーム</h2>
+  <div class="dcim-form-grid"><div class="dcim-field"><label>正式名称</label><input class="dcim-input" placeholder="正式名称を入力" /></div><div class="dcim-field"><label>別名</label><input class="dcim-input" placeholder="別名を入力" /></div><div class="dcim-field"><label>地域</label><input class="dcim-input" placeholder="地域を入力" /></div><div class="dcim-field"><label>都道府県</label><input class="dcim-input" placeholder="都道府県を入力" /></div></div>
+  <p><button class="dcim-button primary">保存</button> <button class="dcim-button">戻る</button></p>
+</section>
+      </div>
+      <footer class="dcim-footer"><span>DCIM screen mock</span><span>Footer: 最終更新・ヘルプ・バージョン表示</span></footer>
+    </main>
+  </div>
+  <nav class="dcim-bottom-menu">
+<a class="" href="SCR-002_.html">ホーム</a>
+<a class="" href="SCR-041_.html">検索</a>
+<a class="" href="SCR-036_.html">通知</a>
+<a class="" href="SCR-030_.html">契約</a>
+</nav>
+</div>
+<div id="modal" class="dcim-modal-backdrop">
+  <section class="dcim-modal">
+    <header class="dcim-modal-header"><h2>データセンター登録・編集 詳細モーダル</h2><a class="dcim-button" href="#">×</a></header>
+    <div class="dcim-modal-body">
+      <p>一覧や詳細画面から補足情報を確認するモーダル例です。Vaadin実装時は <code>Dialog</code> を利用します。</p>
+      <table class="dcim-table"><tr><th>項目</th><th>値</th></tr><tr><td>画面ID</td><td>SCR-005</td></tr><tr><td>対象利用者</td><td>テナント管理者、運用管理者、編集者</td></tr></table>
+    </div>
+    <footer class="dcim-modal-footer"><span>Esc / × / 閉じるボタンで終了</span><a class="dcim-button primary" href="#">閉じる</a></footer>
+  </section>
+</div>
+</body>
+</html>
