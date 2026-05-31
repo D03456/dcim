@@ -1,0 +1,92 @@
+/* DCIM screen mock common CSS.
+   Based on the previous matching-app Vaadin layout idea: side menu + header + main + footer + modal.
+   Uses Vaadin Lumo-like CSS variables so it can be translated to Vaadin theme CSS later. */
+:root {
+  --lumo-base-color: #ffffff;
+  --lumo-primary-color: #2563eb;
+  --lumo-primary-text-color: #1d4ed8;
+  --lumo-body-text-color: #172033;
+  --lumo-secondary-text-color: #64748b;
+  --lumo-contrast-5pct: #f7f9fc;
+  --lumo-contrast-10pct: #e2e8f0;
+  --lumo-contrast-20pct: #cbd5e1;
+  --lumo-success-color-10pct: #dcfce7;
+  --lumo-success-text-color: #15803d;
+  --lumo-warning-color-10pct: #fef3c7;
+  --lumo-warning-text-color: #b45309;
+  --lumo-error-color-10pct: #fee2e2;
+  --lumo-error-text-color: #b91c1c;
+  --lumo-space-xs: .25rem;
+  --lumo-space-s: .5rem;
+  --lumo-space-m: 1rem;
+  --lumo-space-l: 1.5rem;
+  --lumo-border-radius-m: .65rem;
+  --lumo-border-radius-l: 1rem;
+  --lumo-box-shadow-xs: 0 1px 2px rgb(15 23 42 / .08);
+  --lumo-font-size-xs: .75rem;
+  --lumo-font-size-s: .875rem;
+  --lumo-font-size-m: 1rem;
+  --lumo-font-size-l: 1.125rem;
+  --lumo-font-size-xl: 1.45rem;
+}
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--lumo-body-text-color); background: var(--lumo-contrast-5pct); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+a { color: inherit; text-decoration: none; }
+.dcim-layout { min-height: 100vh; display: flex; flex-direction: column; }
+.dcim-body { min-height: 0; flex: 1; display: flex; }
+.dcim-side-menu { width: 16rem; flex: 0 0 16rem; padding: var(--lumo-space-m) var(--lumo-space-s); background: var(--lumo-base-color); border-right: 1px solid var(--lumo-contrast-10pct); display: flex; flex-direction: column; gap: var(--lumo-space-xs); }
+.dcim-menu-brand { padding: var(--lumo-space-s) var(--lumo-space-s) var(--lumo-space-m); border-bottom: 1px solid var(--lumo-contrast-10pct); margin-bottom: var(--lumo-space-s); }
+.dcim-menu-brand strong { display: block; font-size: var(--lumo-font-size-l); }
+.dcim-menu-brand span { color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); }
+.dcim-menu-section { margin-top: var(--lumo-space-s); color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-xs); font-weight: 700; padding: 0 var(--lumo-space-s); }
+.dcim-menu-item { display: flex; align-items: center; gap: var(--lumo-space-s); width: 100%; padding: .55rem .65rem; border-radius: var(--lumo-border-radius-m); color: var(--lumo-body-text-color); font-size: var(--lumo-font-size-s); }
+.dcim-menu-item:hover { background: var(--lumo-contrast-5pct); }
+.dcim-menu-item.active { color: var(--lumo-primary-text-color); background: #dbeafe; font-weight: 700; }
+.dcim-main { min-width: 0; flex: 1; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: var(--lumo-space-m); padding: var(--lumo-space-m); }
+.dcim-header, .dcim-footer, .dcim-card, .dcim-modal { background: var(--lumo-base-color); border: 1px solid var(--lumo-contrast-10pct); border-radius: var(--lumo-border-radius-l); box-shadow: var(--lumo-box-shadow-xs); }
+.dcim-header { display: flex; align-items: center; justify-content: space-between; gap: var(--lumo-space-m); padding: var(--lumo-space-s) var(--lumo-space-m); }
+.dcim-header h1 { margin: 0; font-size: var(--lumo-font-size-xl); }
+.dcim-header p { margin: .15rem 0 0; color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); }
+.dcim-header-actions { display: flex; gap: var(--lumo-space-s); flex-wrap: wrap; justify-content: flex-end; }
+.dcim-content { min-width: 0; overflow: auto; display: grid; gap: var(--lumo-space-m); }
+.dcim-footer { display: flex; align-items: center; justify-content: space-between; padding: var(--lumo-space-s) var(--lumo-space-m); color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); }
+.dcim-card { padding: var(--lumo-space-m); }
+.dcim-card h2 { margin: 0 0 var(--lumo-space-s); font-size: var(--lumo-font-size-l); }
+.dcim-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--lumo-space-s); }
+.dcim-kpi { padding: var(--lumo-space-m); border-radius: var(--lumo-border-radius-m); background: var(--lumo-contrast-5pct); border: 1px solid var(--lumo-contrast-10pct); }
+.dcim-kpi span { color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); }
+.dcim-kpi strong { display: block; margin-top: .25rem; font-size: 1.5rem; }
+.dcim-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--lumo-space-m); }
+.dcim-field { display: grid; gap: .25rem; }
+.dcim-field label { color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); font-weight: 700; }
+.dcim-input, .dcim-select, .dcim-textarea { width: 100%; min-height: 2.35rem; border: 1px solid var(--lumo-contrast-20pct); border-radius: var(--lumo-border-radius-m); padding: .45rem .65rem; background: white; }
+.dcim-textarea { min-height: 5rem; }
+.dcim-table { width: 100%; border-collapse: collapse; font-size: var(--lumo-font-size-s); }
+.dcim-table th, .dcim-table td { padding: .65rem; border-bottom: 1px solid var(--lumo-contrast-10pct); text-align: left; vertical-align: top; }
+.dcim-table th { color: var(--lumo-secondary-text-color); background: var(--lumo-contrast-5pct); font-weight: 700; }
+.dcim-button { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; min-height: 2.25rem; padding: .45rem .85rem; border: 1px solid var(--lumo-contrast-20pct); border-radius: var(--lumo-border-radius-m); background: white; color: var(--lumo-body-text-color); font-weight: 700; }
+.dcim-button.primary { background: var(--lumo-primary-color); border-color: var(--lumo-primary-color); color: white; }
+.dcim-button.danger { color: var(--lumo-error-text-color); }
+.dcim-badge { display: inline-flex; align-items: center; border-radius: 999px; padding: .15rem .5rem; font-size: var(--lumo-font-size-xs); font-weight: 700; background: var(--lumo-contrast-5pct); border: 1px solid var(--lumo-contrast-10pct); }
+.dcim-badge.success { color: var(--lumo-success-text-color); background: var(--lumo-success-color-10pct); }
+.dcim-badge.warning { color: var(--lumo-warning-text-color); background: var(--lumo-warning-color-10pct); }
+.dcim-badge.error { color: var(--lumo-error-text-color); background: var(--lumo-error-color-10pct); }
+.dcim-modal-backdrop { position: fixed; inset: 0; display: none; place-items: center; padding: var(--lumo-space-m); background: rgb(15 23 42 / .35); }
+.dcim-modal-backdrop:target { display: grid; }
+.dcim-modal { width: min(46rem, 100%); max-height: min(86vh, 54rem); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; }
+.dcim-modal-header, .dcim-modal-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--lumo-space-m); padding: var(--lumo-space-m); border-bottom: 1px solid var(--lumo-contrast-10pct); }
+.dcim-modal-footer { border-bottom: 0; border-top: 1px solid var(--lumo-contrast-10pct); }
+.dcim-modal-body { padding: var(--lumo-space-m); overflow: auto; }
+.dcim-modal-header h2 { margin: 0; font-size: var(--lumo-font-size-l); }
+.dcim-bottom-menu { display: none; }
+@media (max-width: 760px) {
+  .dcim-body { display: block; }
+  .dcim-side-menu { display: none; }
+  .dcim-main { display: block; padding: var(--lumo-space-s); padding-bottom: 5.5rem; }
+  .dcim-header { align-items: flex-start; flex-direction: column; }
+  .dcim-grid, .dcim-form-grid { grid-template-columns: 1fr; }
+  .dcim-footer { margin-top: var(--lumo-space-m); flex-direction: column; align-items: flex-start; }
+  .dcim-bottom-menu { position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: .25rem; padding: .5rem .5rem calc(.5rem + env(safe-area-inset-bottom, 0px)); background: var(--lumo-base-color); border-top: 1px solid var(--lumo-contrast-10pct); box-shadow: 0 -6px 18px rgb(15 23 42 / .08); }
+  .dcim-bottom-menu a { text-align: center; font-size: var(--lumo-font-size-xs); padding: .35rem; border-radius: var(--lumo-border-radius-m); }
+  .dcim-bottom-menu a.active { background: #dbeafe; color: var(--lumo-primary-text-color); font-weight: 700; }
+}
