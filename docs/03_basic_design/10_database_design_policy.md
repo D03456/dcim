@@ -135,3 +135,19 @@
 ### A.5 照合順序・文字列検索
 
 MariaDBの文字コードは `utf8mb4` を基本とし、照合順序は日本語・英数字の大文字小文字を区別しない検索に適したものを採用する。大小文字差は区別しない。全半角・かな差異の同一視が必要な検索は、アプリ側の正規化列または検索用キーワード生成で補う。LIKE検索が多い項目は、前方一致・完全一致用インデックスと部分一致検索の性能要件を分けて設計する。
+
+<!-- issue-fixes-289 -->
+
+## 付録B. Issue対応追補: 主なテーブル領域の補完
+
+主なテーブル領域はER図・詳細設計の初期対象と整合させる。
+
+| 領域 | 追加・補完対象 |
+|---|---|
+| テナント・契約 | `contract_change_request` |
+| ユーザー・権限 | `password_reset_token`, `user_invitation_token`, `permission`, `role_permission` |
+| ラックテンプレート | `rack_template`, `rack_template_item` |
+| 連絡先・タグ・別名 | `resource_alias` |
+| 保守契約 | `maintenance_contract_contact` |
+
+以後、ER図の主要テーブル一覧に初期対象として追加したテーブルは、本方針の領域表にも反映する。

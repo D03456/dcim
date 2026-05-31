@@ -310,9 +310,9 @@ sequenceDiagram
     User->>UI: 登録操作
     UI->>ApplicationService: create(command)
     ApplicationService->>AuthorizationService: 権限確認
-    ApplicationService->>UsageLimitService: 上限確認
-    UsageLimitService->>SubscriptionService: プラン・オプション取得
-    UsageLimitService-->>ApplicationService: 登録可否
+    ApplicationService->>PlanLimitService: 上限確認
+    PlanLimitService->>SubscriptionService: プラン・オプション取得
+    PlanLimitService-->>ApplicationService: 登録可否
     ApplicationService->>Repository: 保存
     ApplicationService->>Repository: 最低限監査情報を含めて保存
     ApplicationService-->>UI: 結果返却
@@ -412,3 +412,38 @@ Freeトライアル期限超過テナントは `TRIAL_EXPIRED` として扱い�
 | DCから連絡先解除 | `DELETE /data-centers/{id}/contacts/{contactId}` |
 
 初期リリースでREST Controllerを実装しない場合も、Application Serviceのメソッドとして同等の操作を提供する。
+
+<!-- issue-fixes-277-278-280 -->
+
+## 付録B. Issue対応追補: Service名・CSV操作履歴・CSVインポート
+
+### B.1 プラン上限Service名
+
+プラン上限チェックのService名は `PlanLimitService` に統一する。`UsageLimit` は利用量/上限を返すDTOまたは概念名としてのみ使用し、Service名には使わない。
+
+### B.2 CSVエクスポート操作履歴
+
+CSVエクスポートでは以下を操作履歴に記録する。
+
+| イベント | 記録項目 |
+|---|---|
+| エクスポート要求 | 操作者、対象種別、検索条件、出力予定件数、request_id |
+| ファイル生成完了/失敗 | 履歴ID、結果、件数、エラー概要 |
+| ダウンロード | 操作者、履歴ID、対象ファイル、有効期限、request_id |
+
+検索条件は機密情報を含まない形に正規化・マスキングして保存する。
+
+### B.3 CSVインポート更新方針
+
+初期追加フェーズのCSVインポートは、新規登録と更新の両方を扱える設計とする。ただし更新可否・突合キーは対象ごとに明示する。
+
+| 対象 | 突合キー例 | 更新不可項目例 |
+|---|---|---|
+| DataCenter | 正式名称または外部管理ID | tenant_id |
+| Rack | DC + ラック番号/正式名称 | tenant_id, rack_id |
+| Device | シリアル番号または正式名称 + ホスト名 | tenant_id, device_id |
+| IpSubnet | CIDR canonical値 | tenant_id, ip_subnet_id |
+| IpAddress | サブネット + IP canonical値 | tenant_id, ip_address_id |
+| MaintenanceContract | 契約番号 | tenant_id, maintenance_contract_id |
+
+突合キーが重複する場合は行エラーとし、自動的に複数候補から選択しない。

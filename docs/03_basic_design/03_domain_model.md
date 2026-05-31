@@ -371,3 +371,28 @@ classDiagram
 - `createdAt` / `updatedAt` は `LocalDateTime` + DB `datetime(6)` を基本とする。
 - Free期限・保守期限・バッチ判定の「現在日付」は、システム基準タイムゾーンの日付で判定する。
 - テナント別タイムゾーンは将来拡張とする。
+
+<!-- issue-fixes-286-290 -->
+
+## 付録B. Issue対応追補: 資産項目の用語・備考
+
+### B.1 Deviceのメーカー・型番
+
+Deviceのメーカー項目は `manufacturer` を正本とし、旧表記の `vendor` は説明上の同義語として扱う。型番は `modelName` または詳細設計の正規名に合わせた `modelNumber` のどちらかに統一する。
+
+| 概念 | 基本設計上の正本 |
+|---|---|
+| メーカー | `manufacturer` |
+| 型番 | `modelName`（詳細設計で `modelNumber` を採用する場合はそちらへ統一） |
+
+### B.2 DC・ラック・機器の備考
+
+要件上の備考項目は、以下のEntityで保持する。
+
+| Entity | 属性 | 用途 |
+|---|---|---|
+| DataCenter | `note` | DC運用メモ、補足事項 |
+| Rack | `note` | ラック設置・利用上の補足 |
+| Device | `note` | 機器運用メモ、棚卸補足 |
+
+備考は検索補助には使えるが、識別子や一意制約対象にはしない。機微情報・パスワード・トークンは入力禁止とする。
