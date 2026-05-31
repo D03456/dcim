@@ -58,8 +58,8 @@ com.example.dcim
 |---|---|---|
 | SVC-001 | AuthService | ログイン、認証情報取得、ログイン成功/失敗の操作履歴記録依頼、パスワード再設定依頼、再設定トークン検証、パスワード更新、招待承諾トークン検証、初回パスワード設定 |
 | SVC-002 | TenantService | システム管理者向けテナント登録・編集・解約、テナント情報取得、テナント状態確認 |
-| SVC-003 | SubscriptionService | プラン情報取得、利用上限算出 |
-| SVC-004 | UsageLimitService | DC、ラック、機器、管理対象IP、タグ、ユーザー、Freeトライアル期間、期限超過時の更新可否チェック |
+| SVC-003 | SubscriptionService | プラン情報取得、利用上限算出、プラン/オプション変更申請管理 |
+| SVC-004 | PlanLimitService | DC、ラック、機器、管理対象IP、タグ、ユーザー、Freeトライアル期間、期限超過時の更新可否チェック |
 | SVC-005 | DataCenterService | データセンター登録、更新、検索、詳細取得 |
 | SVC-006 | LocationService | 建物、フロア、エリア、ラック列管理 |
 | SVC-006A | RegionService | 地域・都道府県分類の登録、更新、検索 |
@@ -71,7 +71,7 @@ com.example.dcim
 | SVC-010 | DeviceService | 機器登録、更新、検索、詳細取得、機器別名・タグ操作 |
 | SVC-011 | IpSubnetService | IPv4/IPv6別のIPサブネット登録、IPv4範囲生成、IPv6明示登録、配下IP割当、解放、検索 |
 | SVC-012 | MaintenanceContractService | 保守契約登録、対象機器ひもづけ、タグ付与/解除、検索 |
-| SVC-013 | MaintenanceAlertService | 保守期限通知対象抽出、保守未設定機器抽出 |
+| SVC-013 | MaintenanceNotificationService | 保守期限通知対象抽出、保守未設定機器抽出 |
 | SVC-014 | CloudAccountService | 将来拡張。クラウドアカウント管理 |
 | SVC-015 | CloudResourceService | 将来拡張。クラウドリソース管理、同期結果保存 |
 | SVC-016 | TagService | タグ登録、更新、付与、解除 |
@@ -136,6 +136,8 @@ com.example.dcim
 
 ## 7. 代表API案
 
+初期リリースの `/api/v1/...` はVaadin画面・サーバー内部利用を前提とした代表API案であり、外部公開REST APIではない。外部公開APIに必要なAPIキー、OAuth、レート制限、公開ドキュメント、互換性保証は将来拡張で検討する。
+
 ### 7.0 認証
 
 | API | メソッド | 概要 |
@@ -194,8 +196,10 @@ com.example.dcim
 |---|---|---|
 | `/api/v1/usage` | GET | 現在の利用状況取得 |
 | `/api/v1/usage/limits` | GET | プラン上限取得 |
-| `/api/v1/plan-change-requests` | POST | プラン変更申請 |
-| `/api/v1/add-on-change-requests` | POST | オプション追加申請 |
+| `/api/v1/plan-change-requests` | GET/POST | プラン変更申請一覧取得・申請 |
+| `/api/v1/plan-change-requests/{id}` | GET/PATCH | 申請詳細取得・取消/承認/却下（システム管理者のみ承認/却下） |
+| `/api/v1/add-on-change-requests` | GET/POST | オプション追加申請一覧取得・申請 |
+| `/api/v1/add-on-change-requests/{id}` | GET/PATCH | 申請詳細取得・取消/承認/却下 |
 
 ### 7.4A ラックテンプレート
 
@@ -242,6 +246,20 @@ com.example.dcim
 | 結果項目 | 種別、表示名、補足情報、設置場所、タグ、最終更新日時、詳細画面URL |
 | 権限制御 | 利用者の閲覧権限がある対象のみ返却する。契約管理者は利用状況確認目的の限定項目のみ返却 |
 
+
+### 7.8 主要リソース補完API
+
+| API | メソッド | 概要 |
+|---|---|---|
+| `/api/v1/racks` / `/api/v1/racks/{id}` | GET/POST/PUT/DELETE | ラック一覧・登録・更新・削除 |
+| `/api/v1/rack-rows` / `/api/v1/rack-rows/{id}` | GET/POST/PUT/DELETE | ラック列一覧・登録・更新・削除 |
+| `/api/v1/ip-subnets` / `/api/v1/ip-subnets/{id}` | GET/POST/PUT/DELETE | IPサブネット管理 |
+| `/api/v1/ip-addresses` / `/api/v1/ip-addresses/{id}` | GET/POST/PUT/DELETE | IPアドレス利用状況管理 |
+| `/api/v1/tags` / `/api/v1/tags/{id}` | GET/POST/PUT/DELETE | タグ管理 |
+| `/api/v1/users` / `/api/v1/users/{id}` | GET/POST/PUT/PATCH | ユーザー一覧・招待・更新・無効化 |
+| `/api/v1/roles` | GET | ロール・権限一覧取得 |
+| `/api/v1/locations/buildings` / `/api/v1/locations/floors` / `/api/v1/locations/areas` | GET/POST/PUT/DELETE | ロケーション階層管理 |
+
 ## 8. 共通処理方針
 
 | 項目 | 方針 |
@@ -268,7 +286,7 @@ com.example.dcim
 |---|---|---|---|
 | CSV取込失敗・行エラー閾値超過 | 実行者、テナント管理者 | 画面内通知、必要に応じてメール | 取込履歴・エラー詳細へ遷移できること |
 | メール送信失敗 | テナント管理者、システム管理者 | 画面内通知、運用メール | `notification_log` にFAILEDを記録 |
-| 外部連携失敗 | テナント管理者、連携設定管理者 | 画面内通知、必要に応じてメール | 将来拡張の外部連携にも同じ通知種別を適用 |
+| 外部連携失敗 | テナント管理者、運用管理者 | 画面内通知、必要に応じてメール | 将来拡張の外部連携にも同じ通知種別を適用 |
 | バッチ処理失敗 | テナント管理者、システム管理者 | 画面内通知、運用メール | バッチID・対象日・再実行要否を記録 |
 
 重複抑止は `notification_type=OPERATION_ERROR`、`target_type`、`target_id`、`channel`、受信者単位で行う。同一原因の連続失敗は通知を集約し、通知ログには発生回数または最新エラー内容を保持する。

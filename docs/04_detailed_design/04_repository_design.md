@@ -558,3 +558,23 @@ CSV履歴は監査・問い合わせ対応に利用するため、原則とし�
 ### CSVインポート同時実行制御
 
 `CsvImportHistoryRepository` は `tenant_id + target_type + process_key + status(RUNNING/PENDING)` で処理中データを確認し、同一テナント・同一対象種別の同時取込を拒否する。実装では悲観ロックまたは一意制約を併用し、画面二重送信や複数利用者の同時実行でも一方だけが開始できるようにする。
+
+
+### 6.x 競合更新用Repository
+
+プラン上限、ラックU配置、IP割当の同時更新を防ぐため、以下のRepositoryメソッドを追加する。
+
+```java
+@Lock(PESSIMISTIC_WRITE)
+Optional<Tenant> findByTenantIdForUpdate(Long tenantId);
+
+@Lock(PESSIMISTIC_WRITE)
+Optional<Rack> findByRackIdAndTenantIdForUpdate(Long rackId, Long tenantId);
+
+boolean existsOverlappingRackMount(Long tenantId, Long rackId, Integer startUnit, Integer endUnit);
+
+@Lock(PESSIMISTIC_WRITE)
+Optional<IpSubnet> findByIpSubnetIdAndTenantIdForUpdate(Long ipSubnetId, Long tenantId);
+```
+
+DB制約とRepositoryロックを併用し、Service層の事前チェックだけに依存しない。

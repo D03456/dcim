@@ -12,12 +12,14 @@
 erDiagram
     SUBSCRIPTION_PLAN ||--o{ TENANT : used_by
     TENANT ||--o{ TENANT_ADD_ON : has
+    TENANT ||--o{ CONTRACT_CHANGE_REQUEST : requests
     TENANT ||--o{ APP_USER : has
     ROLE ||--o{ USER_ROLE : assigned
     APP_USER ||--o{ USER_ROLE : has
     ROLE ||--o{ ROLE_PERMISSION : has
     PERMISSION ||--o{ ROLE_PERMISSION : granted
     APP_USER ||--o{ USER_INVITATION_TOKEN : invited
+    APP_USER ||--o{ PASSWORD_RESET_TOKEN : resets
 
     TENANT ||--o{ REGION : has
     REGION ||--o{ DATA_CENTER : classifies
@@ -27,6 +29,8 @@ erDiagram
     FLOOR ||--o{ AREA : contains
     AREA ||--o{ RACK_ROW : contains
     RACK_ROW ||--o{ RACK : contains
+    RACK_TEMPLATE ||--o{ RACK_TEMPLATE_ITEM : has
+    RACK_TEMPLATE ||..o{ RACK : creates
     RACK ||--o{ DEVICE : installed
 
     TENANT ||--o{ IP_SUBNET : has
@@ -68,6 +72,7 @@ erDiagram
 | tenant | テナント | ○ |
 | subscription_plan | 契約プラン・利用上限 | ○ |
 | tenant_add_on | テナント別追加利用枠 | ○ |
+| contract_change_request | プラン/オプション変更申請 | ○ |
 | app_user | ユーザー。ログイン認証情報としてパスワードハッシュを保持 | ○ |
 | password_reset_token | パスワード再設定トークン | ○ |
 | user_invitation_token | ユーザー招待トークン | ○ |
@@ -230,8 +235,8 @@ erDiagram
 
 | テーブル | 主なカラム | 説明 |
 |---|---|---|
-| notification_setting | notification_setting_id, tenant_id, notification_type, enabled, email_enabled, in_app_enabled, days_before | 通知設定 |
-| notification_log | notification_log_id, tenant_id, notification_type, channel, target_type, target_id, recipient, recipient_user_id, subject, status, sent_at, read_at, error_message, occurrence_count | 通知履歴・メール/画面内通知履歴。OPERATION_ERRORの集約にも利用 |
+| notification_setting | notification_setting_id, tenant_id, notification_type, timing_code, enabled, email_enabled, in_app_enabled, days_before, target_roles | 通知設定。通知種別とタイミングごとに行を分ける |
+| notification_log | notification_log_id, tenant_id, notification_type, channel, target_type, target_id, timing_code, notification_level, reference_date, recipient, recipient_user_id, subject, body, summary, action_url, source_process, retry_required, status, sent_at, read_at, error_message, occurrence_count | 通知履歴・メール/画面内通知履歴。OPERATION_ERRORの集約と画面遷移にも利用。システム通知ではtenant_id NULLまたはシステムテナントを許容 |
 | csv_export_history | csv_export_history_id, tenant_id, target_type, condition_summary, file_name, record_count, requested_by, created_at | CSV出力履歴 |
 | csv_import_history | csv_import_history_id, tenant_id, target_type, file_name, status, total_count, success_count, failure_count, requested_by, created_at | CSV取込履歴 |
 | csv_import_error | csv_import_error_id, csv_import_history_id, row_number, column_name, error_message | CSV取込エラー |

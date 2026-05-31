@@ -10,7 +10,7 @@
 
 | コンテキスト | 概要 | 主な集約 |
 |---|---|---|
-| テナント・契約管理 | SaaSテナント、契約プラン、利用上限、オプションを管理する | Tenant、SubscriptionPlan、UsageLimit、AddOnOption |
+| テナント・契約管理 | SaaSテナント、契約プラン、利用上限、オプションを管理する | Tenant、SubscriptionPlan、UsageLimit、TenantAddOn |
 | ロケーション管理 | リージョン、データセンター、建物、フロア、エリア、ラック列を管理する | Region、DataCenter、Building、Floor、Area、RackRow |
 | ラック管理 | ラックとラック内搭載位置を管理する | Rack、RackMountPosition、RackTemplate |
 | 機器管理 | サーバー、ネットワーク機器、呼称名・別名、タグを管理する | Device、ResourceAlias、Tag |
@@ -71,7 +71,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 |---|---|---|
 | dataCenterId | Long | データセンターID |
 | tenantId | Long | テナントID |
-| officialName | String | 正式名称 |
+| formalName | String | 正式名称 |
 | displayName | String | 代表表示名。複数の呼称名・別名はResourceAliasで保持 |
 | regionId | Long | 地域・都道府県分類ID。`Region` を参照 |
 | address | String | 所在地 |
@@ -93,7 +93,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 |---|---|---|
 | rackId | Long | ラックID |
 | rackRowId | Long | ラック列ID |
-| officialName | String | 正式名称 |
+| formalName | String | 正式名称 |
 | displayName | String | 代表表示名。複数の呼称名・別名はResourceAliasで保持 |
 | heightU | Integer | ラック高さU数 |
 | positionNo | String | ラック列内位置 |
@@ -119,7 +119,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | deviceId | Long | 機器ID |
 | tenantId | Long | テナントID |
 | rackId | Long | 設置ラックID |
-| officialName | String | 正式名称 |
+| formalName | String | 正式名称 |
 | displayName | String | 代表表示名。複数の呼称名・別名はResourceAliasで保持 |
 | deviceType | Enum | Server / Switch / Router / Firewall / LoadBalancer / Other |
 | vendor | String | ベンダー |
@@ -156,7 +156,7 @@ ID型は初期リリースでは詳細設計・DB設計に合わせて `Long`（
 | vendorName | String | ベンダー名 |
 | contractNo | String | 契約番号 |
 | contractDescription | Text | 契約内容。サポート範囲、SLA、更新条件などの要約 |
-| renewalStatus | Enum | 更新状態。ACTIVE / RENEWAL_REQUIRED / RENEWED / TERMINATED など |
+| renewalStatus | Enum | 更新状態。ACTIVE / RENEWAL_REQUIRED / RENEWED / TERMINATED |
 | startDate | Date | 開始日 |
 | endDate | Date | 終了日 |
 | expiryStatus | Enum | 期限状態。OK / DUE_SOON / EXPIRES_TODAY / EXPIRED。原則としてendDateと基準日から算出し、検索用DTOに保持する |
@@ -245,7 +245,7 @@ IPv6はアドレス空間が大きいため、初期リリースではサブネ�
 classDiagram
     class Tenant
     class SubscriptionPlan
-    class AddOnOption
+    class TenantAddOn
     class Region
     class DataCenter
     class Building
@@ -272,7 +272,7 @@ classDiagram
     class ResourceAlias
 
     SubscriptionPlan "1" --> "0..*" Tenant
-    Tenant "1" --> "0..*" AddOnOption
+    Tenant "1" --> "0..*" TenantAddOn
     Tenant "1" --> "0..*" Region
     Tenant "1" --> "0..*" DataCenter
     Tenant "1" --> "0..*" Device
@@ -318,10 +318,10 @@ classDiagram
 
 | サービス | 役割 |
 |---|---|
-| UsageLimitService | プラン別上限チェック、オプション加算後の上限算出 |
+| PlanLimitService | プラン別上限チェック、オプション加算後の上限算出 |
 | RackPlacementService | ラック搭載位置の重複チェック、空きU計算 |
 | IpAllocationService | IPアドレス割当、解放、重複チェック |
-| MaintenanceAlertService | 保守期限2か月前通知対象の抽出 |
+| MaintenanceNotificationService | 保守期限60日前・30日前・当日・期限切れ再通知対象の抽出 |
 | DeviceSearchService | 保守未設定機器、タグ、別名、設置場所による検索 |
 | ResourceAliasService | 対象リソースの呼称名・別名の登録、重複確認、検索 |
 | CloudResourceSyncService | 将来拡張。クラウドリソースの同期方針管理 |
