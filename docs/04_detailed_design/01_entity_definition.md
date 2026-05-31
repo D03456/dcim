@@ -68,6 +68,7 @@
 | maxRacks | Integer | ○ | ラック上限。ラック列は物理階層として管理し、課金・上限はラック数を基本とする |
 | maxDevices | Integer | ○ | 機器上限 |
 | maxIpAddresses | Integer | ○ | 管理対象IP数上限 |
+| maxTags | Integer | ○ | タグマスタ件数上限 |
 | trialDays | Integer | - | Freeプランのトライアル日数。標準14日 |
 | maxUsers | Integer | ○ | ユーザー上限 |
 
@@ -339,7 +340,7 @@
 | vendorName | String | ○ | 保守ベンダー名 |
 | contractNumber | String | - | 契約番号 |
 | contractDescription | String | - | 契約内容 |
-| renewalStatus | RenewalStatus | - | 更新状態。PENDING / RENEWED / NOT_RENEWED / UNKNOWN 等 |
+| renewalStatus | RenewalStatus | - | 更新状態。ACTIVE / RENEWAL_REQUIRED / RENEWED / TERMINATED |
 | note | String | - | 備考 |
 | startDate | LocalDate | ○ | 開始日 |
 | endDate | LocalDate | ○ | 終了日 |

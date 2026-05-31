@@ -44,7 +44,7 @@ MariaDBでは `tenant_id, name, deleted` の単純なUNIQUEだけでは、論理
 - 論理削除時に一意キー対象値へ削除済みサフィックスを付与する運用にする。
 - 履歴・ログ系など名称再利用を扱わないテーブルは例外として明記する。
 
-詳細設計上の `..., deleted` を含むUNIQUEは「有効データで一意」を意図する略記であり、物理DDL化時は上記方針へ展開する。
+詳細設計上の `..., deleted` を含むUNIQUEは「有効データで一意」を意図する略記であり、物理DDL化時は上記方針へ展開する。`active_unique_key` を使う場合は、MariaDBの生成列として `case when deleted = false then 1 else null end` 相当を定義し、UNIQUEでは `tenant_id + 業務キー + active_unique_key` を利用する。
 
 ## 3. テーブル一覧
 
@@ -53,41 +53,42 @@ MariaDBでは `tenant_id, name, deleted` の単純なUNIQUEだけでは、論理
 | 1 | tenant | テナント |
 | 2 | subscription_plan | 契約プラン |
 | 3 | tenant_add_on | 追加利用枠 |
-| 4 | app_user | 利用者 |
-| 5 | password_reset_token | パスワード再設定トークン |
-| 6 | user_invitation_token | ユーザー招待トークン |
-| 7 | role | ロール |
-| 8 | permission | 権限マスタ |
-| 9 | role_permission | ロール・権限関連 |
-| 10 | user_role | ユーザー・ロール関連 |
-| 11 | audit_log | 操作履歴 |
-| 12 | region | 地域 |
-| 8 | data_center | データセンター |
-| 9 | building | 棟 |
-| 10 | floor | フロア |
-| 11 | area | 区画 |
-| 12 | rack_row | ラック列 |
-| 13 | rack | ラック |
-| 13A | rack_template | ラックテンプレート |
-| 13B | rack_template_item | ラックテンプレート明細 |
-| 14 | device | 機器 |
-| 15 | ip_subnet | IPサブネット |
-| 16 | ip_address | IPアドレス利用状況 |
-| 17 | maintenance_contract | 保守契約 |
-| 18 | maintenance_contract_device | 保守契約・機器関連 |
-| 19 | maintenance_contract_contact | 保守契約・連絡先関連 |
-| 20 | contact | 連絡先 |
-| 21 | data_center_contact | DC・連絡先関連 |
-| 22 | tag | タグ |
-| 23 | tagged_resource | タグ関連 |
-| 24 | notification_setting | 通知設定 |
-| 25 | notification_log | 通知ログ |
-| 25A | resource_alias | 呼称名・別名 |
-| 26 | csv_export_history | CSVエクスポート履歴 |
-| 27 | csv_import_history | CSVインポート履歴 |
-| 28 | csv_import_error | CSVインポートエラー |
-| 29 | cloud_account | 将来拡張：クラウドアカウント |
-| 30 | cloud_resource | 将来拡張：クラウドリソース |
+| 4 | contract_change_request | プラン/オプション変更申請 |
+| 5 | app_user | 利用者 |
+| 6 | password_reset_token | パスワード再設定トークン |
+| 7 | user_invitation_token | ユーザー招待トークン |
+| 8 | role | ロール |
+| 9 | permission | 権限マスタ |
+| 10 | role_permission | ロール・権限関連 |
+| 11 | user_role | ユーザー・ロール関連 |
+| 12 | audit_log | 操作履歴 |
+| 13 | region | 地域 |
+| 14 | data_center | データセンター |
+| 15 | building | 棟 |
+| 16 | floor | フロア |
+| 17 | area | 区画 |
+| 18 | rack_row | ラック列 |
+| 19 | rack | ラック |
+| 20 | rack_template | ラックテンプレート |
+| 21 | rack_template_item | ラックテンプレート明細 |
+| 22 | device | 機器 |
+| 23 | ip_subnet | IPサブネット |
+| 24 | ip_address | IPアドレス利用状況 |
+| 25 | maintenance_contract | 保守契約 |
+| 26 | maintenance_contract_device | 保守契約・機器関連 |
+| 27 | maintenance_contract_contact | 保守契約・連絡先関連 |
+| 28 | contact | 連絡先 |
+| 29 | data_center_contact | DC・連絡先関連 |
+| 30 | tag | タグ |
+| 31 | tagged_resource | タグ関連 |
+| 32 | notification_setting | 通知設定 |
+| 33 | notification_log | 通知ログ |
+| 34 | resource_alias | 呼称名・別名 |
+| 35 | csv_export_history | CSVエクスポート履歴 |
+| 36 | csv_import_history | CSVインポート履歴 |
+| 37 | csv_import_error | CSVインポートエラー |
+| 38 | cloud_account | 将来拡張：クラウドアカウント |
+| 39 | cloud_resource | 将来拡張：クラウドリソース |
 
 > Noは分類用の整理番号であり、追加テーブルにより一部枝番・既存番号が残る場合がある。実装時はテーブル名を正とする。
 
@@ -138,6 +139,26 @@ MariaDBでは `tenant_id, name, deleted` の単純なUNIQUEだけでは、論理
 | STARTER | null | 2 | 5 | 50 | 512 | 50 | 3 |
 | BUSINESS | null | 5 | 50 | 100 | 1024 | 200 | 10 |
 | ENTERPRISE | null | 10 | 100 | 1000 | 2048 | 1000 | 30 |
+
+## 4.2A contract_change_request
+
+| カラム | 型 | NULL | キー | 説明 |
+|---|---|---:|---|---|
+| contract_change_request_id | bigint | NO | PK | 申請ID |
+| tenant_id | bigint | NO | FK | テナントID |
+| request_type | varchar(30) | NO |  | PLAN_CHANGE / ADD_ON_CHANGE |
+| target_plan_code | varchar(30) | YES | FK | 変更先プラン |
+| add_on_type | varchar(30) | YES |  | IP_ADDRESS / DEVICE |
+| quantity_unit | int | YES |  | 追加単位数 |
+| status | varchar(30) | NO |  | REQUESTED / APPROVED / REJECTED / CANCELLED |
+| requested_by | bigint | NO | FK | 申請者 |
+| approved_by | bigint | YES | FK | 承認/却下者 |
+| requested_at | datetime(6) | NO |  | 申請日時 |
+| approved_at | datetime(6) | YES |  | 承認/却下日時 |
+| rejected_reason | varchar(500) | YES |  | 却下理由 |
+| created_at | datetime(6) | NO |  | 作成日時 |
+| updated_at | datetime(6) | NO |  | 更新日時 |
+| deleted | boolean | NO |  | 論理削除 |
 
 ## 4.3 tenant_add_on
 
@@ -417,7 +438,7 @@ MariaDBでは `tenant_id, name, deleted` の単純なUNIQUEだけでは、論理
 | vendor_name | varchar(150) | NO |  | ベンダー名 |
 | contract_number | varchar(100) | YES |  | 契約番号 |
 | contract_description | text | YES |  | 契約内容 |
-| renewal_status | varchar(30) | YES |  | PENDING / RENEWED / NOT_RENEWED / UNKNOWN |
+| renewal_status | varchar(30) | YES |  | ACTIVE / RENEWAL_REQUIRED / RENEWED / TERMINATED |
 | note | text | YES |  | 備考 |
 | start_date | date | NO |  | 開始日 |
 | end_date | date | NO |  | 終了日 |
@@ -580,7 +601,7 @@ MariaDBでは `tenant_id, name, deleted` の単純なUNIQUEだけでは、論理
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
 | notification_log_id | bigint | NO | PK | 通知ログID |
-| tenant_id | bigint | NO | FK | テナントID |
+| tenant_id | bigint | YES | FK | テナントID。システム通知・運用通知ではNULL可またはシステムテナントを利用 |
 | notification_type | varchar(50) | NO |  | 通知種別 |
 | channel | varchar(30) | NO |  | EMAIL / IN_APP |
 | target_type | varchar(50) | NO |  | 対象種別 |
@@ -657,7 +678,7 @@ MariaDBでは `tenant_id, name, deleted` の単純なUNIQUEだけでは、論理
 | カラム | 型 | NULL | キー | 説明 |
 |---|---|---:|---|---|
 | user_id | bigint | NO | PK | ユーザーID |
-| tenant_id | bigint | NO | FK | テナントID |
+| tenant_id | bigint | YES | FK | テナントID。システム管理者はNULL可、通常テナントユーザーは必須 |
 | email | varchar(255) | NO |  | メールアドレス |
 | display_name | varchar(150) | NO |  | 表示名 |
 | password_hash | varchar(255) | NO |  | ハッシュ化済みパスワード。平文は保存しない |
@@ -802,3 +823,8 @@ MariaDBでは `tenant_id, name, deleted` の単純なUNIQUEだけでは、論理
 ## 6. 初期リリース対象外テーブル
 
 `cloud_account`、`cloud_resource` は将来拡張の設計候補として定義するが、初期リリースの実装・マイグレーション対象からは除外する。
+
+
+### 4.x 競合更新制約
+
+ラックU配置は `tenant_id, rack_id, rack_unit_start, rack_unit_size` の重複をServiceで範囲判定し、保存時は対象ラックを悲観ロックする。IP割当は `tenant_id, ip_subnet_id, ip_address, active_unique_key` のUNIQUEで同時登録を防ぐ。プラン上限判定はテナントまたは利用量カウンタ行をロックし、カウント取得から保存までを同一トランザクションに含める。

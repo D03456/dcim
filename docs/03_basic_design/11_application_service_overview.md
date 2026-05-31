@@ -47,7 +47,7 @@ infrastructure.repository / notification / security
 | CsvApplicationService | CSVエクスポート、初期追加フェーズのインポート履歴・行エラー管理 |
 | SearchApplicationService | 横断検索、正式名称・表示名・別名・タグ検索 |
 | AuditLogApplicationService | 初期必須の操作履歴保存・検索・閲覧 |
-| CloudResourceApplicationService | 将来拡張。クラウド資産管理 |
+| CloudAccountApplicationService / CloudResourceApplicationService | 将来拡張。クラウドアカウント・クラウド資産管理 |
 
 ## 5. 主要Service概要
 
@@ -63,7 +63,7 @@ infrastructure.repository / notification / security
 ### 主な業務ルール
 
 - Freeプランは14日間トライアルとする。
-- Freeトライアル期限超過後は `TRIAL_EXPIRED` として扱い、ログイン・参照・CSVエクスポート・契約プラン確認・有料プラン変更申請のみ許可する。
+- Freeトライアル期限判定は `trial_end_date` を正本とし、期限超過後は `TRIAL_EXPIRED` として扱い、ログイン・参照・CSVエクスポート・契約プラン確認・有料プラン変更申請のみ許可する。
 - 期限超過中はテナント管理者であっても登録・更新・削除・CSVインポート・ユーザー招待を不可とする。
 - 初期テナント管理者は通常のユーザー無効化・削除対象外とし、テナント解約時のみ利用停止扱いにする。
 - プラン上限はDC、ラック、機器、管理対象IP、タグ、ユーザーを対象とする。
@@ -225,7 +225,7 @@ infrastructure.repository / notification / security
 
 - 初期リリースの通知チャネルはメールと画面内通知を基本とする。
 - 通知対象者は通知種別ごとに統一し、保守期限通知はテナント管理者、運用管理者、編集者、保守契約連絡先を対象とする。
-- 同一通知種別・同一チャネル・同一対象・同一宛先または受信ユーザーへの保守期限通知は重複作成しない。
+- 同一通知種別・同一チャネル・同一対象・同一通知タイミング・同一宛先または受信ユーザーへの保守期限通知は重複作成しない。期限切れ再通知は7日周期のreference_dateをキーに含める。
 - メール送信失敗時は通知ログにFAILEDを記録する。
 - 画面内通知は受信ユーザー単位で未読/既読を管理する。
 - 操作エラー通知は `OPERATION_ERROR` として作成し、CSV取込失敗、メール送信失敗、外部連携失敗、バッチ失敗を対象にする。
@@ -242,7 +242,7 @@ infrastructure.repository / notification / security
 ### 主な業務ルール
 
 - CSVエクスポートは初期リリース必須とし、データセンター、ラック、機器、IPサブネット/IP利用状況、保守契約、保守未加入機器一覧、保守期限接近一覧を対象とする。
-- CSVインポートは初期追加対象とし、初期リリースでは画面/API/権限を無効化する。
+- CSVインポートは初期追加対象とし、初期リリースでは画面/API/権限を無効化する。Freeプランは1ファイル100行までとし、超過時はファイル単位エラーとする。
 - インポート時もプラン上限、参照存在、権限を検証する。
 - 初期追加対象はデータセンター、ラック、機器、IPサブネット/IP利用状況、保守契約とする。
 
