@@ -291,3 +291,18 @@ public class ValidationException extends DcimException {
 ```
 
 Controller/APIを提供する場合も同じ構造をレスポンスへ変換する。Vaadinでは `field` があるものを項目横、`field` がないものを画面上部に表示する。
+
+<!-- issue-fixes-295 -->
+
+## 付録C. Issue対応追補: 認証系例外
+
+| 例外 | エラーコード | 表示方針 |
+|---|---|---|
+| AuthenticationFailedException | AUTH-001 | メールまたはパスワードが正しくない旨を汎用表示し、存在有無を推測させない |
+| TenantSuspendedException | AUTH-002 | 利用停止中である旨と問い合わせ先を表示 |
+| RateLimitExceededException | AUTH-003 | 一定時間後の再試行を案内 |
+| InvalidTokenException | AUTH-004 | トークンが無効である旨を表示 |
+| TokenExpiredException | AUTH-005 | 有効期限切れ、再発行導線を表示 |
+| InvalidInvitationException | AUTH-006 | 招待が無効/取消済み/使用済みである旨を表示 |
+
+これらの例外では内部理由、トークン値、認証失敗詳細を画面・ログへ出さない。監査ログには結果コードとrequest_idのみを残す。

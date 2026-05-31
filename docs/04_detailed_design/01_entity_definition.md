@@ -657,3 +657,41 @@ Tenantは永続化上、`subscription_plan.plan_code` を参照する `planCode`
 | AuditLog | `auditLogId`, `tenantId`, `actorUserId`, `eventType`, `targetType`, `targetId`, `result`, `requestId`, `occurredAt`, `detailJson` | 操作履歴。論理削除せず保持期間に従ってアーカイブ/削除する |
 
 AuditLogは業務監査の履歴であり、通常の更新・削除対象Entityとは扱わない。秘密情報、パスワード、トークン、メール本文全文は保持しない。
+
+<!-- issue-fixes-303-304-305 -->
+
+## 付録C. Issue対応追補: 関連Entity・認証トークン
+
+### C.1 DataCenterContact
+
+| 項目 | 内容 |
+|---|---|
+| エンティティ名 | DataCenterContact |
+| 概要 | データセンターと連絡先の関連を表す |
+| 集約 | DataCenter集約 |
+| 主キー | dataCenterContactId |
+
+| 属性 | 型 | 必須 | 説明 |
+|---|---:|:---:|---|
+| dataCenterContactId | Long | ○ | 関連ID |
+| tenantId | Long | ○ | テナントID |
+| dataCenterId | Long | ○ | データセンターID |
+| contactId | Long | ○ | 連絡先ID |
+| contactRole | ContactRole | ○ | FACILITY / EMERGENCY / BILLING 等 |
+
+同一テナント内のDCと連絡先のみ関連付け可能とし、同一DC・同一連絡先・同一役割の有効関連は重複不可とする。解除は論理削除または関連無効化として扱い、連絡先本体は削除しない。
+
+### C.2 MaintenanceContractDevice
+
+| 属性 | 型 | 必須 | 説明 |
+|---|---:|:---:|---|
+| maintenanceContractDeviceId | Long | ○ | 関連ID |
+| tenantId | Long | ○ | テナントID |
+| maintenanceContractId | Long | ○ | 保守契約ID |
+| deviceId | Long | ○ | 対象機器ID |
+
+同一テナント内の保守契約と機器のみ関連付け可能とする。同一保守契約・同一機器の有効関連は重複不可。解除時は関連を論理削除または無効化し、契約・機器本体は削除しない。
+
+### C.3 PasswordResetTokenのtenantId
+
+PasswordResetTokenは `userId` を対象ユーザーの正本とする。通常テナントユーザーでは `tenantId` を保持し、システム管理者など `app_user.tenant_id = NULL` のユーザーでは `tenantId` をNULL可とする。Service/Repositoryは `tokenHash + userId + status` で対象を検証し、tenantIdの有無だけで再設定可否を判断しない。
