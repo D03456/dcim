@@ -92,3 +92,16 @@
 - テナント分離や重複確認はService / Repositoryで行う。
 - 画面入力値はCommand DTOで受け取り、Application ServiceでValue Objectへ変換する。
 - Enum値はDB保存値、画面表示名、日本語ラベルの変換方針を分ける。
+
+<!-- issue-fixes-216-217-218 -->
+
+## 付録A. Issue対応追補: ラック関連Value Object
+
+| Value Object | 責務 |
+|---|---|
+| `RackUnitPosition` | 下から1U基準の開始Uを表す |
+| `RackUnitRange` | `startUnit` と `unitSize` から搭載範囲を表し、重複判定を行う |
+| `RackMountItemType` | DEVICE / RESERVED_U / BLANK_PANEL を表す |
+| `RackTemplateAppliedSnapshot` | テンプレート適用時点の予約U・標準構成をラック実体側へコピーした結果を表す |
+
+ラック未搭載機器は `RackUnitRange` を持たない。搭載機器は `rackId` と `RackUnitRange` を必ず同時に持つ。

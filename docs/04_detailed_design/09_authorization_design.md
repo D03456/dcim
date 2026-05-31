@@ -105,3 +105,33 @@ Freeトライアル期限超過時は、通常ロールより前にテナント�
 - 権限不足時は内部情報を表示せず、日本語の業務エラーメッセージを返す。
 - 操作履歴は初期必須として `audit_log` に保存する。`created_by` / `updated_by` は主要テーブルの最低限監査情報として併用する。
 - 編集者は登録・更新のみ可能とし、削除は原則不可とする。主要データ削除はテナント管理者または運用管理者のみ許可する。
+
+<!-- issue-fixes-226-227 -->
+
+## 付録A. Issue対応追補: テナント状態・Permission判定
+
+### A.1 テナント状態別の操作可否
+
+| 状態 | ログイン | 参照 | CSV出力 | 契約画面 | プラン変更申請 | 登録/更新/削除 | ユーザー招待 | システム管理者操作 |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| ACTIVE | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ |
+| TRIAL_EXPIRED | ○ | ○ | ○ | ○ | ○ | × | × | ○ |
+| SUSPENDED | △ | △ | × | ○ | △ | × | × | ○ |
+| CANCELLED | × | × | × | × | × | × | × | ○ |
+
+`SUSPENDED` のテナントユーザーは、管理者案内・契約確認など最小限の画面に限定する。`CANCELLED` は通常ログイン不可とし、必要な確認はシステム管理者画面から行う。
+
+### A.2 Permission Service
+
+権限判定はロール名の直判定ではなく、`permission` / `role_permission` を正本とする。
+
+| メソッド | 用途 |
+|---|---|
+| `hasPermission(user, permissionCode)` | 権限コード単位の基本判定 |
+| `canAccessScreen(user, screenId)` | 画面表示可否 |
+| `canChangePlan(user, tenantId)` | プラン/オプション変更申請 |
+| `canEditNotificationSetting(user, tenantId)` | 通知設定変更 |
+| `canViewAuditLog(user, tenantId)` | 操作履歴閲覧 |
+| `canDeleteResource(user, resourceType, resourceId)` | 削除操作可否 |
+
+Service層の更新・削除・CSV出力・管理系操作では必ずPermission Serviceを呼び出す。

@@ -591,3 +591,67 @@ public class DeviceDetailDto {
     private String maintenanceStatus;
 }
 ```
+
+<!-- issue-fixes-220-231-232-233-234 -->
+
+## 付録A. Issue対応追補: Service設計の補完
+
+### A.1 CSVインポートの初期リリース無効化
+
+CSVインポートは初期追加フェーズ対象であり、初期リリースでは以下の扱いに統一する。
+
+| 層 | 初期リリース方針 |
+|---|---|
+| 画面 | メニュー非表示。直接URLアクセス時は利用不可画面または404相当 |
+| API/Controller | 実装しない、またはFeature Flagで無効化し403/404を返す |
+| 権限 | CSV_IMPORT権限は初期リリースでは付与しない |
+| Service | 将来追加の設計メモに留め、業務導線から呼び出さない |
+| DB | 履歴テーブルを先行作成する場合も、画面/APIからは利用不可 |
+
+### A.2 LocationApplicationService
+
+物理階層管理の責務を明確化するため、LocationApplicationServiceを追加する。
+
+| メソッド例 | 責務 |
+|---|---|
+| `createBuilding`, `updateBuilding`, `disableBuilding` | DC配下の棟管理 |
+| `createFloor`, `updateFloor`, `disableFloor` | 建物配下のフロア管理 |
+| `createArea`, `updateArea`, `disableArea` | フロア配下の区画管理、グリッド位置管理 |
+| `createRackRow`, `updateRackRow`, `disableRackRow` | 区画配下のラック列管理、方向・位置管理 |
+| `searchLocations` | DC配下の物理階層検索 |
+
+親子の `tenantId` 一致、親が有効であること、配下有効データが存在する場合の削除不可をService層で検証する。
+
+### A.3 SearchApplicationService詳細
+
+横断検索は以下を初期対象とする。
+
+| 対象 | 検索キー | 結果項目 |
+|---|---|---|
+| DataCenter | 正式名称、表示名、別名、タグ、住所、リージョン | 種別、表示名、所在地、タグ、詳細URL |
+| Rack | 正式名称、表示名、別名、タグ、ラック番号、設置場所 | 種別、表示名、DC/フロア/列、空きU、詳細URL |
+| Device | 正式名称、表示名、別名、タグ、ホスト名、シリアル、IP | 種別、表示名、設置ラック、IP、保守状態、詳細URL |
+| IpSubnet / IpAddress | CIDR、IPアドレス、用途、タグ | 種別、CIDR/IP、利用状態、関連機器、詳細URL |
+| MaintenanceContract | 契約名、契約番号、ベンダー、タグ、期限状態 | 種別、契約名、期限、更新状態、詳細URL |
+
+検索は必ず `tenantId`、論理削除、ロール別閲覧権限でフィルタリングし、ページングとソートを適用する。契約管理者には利用状況に必要な限定項目のみ返す。
+
+### A.4 CSVインポートの行単位トランザクション
+
+初期追加フェーズでCSVインポートを有効化する際は、以下の方式を採用する。
+
+1. ファイル全体のヘッダ・文字コード・行数・必須列を事前検証する。
+2. 行間依存があるデータは事前検証で参照関係を解決する。
+3. 登録処理は行単位または小チャンク単位の `REQUIRES_NEW` 相当で実行し、正常行のみ確定する。
+4. 失敗行は `csv_import_error` に行番号、項目名、エラーコード、メッセージ、元値を保存する。
+5. ファイル全体の履歴には成功件数、失敗件数、ステータス、`correlation_id` を保存する。
+
+### A.5 Service命名と責務分担
+
+| 種別 | 命名 | 責務 |
+|---|---|---|
+| Application Service | `XxxApplicationService` | 画面/APIユースケース、トランザクション境界、認可、Repository呼び出し |
+| Domain Service | `XxxDomainService` | Entity単体に閉じない業務ルール、プラン上限、重複判定、期限判定 |
+| Infrastructure Service | `XxxClient` / `XxxGateway` | メール送信、外部連携、ファイル保存など |
+
+例: `DeviceApplicationService` は機器登録ユースケースを担当し、ラックU重複判定の純粋な業務ルールは `RackPlacementDomainService` に分離できる。`PlanLimitDomainService` は上限判定に限定し、申請・画面表示は `SubscriptionApplicationService` が担当する。
