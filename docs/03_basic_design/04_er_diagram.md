@@ -313,3 +313,23 @@ DB制約だけで論理削除条件を表現しづらい項目は、Application 
 ### A.3 主キー採番
 
 初期リリースではMariaDBの `AUTO_INCREMENT` を利用し、JPAは `GenerationType.IDENTITY` を基本とする。初期データでID固定が必要なマスタは、採番範囲と衝突しない固定IDを使用する。UUID化は外部公開IDが必要になった時点で再検討する。
+
+<!-- issue-fixes-286-287-288-290 -->
+
+## 付録B. Issue対応追補: ER項目・関連補足
+
+### B.1 Device主要カラム
+
+`device` の主要カラムには、要件上の管理項目として `manufacturer`、`model_name`、`note` を含める。メーカーの表記は `manufacturer` を正本とし、`vendor` 表記は保守契約のベンダー名など別概念に限定する。
+
+### B.2 ユーザー招待トークンの関連
+
+ER図上の `APP_USER ||--o{ USER_INVITATION_TOKEN` は招待対象ユーザーではなく、招待操作を行ったユーザー、すなわち `invited_by` / `created_by` への参照を表す。招待承諾前は招待対象の `app_user` が存在しない場合があるため、招待対象は `user_invitation_token.email` として保持する。
+
+### B.3 RackTemplateのテナント所有
+
+`rack_template` は `tenant_id` を持つテナント所有データであり、ER図には `TENANT ||--o{ RACK_TEMPLATE : has` を追加する。`rack_template_item` は `rack_template` 経由でテナント境界を持ち、必要に応じて `tenant_id` を冗長保持する。
+
+### B.4 備考カラム
+
+DataCenter / Rack / Device の主要カラムには `note` を含める。備考は任意項目で、一覧表示では省略し、詳細画面・CSV出力では権限とマスキング方針に従って扱う。

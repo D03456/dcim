@@ -339,3 +339,19 @@ CsvApplicationServiceは、同期ダウンロードと非同期生成の両方�
 ### A.6 プラン上限警告
 
 SubscriptionApplicationServiceは、使用率80%以上、100%到達、上限超過、改善時の状態を区別し、通知重複抑止に必要な通知レベルをNotificationApplicationServiceへ渡す。
+
+<!-- issue-fixes-278-280-281 -->
+
+## 付録B. Issue対応追補: CSV・上限通知・監査
+
+### B.1 CSVエクスポート操作履歴
+
+CsvApplicationServiceは、CSVエクスポート要求、生成結果、ダウンロードをAuditLogApplicationServiceへ記録依頼する。記録対象には、対象種別、検索条件、出力件数、ファイル履歴ID、結果、request_idを含める。
+
+### B.2 CSVインポート更新方針
+
+初期追加フェーズのCSVインポートは、新規登録と更新を対象にする。対象ごとの突合キー・更新不可項目・重複時の行エラー化をCsvApplicationServiceの責務として定義する。
+
+### B.3 RECOVERED
+
+SubscriptionApplicationServiceは、プラン上限が80%未満へ改善した場合に抑止解除イベントとして `RECOVERED` をNotificationApplicationServiceへ渡す。ただし初期リリースではユーザー通知を送らず、内部履歴記録と再通知可能化に利用する。
