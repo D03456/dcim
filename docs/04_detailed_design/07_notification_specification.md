@@ -458,3 +458,46 @@ Freeトライアル期限通知は「以内」ではなく通知タイミング�
 ### B.3 期限切れ保守通知の再通知
 
 期限切れ通知は初回送信後、7日ごとの `referenceDate` を重複キーに含めて再通知する。更新済み、終了、通知無効、削除、宛先なしの場合は停止する。送信失敗時もFAILEDログを残し、次回バッチで同じ条件を再評価する。
+
+<!-- issue-fixes-297-298-299-301 -->
+
+## 付録C. Issue対応追補: 通知種別・設定・フロー統一
+
+### C.1 TRIAL_EXPIRED状態遷移通知
+
+初期リリースでは、Free期限超過によりテナント状態を `TRIAL_EXPIRED` へ変更したタイミングで `TRIAL_EXPIRED` 通知を1回作成する。
+
+| 項目 | 方針 |
+|---|---|
+| notification_type | `TRIAL_EXPIRED` |
+| 対象者 | テナント管理者、契約管理者 |
+| タイミング | 状態遷移時のみ |
+| 重複キー | tenantId, notificationType, referenceDate, recipient, channel |
+| 再通知 | 日次再送しない。必要な場合は契約画面の警告表示で補う |
+
+### C.2 PLAN_LIMIT通知レベル
+
+`notification_type` は `PLAN_LIMIT` に統一し、WARNING / REACHED / EXCEEDED / RECOVERED は `notification_level` または `timing_code` として保持する。
+
+| level | ユーザー通知 | ログ保存 | 用途 |
+|---|:---:|:---:|---|
+| WARNING | ○ | ○ | 80%以上 |
+| REACHED | ○ | ○ | 100%到達 |
+| EXCEEDED | ○ | ○ | 上限超過継続 |
+| RECOVERED | × | ○ | 抑止解除・内部履歴 |
+
+`notification_setting` 初期行は `PLAN_LIMIT` 1種を基本とし、レベル別ON/OFFが必要になった場合は設定項目を追加する。
+
+### C.3 パスワード再設定・ユーザー招待通知フロー
+
+1. Auth/User Serviceがトークンを生成し、平文はメール本文生成時のみ扱う。
+2. NotificationServiceへ通知作成を依頼する。
+3. `notification_log` には通知種別、宛先、結果、request_idを保存し、トークン付きURL・本文全文は保存しない。
+4. 再送は既存トークンが有効な場合は再利用または失効後再発行の方針をServiceで統一する。
+5. 期限切れ・取消・使用済みは送信前に検証し、SKIPPEDまたは業務エラーとして扱う。
+6. 送信失敗はFAILEDとして記録し、必要に応じてOPERATION_ERRORを作成する。
+7. 招待/再招待/取消、パスワード再設定依頼/完了は監査ログ対象とする。
+
+### C.4 OPERATION_ERROR通知先の正本
+
+OPERATION_ERRORは発生元別通知先表を正本とする。`target_roles` はロール宛通知、`recipient_user_id` は実行ユーザーなど個別宛通知に使う。両方に該当するユーザーは重複排除する。外部連絡先はOPERATION_ERRORの画面内通知対象外とし、メールも明示された場合のみ送信する。

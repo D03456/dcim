@@ -150,3 +150,17 @@ Service層の更新・削除・CSV出力・管理系操作では必ずPermission
 | 登録/更新/削除/CSVインポート/招待 | Permissionがあっても追加拒否 |
 
 テストでは、契約管理者などCSV権限を持たないロールにCSVエクスポートが許可されないことを確認する。
+
+<!-- issue-fixes-300 -->
+
+## 付録C. Issue対応追補: 通知履歴閲覧権限
+
+通知設定編集と通知履歴閲覧は別Permissionで判定する。
+
+| 操作 | 必要Permission |
+|---|---|
+| 通知設定閲覧 | `PERM_NOTIFICATION_VIEW` |
+| 通知設定編集 | `PERM_NOTIFICATION_EDIT` |
+| 通知履歴閲覧 | `PERM_NOTIFICATION_HISTORY_VIEW` |
+
+通知履歴閲覧では、本文全文、トークン付きURL、秘密情報、詳細な外部エラーメッセージを表示しない。宛先メールはマスキング表示とする。Service層でも同じPermissionを確認する。

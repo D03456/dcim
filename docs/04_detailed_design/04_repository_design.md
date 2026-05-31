@@ -629,3 +629,23 @@ CSV履歴テーブルに `deleted` を持たせる場合のみ `findByTenantIdAn
 | `findByTenantIdAndContractNumber(tenantId, contractNumber)` | 契約番号検索 |
 
 `contractNumber` がNULLまたは空の場合は重複チェック対象外とする。入力値はtrim後の値で比較する。
+
+<!-- issue-fixes-303-304-305 -->
+
+## 付録C. Issue対応追補: 関連Repository・認証トークン
+
+### C.1 DataCenterContactRepository
+
+| メソッド例 | 用途 |
+|---|---|
+| `existsActiveByTenantIdAndDataCenterIdAndContactIdAndRole(...)` | 同一役割の重複関連チェック |
+| `findByTenantIdAndDataCenterIdAndDeletedFalse(...)` | DC配下連絡先一覧 |
+| `findByTenantIdAndContactIdAndDeletedFalse(...)` | 連絡先利用先確認 |
+
+### C.2 MaintenanceContractDeviceRepository
+
+同一契約・同一機器の有効関連重複を禁止するため、`existsActiveByTenantIdAndMaintenanceContractIdAndDeviceId` を用意する。解除時は関連行を論理削除/無効化し、履歴確認できるようにする。
+
+### C.3 PasswordResetTokenRepository
+
+システム管理者の `tenant_id = NULL` に対応するため、パスワード再設定トークンは `tokenHash`、`userId`、期限、ステータスで検証する。tenantId条件は通常ユーザーの補助条件として扱い、必須検索条件にしない。

@@ -911,3 +911,17 @@ CSV履歴は監査・問い合わせ用途の履歴系データとして、通�
 | 検証箇所 | DB制約 + Service重複チェック |
 
 契約番号は外部契約との照合キーになるため、論理削除済み契約も含めて同一番号の再登録を禁止する。
+
+<!-- issue-fixes-305 -->
+
+## 付録C. Issue対応追補: password_reset_tokenのtenant_id
+
+`password_reset_token.tenant_id` は、通常テナントユーザーでは設定し、システム管理者ユーザーではNULLを許容する。対象ユーザーは `user_id` を正本として特定する。
+
+| カラム | 方針 |
+|---|---|
+| `user_id` | NOT NULL。再設定対象ユーザーの正本 |
+| `tenant_id` | NULL可。通常ユーザーでは設定、システム管理者ではNULL可 |
+| `token_hash` | 平文トークンを保存せずハッシュ値を保持 |
+
+Repository検索では `token_hash` とステータス・期限を確認したうえで `user_id` からユーザーを取得する。
