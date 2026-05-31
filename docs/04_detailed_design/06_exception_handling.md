@@ -101,11 +101,13 @@ public abstract class DcimException extends RuntimeException {
 ### 対象
 
 - データセンター
-- ラック列
+- ラック
 - 機器
-- IPサブネット
-- IPアドレス
+- 管理対象IP数（`ip_address` 件数）
+- タグ
 - ユーザー
+
+ラック列は物理階層であり上限対象外とする。IPサブネット数も上限なしとし、個別IPアドレス数のみをプラン上限判定に利用する。
 
 ## 6.4 DuplicateResourceException
 

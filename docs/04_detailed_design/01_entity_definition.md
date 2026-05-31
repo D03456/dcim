@@ -338,6 +338,9 @@
 | contractName | String | ○ | 契約名 |
 | vendorName | String | ○ | 保守ベンダー名 |
 | contractNumber | String | - | 契約番号 |
+| contractDescription | String | - | 契約内容 |
+| renewalStatus | RenewalStatus | - | 更新状態。PENDING / RENEWED / NOT_RENEWED / UNKNOWN 等 |
+| note | String | - | 備考 |
 | startDate | LocalDate | ○ | 開始日 |
 | endDate | LocalDate | ○ | 終了日 |
 | notificationEnabled | Boolean | ○ | 通知有効フラグ |
@@ -499,6 +502,7 @@
 | displayName | String | ○ | 表示名 |
 | passwordHash | String | ○ | ハッシュ化済みパスワード。平文パスワードは保持しない |
 | passwordUpdatedAt | LocalDateTime | - | パスワード最終更新日時 |
+| status | UserStatus | ○ | ACTIVE / INVITED / SUSPENDED |
 
 ### 11.1A PasswordResetToken
 
@@ -516,8 +520,6 @@
 | tokenHash | String | ○ | ハッシュ化済みトークン |
 | expiresAt | LocalDateTime | ○ | 有効期限 |
 | usedAt | LocalDateTime | - | 使用日時 |
-| status | UserStatus | ○ | ACTIVE / INVITED / SUSPENDED |
-
 ### 11.2 Role
 
 | 項目 | 内容 |
@@ -538,7 +540,7 @@
 | IpSubnetStatus | ACTIVE, RESERVED, RETIRED |
 | IpUsageStatus | UNUSED, IN_USE, RESERVED, RETIRED |
 | DeviceLifecycleStatus | ACTIVE, SPARE, PLANNED_RETIREMENT, RETIRED |
-| NotificationType | MAINTENANCE_EXPIRY, PLAN_LIMIT, TRIAL_EXPIRY, PASSWORD_RESET, USER_INVITATION, SYSTEM |
+| NotificationType | MAINTENANCE_EXPIRY, PLAN_LIMIT, TRIAL_EXPIRY, PASSWORD_RESET, USER_INVITATION, OPERATION_ERROR, SYSTEM |
 | NotificationStatus | PENDING, SENT, FAILED, SKIPPED |
 | NotificationChannel | EMAIL, IN_APP |
 | RegionStatus | ACTIVE, INACTIVE |

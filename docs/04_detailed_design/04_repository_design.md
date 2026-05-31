@@ -85,8 +85,13 @@ and deleted = false
 | AuditLogRepository | audit_log | 操作履歴保存・検索 |
 | RegionRepository | region | リージョン検索 |
 | DataCenterRepository | data_center | DC検索 |
+| BuildingRepository | building | 棟検索 |
+| FloorRepository | floor | フロア検索 |
+| AreaRepository | area | 区画検索 |
 | RackRowRepository | rack_row | ラック列検索 |
 | RackRepository | rack | ラック検索 |
+| RackTemplateRepository | rack_template | ラックテンプレート検索 |
+| RackTemplateItemRepository | rack_template_item | ラックテンプレート明細検索 |
 | DeviceRepository | device | 機器検索 |
 | IpSubnetRepository | ip_subnet | IPサブネット検索・CIDR重複確認 |
 | IpAddressRepository | ip_address | IP利用状況検索 |
@@ -94,6 +99,7 @@ and deleted = false
 | MaintenanceContractDeviceRepository | maintenance_contract_device | 保守契約・機器関連検索 |
 | MaintenanceContractContactRepository | maintenance_contract_contact | 保守契約・連絡先関連検索 |
 | ContactRepository | contact | 連絡先検索 |
+| DataCenterContactRepository | data_center_contact | DC・連絡先関連検索 |
 | TagRepository | tag | タグ検索 |
 | TaggedResourceRepository | tagged_resource | タグ関連検索 |
 | ResourceAliasRepository | resource_alias | 呼称名・別名検索 |
@@ -271,6 +277,8 @@ Page<IpAddress> findByTenantIdAndIpSubnetIdAndDeletedFalse(Long tenantId, Long i
 List<IpAddress> findByTenantIdAndDeviceIdAndDeletedFalse(Long tenantId, Long deviceId);
 
 boolean existsByTenantIdAndIpSubnetIdAndIpAddressAndDeletedFalse(Long tenantId, Long ipSubnetId, String ipAddress);
+
+long countByTenantIdAndDeletedFalse(Long tenantId);
 ```
 
 プラン上限判定では `IpAddressRepository.countByTenantIdAndDeletedFalse()` など管理対象の個別IPアドレス数を利用する。IPサブネット数は上限なしのため、`IpSubnetRepository.countByTenantIdAndDeletedFalse()` はプラン上限判定に利用しない。
@@ -298,12 +306,16 @@ select c from MaintenanceContract c
 where c.tenantId = :tenantId
   and c.deleted = false
   and c.notificationEnabled = true
-  and c.endDate between :fromDate and :toDate
+  and (
+      (c.endDate = :targetDate)
+      or (:includeExpired = true and c.endDate < :today)
+  )
 """)
 List<MaintenanceContract> findExpiringContracts(
     Long tenantId,
-    LocalDate fromDate,
-    LocalDate toDate
+    LocalDate targetDate,
+    LocalDate today,
+    boolean includeExpired
 );
 ```
 
@@ -430,9 +442,10 @@ boolean existsByTenantIdAndResourceTypeAndResourceIdAndAliasNameAndDeletedFalse(
 ### 主なメソッド
 
 ```java
-Optional<NotificationSetting> findByTenantIdAndNotificationTypeAndDeletedFalse(
+Optional<NotificationSetting> findByTenantIdAndNotificationTypeAndTimingCodeAndDeletedFalse(
     Long tenantId,
-    NotificationType notificationType
+    NotificationType notificationType,
+    String timingCode
 );
 
 List<NotificationSetting> findByTenantIdAndDeletedFalse(Long tenantId);
@@ -443,9 +456,11 @@ List<NotificationSetting> findByTenantIdAndDeletedFalse(Long tenantId);
 ### 主なメソッド
 
 ```java
-boolean existsByTenantIdAndNotificationTypeAndChannelAndTargetTypeAndTargetIdAndRecipientAndStatus(
+boolean existsByTenantIdAndNotificationTypeAndTimingCodeAndNotificationLevelAndChannelAndTargetTypeAndTargetIdAndRecipientAndStatus(
     Long tenantId,
     NotificationType notificationType,
+    String timingCode,
+    String notificationLevel,
     NotificationChannel channel,
     TargetType targetType,
     Long targetId,
@@ -453,9 +468,11 @@ boolean existsByTenantIdAndNotificationTypeAndChannelAndTargetTypeAndTargetIdAnd
     NotificationStatus status
 );
 
-boolean existsByTenantIdAndNotificationTypeAndChannelAndTargetTypeAndTargetIdAndRecipientUserIdAndStatus(
+boolean existsByTenantIdAndNotificationTypeAndTimingCodeAndNotificationLevelAndChannelAndTargetTypeAndTargetIdAndRecipientUserIdAndStatus(
     Long tenantId,
     NotificationType notificationType,
+    String timingCode,
+    String notificationLevel,
     NotificationChannel channel,
     TargetType targetType,
     Long targetId,
@@ -536,3 +553,8 @@ CSV履歴は監査・問い合わせ対応に利用するため、原則とし�
 ## 12. 将来拡張Repository
 
 `CloudAccountRepository`、`CloudResourceRepository` はクラウド資産管理の将来拡張用であり、初期リリースでは実装対象外とする。
+
+
+### CSVインポート同時実行制御
+
+`CsvImportHistoryRepository` は `tenant_id + target_type + process_key + status(RUNNING/PENDING)` で処理中データを確認し、同一テナント・同一対象種別の同時取込を拒否する。実装では悲観ロックまたは一意制約を併用し、画面二重送信や複数利用者の同時実行でも一方だけが開始できるようにする。

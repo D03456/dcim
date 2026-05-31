@@ -34,6 +34,18 @@
 - Repository検索時は原則として `tenant_id` と `deleted = false` を条件に含める。
 - 一意制約は必要に応じて `tenant_id` を含める。
 
+
+### 2.4 論理削除と一意制約の方針
+
+MariaDBでは `tenant_id, name, deleted` の単純なUNIQUEだけでは、論理削除済みデータの名称再利用や削除済み同名レコードの複数保持を安全に表現しづらい。
+重複不可項目は原則として以下のいずれかで実装する。
+
+- 有効データのみを一意にするための生成列（例: `active_unique_key`）を用意し、`deleted=false` の行だけ一意制約対象にする。
+- 論理削除時に一意キー対象値へ削除済みサフィックスを付与する運用にする。
+- 履歴・ログ系など名称再利用を扱わないテーブルは例外として明記する。
+
+詳細設計上の `..., deleted` を含むUNIQUEは「有効データで一意」を意図する略記であり、物理DDL化時は上記方針へ展開する。
+
 ## 3. テーブル一覧
 
 | No | テーブル名 | 概要 |
@@ -250,6 +262,8 @@
 | tenant_id | bigint | NO | FK | テナントID |
 | area_id | bigint | NO | FK | 区画ID |
 | row_name | varchar(100) | NO |  | ラック列名 |
+| grid_row | int | YES |  | フロア/エリアグリッド上の行位置 |
+| grid_column | int | YES |  | フロア/エリアグリッド上の列位置 |
 | created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
 | updated_by | bigint | NO | FK | 更新者 |
@@ -266,6 +280,7 @@
 | formal_name | varchar(150) | NO |  | 正式名称 |
 | display_name | varchar(150) | YES |  | 代表表示名。複数の呼称名・別名は `resource_alias` で保持する |
 | rack_number | varchar(50) | NO |  | ラック番号 |
+| position_no | varchar(50) | YES |  | ラック列内位置。フロア図・ラック列表示に利用 |
 | height_unit | int | NO |  | ラック高さ |
 | status | varchar(30) | NO |  | ACTIVE / INACTIVE |
 | created_by | bigint | NO | FK | 作成者 |
@@ -338,8 +353,9 @@
 |---|---|---|
 | idx_device_tenant | tenant_id, deleted | INDEX |
 | idx_device_rack | tenant_id, rack_id, deleted | INDEX |
-| idx_device_hostname | tenant_id, hostname, deleted | INDEX |
-| uk_device_formal_name | tenant_id, formal_name, deleted | UNIQUE |
+| uk_device_hostname_active | tenant_id, hostname, active_unique_key | UNIQUE |
+| uk_device_serial_active | tenant_id, serial_number, active_unique_key | UNIQUE |
+| uk_device_formal_name_active | tenant_id, formal_name, active_unique_key | UNIQUE |
 
 ## 4.8 ip_subnet
 
@@ -376,6 +392,7 @@
 | ip_version | varchar(10) | NO |  | IPV4 / IPV6 |
 | device_id | bigint | YES | FK | 割当機器ID |
 | usage_status | varchar(30) | NO |  | UNUSED / IN_USE / RESERVED / RETIRED |
+| registration_mode | varchar(30) | NO |  | RANGE_GENERATED / MANUAL。IPv4範囲生成または明示登録、IPv6はMANUAL |
 | description | varchar(255) | YES |  | 備考 |
 | created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
@@ -387,7 +404,7 @@
 
 | 名称 | カラム | 種別 |
 |---|---|---|
-| uk_ip_address | tenant_id, ip_address, deleted | UNIQUE |
+| uk_ip_address | tenant_id, ip_subnet_id, ip_address, active_unique_key | UNIQUE |
 | idx_ip_device | tenant_id, device_id, deleted | INDEX |
 
 ## 4.10 maintenance_contract
@@ -399,6 +416,9 @@
 | contract_name | varchar(150) | NO |  | 契約名 |
 | vendor_name | varchar(150) | NO |  | ベンダー名 |
 | contract_number | varchar(100) | YES |  | 契約番号 |
+| contract_description | text | YES |  | 契約内容 |
+| renewal_status | varchar(30) | YES |  | PENDING / RENEWED / NOT_RENEWED / UNKNOWN |
+| note | text | YES |  | 備考 |
 | start_date | date | NO |  | 開始日 |
 | end_date | date | NO |  | 終了日 |
 | notification_enabled | boolean | NO |  | 通知有効 |
@@ -515,6 +535,12 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
+### インデックス
+
+| 名称 | カラム | 種別 |
+|---|---|---|
+| uk_tag_name_active | tenant_id, tag_name, active_unique_key | UNIQUE |
+
 ## 4.16 tagged_resource
 
 | カラム | 型 | NULL | キー | 説明 |
@@ -540,7 +566,9 @@
 | enabled | boolean | NO |  | 有効フラグ |
 | email_enabled | boolean | NO |  | メール通知有効 |
 | in_app_enabled | boolean | NO |  | 画面内通知有効 |
-| days_before | int | YES |  | 期限前日数 |
+| timing_code | varchar(30) | YES |  | 60_DAYS_BEFORE / 30_DAYS_BEFORE / DUE_DATE / EXPIRED / WARNING / REACHED 等 |
+| days_before | int | YES |  | 期限前日数。複数タイミングは通知種別+timing_codeごとに行を分ける |
+| target_roles | varchar(255) | YES |  | 通知対象ロールのカンマ区切り。NULL時は標準対象 |
 | created_by | bigint | NO | FK | 作成者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
 | updated_by | bigint | NO | FK | 更新者 |
@@ -560,6 +588,15 @@
 | recipient | varchar(255) | YES |  | 送信先メールアドレス。画面内通知ではNULL可 |
 | recipient_user_id | bigint | YES | FK | 画面内通知の受信ユーザーID |
 | subject | varchar(255) | NO |  | 件名 |
+| body | text | YES |  | 通知本文。画面内通知の内容表示にも利用 |
+| summary | varchar(500) | YES |  | 通知一覧向け概要 |
+| action_url | varchar(500) | YES |  | 詳細画面等への遷移先 |
+| timing_code | varchar(30) | YES |  | 60_DAYS_BEFORE / 30_DAYS_BEFORE / DUE_DATE / EXPIRED 等 |
+| notification_level | varchar(30) | YES |  | WARNING / REACHED / ERROR 等。重複抑止粒度に利用 |
+| reference_date | date | YES |  | 保守終了日・トライアル終了日等の基準日 |
+| source_process | varchar(100) | YES |  | OPERATION_ERRORの発生元処理 |
+| retry_required | boolean | YES |  | 再実行要否 |
+| occurrence_count | int | NO |  | 同一操作エラー等の集約件数。通常通知は1 |
 | status | varchar(30) | NO |  | PENDING / SENT / FAILED / SKIPPED |
 | sent_at | datetime(6) | YES |  | 送信日時 |
 | read_at | datetime(6) | YES |  | 画面内通知の既読日時 |
@@ -592,7 +629,10 @@
 | tenant_id | bigint | NO | FK | テナントID |
 | target_type | varchar(50) | NO |  | DEVICE / RACK / IP_SUBNET 等 |
 | file_name | varchar(255) | NO |  | 取込ファイル名 |
-| status | varchar(30) | NO |  | PENDING / SUCCEEDED / FAILED / PARTIAL_FAILED |
+| status | varchar(30) | NO |  | PENDING / RUNNING / SUCCEEDED / FAILED / PARTIAL_FAILED |
+| process_key | varchar(100) | NO |  | 同一テナント・対象種別の同時実行制御キー |
+| started_at | datetime(6) | YES |  | 取込開始日時 |
+| finished_at | datetime(6) | YES |  | 取込終了日時 |
 | total_count | int | NO |  | 総行数 |
 | success_count | int | NO |  | 成功行数 |
 | failure_count | int | NO |  | 失敗行数 |
@@ -629,6 +669,12 @@
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
 
+### インデックス
+
+| 名称 | カラム | 種別 |
+|---|---|---|
+| uk_app_user_email_active | tenant_id, email, active_unique_key | UNIQUE |
+
 ### password_reset_token
 
 | カラム | 型 | NULL | キー | 説明 |
@@ -648,14 +694,14 @@
 |---|---|---:|---|---|
 | user_invitation_token_id | bigint | NO | PK | 招待トークンID |
 | tenant_id | bigint | NO | FK | テナントID |
-| user_id | bigint | NO | FK | 招待対象ユーザーID |
+| email | varchar(255) | NO |  | 招待先メールアドレス。承諾前ユーザーを表す |
+| role_id | bigint | NO | FK | 招待時に付与予定のロールID |
 | token_hash | varchar(255) | NO |  | ハッシュ化済み招待トークン |
-| invited_email | varchar(255) | NO |  | 招待先メールアドレス |
 | status | varchar(30) | NO |  | ACTIVE / ACCEPTED / CANCELLED / EXPIRED |
 | expires_at | datetime(6) | NO |  | 有効期限 |
 | accepted_at | datetime(6) | YES |  | 承諾日時 |
 | cancelled_at | datetime(6) | YES |  | 取消日時 |
-| created_by | bigint | NO | FK | 招待実行者 |
+| invited_by | bigint | NO | FK | 招待実行者 |
 | created_at | datetime(6) | NO |  | 作成日時 |
 | updated_at | datetime(6) | NO |  | 更新日時 |
 | deleted | boolean | NO |  | 論理削除 |
@@ -675,15 +721,17 @@
 |---|---|---:|---|---|
 | audit_log_id | bigint | NO | PK | 操作履歴ID |
 | tenant_id | bigint | YES | FK | 対象テナントID。システム管理操作ではNULL可 |
-| user_id | bigint | YES | FK | 操作ユーザーID。未認証ログイン失敗ではNULL可 |
+| actor_user_id | bigint | YES | FK | 操作ユーザーID。未認証ログイン失敗ではNULL可 |
 | action_type | varchar(50) | NO |  | LOGIN_SUCCESS / LOGIN_FAILURE / CREATE / UPDATE / DELETE / INVITE / ROLE_CHANGE / CSV_EXPORT / PLAN_CHANGE_REQUEST 等 |
-| resource_type | varchar(50) | YES |  | 操作対象種別 |
-| resource_id | bigint | YES |  | 操作対象ID |
+| target_type | varchar(50) | YES |  | 操作対象種別 |
+| target_id | bigint | YES |  | 操作対象ID |
+| target_name | varchar(255) | YES |  | 操作対象の表示名。画面検索・表示用 |
 | result | varchar(20) | NO |  | SUCCESS / FAILURE |
-| reason | varchar(500) | YES |  | 失敗理由・操作理由。機密情報は含めない |
+| summary | varchar(500) | YES |  | 操作概要・失敗理由。機密情報は含めない |
+| detail_json | text | YES |  | 検索条件や変更差分の要約。秘密情報・個人情報はマスキングする |
 | ip_address | varchar(45) | YES |  | 操作元IP |
 | user_agent | varchar(255) | YES |  | User-Agent。長文は切り詰める |
-| created_at | datetime(6) | NO |  | 操作日時 |
+| occurred_at | datetime(6) | NO |  | 操作日時 |
 
 ## 4.22A resource_alias
 
@@ -708,6 +756,7 @@
 | 名称 | カラム | 種別 |
 |---|---|---|
 | idx_resource_alias_resource | tenant_id, resource_type, resource_id, deleted | INDEX |
+| uk_resource_alias_active | tenant_id, resource_type, resource_id, alias_name, active_unique_key | UNIQUE |
 | idx_resource_alias_name | tenant_id, alias_name, deleted | INDEX |
 
 ## 4.23 cloud_account（将来拡張）

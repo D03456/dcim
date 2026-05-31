@@ -329,16 +329,18 @@
 
 | 項目 | 必須 | ルール |
 |---|:---:|---|
-| notificationType | ○ | MAINTENANCE_EXPIRY / PLAN_LIMIT / TRIAL_EXPIRY / SYSTEM |
+| notificationType | ○ | MAINTENANCE_EXPIRY / PLAN_LIMIT / TRIAL_EXPIRY / PASSWORD_RESET / USER_INVITATION / OPERATION_ERROR / SYSTEM |
 | enabled | ○ | true / false |
 | emailEnabled | ○ | true / false |
 | inAppEnabled | ○ | true / false |
+| timingCode | - | 60_DAYS_BEFORE / 30_DAYS_BEFORE / DUE_DATE / EXPIRED / WARNING / REACHED / ERROR 等 |
 | daysBefore | - | 0以上の整数。期限系通知で使用 |
+| targetRoles | - | 通知種別ごとに許可されたロールのみ指定可能 |
 
 ### 業務チェック
 
 - `enabled=true` の場合、少なくとも1つの通知チャネル（メールまたは画面内通知）を有効にする。
-- MAINTENANCE_EXPIRY の標準値は60日前とし、30日前・当日・期限切れ通知も初期対応範囲として扱う。
+- MAINTENANCE_EXPIRY は60日前・30日前・当日・期限切れを別タイミングとして扱い、いずれかの送信済みが他タイミングを抑止しない。
 - TRIAL_EXPIRY の標準値は3日前および期限日とする。
 
 ## 5.16 CloudResource（将来拡張）
