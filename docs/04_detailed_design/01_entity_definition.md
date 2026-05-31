@@ -593,3 +593,67 @@ Tenantは永続化上、`subscription_plan.plan_code` を参照する `planCode`
 | TaggedResource | `taggedResourceId`, `tenantId`, `tagId`, `resourceType`, `resourceId` | 対象リソースへのタグ付与、タグ解除、重複付与防止 |
 
 同一テナント・同一対象リソース・同一タグの重複付与は禁止する。タグ対象種別は初期リリースでは DataCenter / Rack / Device / IpSubnet / MaintenanceContract を対象とし、Cloud系は将来拡張とする。
+
+<!-- issue-fixes-258-260-263 -->
+
+## 付録B. Issue対応追補: 契約・権限・履歴系Entity
+
+### B.1 ContractChangeRequest
+
+| 項目 | 内容 |
+|---|---|
+| エンティティ名 | ContractChangeRequest |
+| 概要 | プラン変更・IP/機器追加オプション変更の申請を表す |
+| 集約 | Tenant集約 |
+| 主キー | contractChangeRequestId |
+
+#### 主な属性
+
+| 属性 | 型 | 必須 | 説明 |
+|---|---:|:---:|---|
+| contractChangeRequestId | Long | ○ | 申請ID |
+| tenantId | Long | ○ | 申請元テナント |
+| requestType | ContractChangeRequestType | ○ | PLAN_CHANGE / ADD_ON_CHANGE |
+| targetPlanCode | String | △ | プラン変更時の変更先 |
+| addOnType | AddOnType | △ | ADD_ON_CHANGE時の追加枠種別 |
+| quantityUnit | Integer | △ | 追加単位数 |
+| status | ContractChangeRequestStatus | ○ | REQUESTED / APPROVED / REJECTED / CANCELLED |
+| requestedBy | Long | ○ | 申請者 |
+| approvedBy | Long | - | 承認/却下者 |
+| requestedAt | LocalDateTime | ○ | 申請日時 |
+| approvedAt | LocalDateTime | - | 承認/却下日時 |
+| rejectedReason | String | - | 却下理由 |
+
+#### 主な振る舞い
+
+- プラン変更申請作成
+- オプション追加/変更申請作成
+- 承認、却下、取消
+- 申請中重複の判定
+
+`requested_by` / `approved_by` は業務上の申請者・承認者の正本とする。共通監査カラムを物理テーブルに持つ場合は `created_by = requested_by`、`updated_by = approved_by` または更新操作者を設定する。
+
+### B.2 TenantAddOnの詳細
+
+| 属性 | 型 | 必須 | 説明 |
+|---|---:|:---:|---|
+| tenantAddOnId | Long | ○ | 追加枠ID |
+| tenantId | Long | ○ | テナントID |
+| addOnType | AddOnType | ○ | IP_ADDRESS / DEVICE |
+| quantityUnit | Integer | ○ | 追加単位数。IPは256IP単位、機器は100台単位 |
+| effectiveFrom | LocalDate | ○ | 有効開始日 |
+| effectiveTo | LocalDate | - | 有効終了日。NULLは無期限 |
+
+上限計算では、基準日が `effectiveFrom <= currentDate` かつ `effectiveTo is null or currentDate <= effectiveTo` を満たす有効追加枠のみを合算する。無効化する場合は `effectiveTo` を設定し、過去の申請・請求履歴は保持する。
+
+### B.3 ユーザー・権限・履歴系Entity
+
+| Entity | 主な属性 | 主な振る舞い/保持方針 |
+|---|---|---|
+| UserInvitationToken | `tokenId`, `tenantId`, `email`, `roleId`, `tokenHash`, `expiresAt`, `status`, `invitedBy`, `acceptedAt` | 招待作成、再招待、取消、承諾、使用済み化。トークン平文は保持しない |
+| Permission | `permissionId`, `permissionCode`, `permissionName`, `description` | 権限マスタ。初期データとして管理し、通常画面から削除しない |
+| RolePermission | `roleId`, `permissionId` | ロールと権限の関連。ロール権限判定の正本 |
+| UserRole | `userId`, `roleId` | ユーザーとロールの関連。初期リリースは必要に応じて単一ロール運用でも、関連テーブルで表現可能にする |
+| AuditLog | `auditLogId`, `tenantId`, `actorUserId`, `eventType`, `targetType`, `targetId`, `result`, `requestId`, `occurredAt`, `detailJson` | 操作履歴。論理削除せず保持期間に従ってアーカイブ/削除する |
+
+AuditLogは業務監査の履歴であり、通常の更新・削除対象Entityとは扱わない。秘密情報、パスワード、トークン、メール本文全文は保持しない。

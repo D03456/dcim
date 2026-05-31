@@ -139,3 +139,24 @@
 | システム管理者のテナント操作 | 対象テナント、操作種別、結果、テナントスコープ例外 |
 
 各イベントで、検索画面に表示できる項目とマスキング対象も確認する。
+
+<!-- issue-fixes-265-266-269 -->
+
+## 付録B. Issue対応追補: 通知・認可・秘匿テスト
+
+### B.1 プラン上限通知
+
+WARNING / REACHED / EXCEEDED / RECOVERED の各レベルについて、発火条件、再通知抑止、改善時の抑止解除をテストする。
+
+### B.2 TRIAL_EXPIREDとPermission
+
+TRIAL_EXPIRED状態でも通常Permissionが必要であることを確認する。例: CSV権限がない契約管理者はCSVエクスポート不可、VIEW権限がない画面は参照不可、更新系はPermissionがあっても拒否。
+
+### B.3 パスワード再設定/招待通知ログ秘匿
+
+`PASSWORD_RESET` / `USER_INVITATION` の通知ログについて以下を確認する。
+
+- `action_url` にトークン付きURLが保存されないこと
+- `body` に本文全文・トークン値・秘密情報が保存されないこと
+- `recipient` や `error_message` がマスキング/ハッシュ化方針どおりであること
+- FAILED時も外部送信エラー詳細に秘密情報が含まれないこと

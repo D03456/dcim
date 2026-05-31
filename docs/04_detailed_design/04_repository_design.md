@@ -599,3 +599,33 @@ CSV履歴テーブルに `deleted` を持たせる場合のみ `findByTenantIdAn
 ### A.3 TaggedResourceRepository
 
 タグ付与はDB FKで対象リソースを表現できないため、Service層で `resourceType` ごとのRepositoryを使って存在確認・同一テナント確認・削除済みでないことを検証する。Repositoryでは同一対象への重複付与を防ぐため、`tenantId, resourceType, resourceId, tagId` の有効データ一意制約を前提にする。
+
+<!-- issue-fixes-258-261-263 -->
+
+## 付録B. Issue対応追補: 契約・保守・追加枠Repository
+
+### B.1 ContractChangeRequestRepository
+
+| メソッド例 | 用途 |
+|---|---|
+| `findByTenantIdAndStatusIn(tenantId, statuses)` | 申請中/承認待ち一覧 |
+| `existsPendingRequest(tenantId, requestType, addOnType)` | 同種の未完了申請重複チェック |
+| `findByRequestedBy(userId)` | 申請者別検索 |
+| `findApprovedRequests(tenantId, from, to)` | 承認済み申請の履歴検索 |
+
+### B.2 TenantAddOnRepository
+
+| メソッド例 | 用途 |
+|---|---|
+| `findActiveByTenantIdAndDate(tenantId, baseDate)` | 基準日時点で有効な追加枠取得 |
+| `sumQuantityUnitByTenantIdAndType(tenantId, addOnType, baseDate)` | 上限計算用の追加単位合算 |
+| `findByTenantIdAndAddOnType(tenantId, addOnType)` | 追加枠履歴検索 |
+
+### B.3 MaintenanceContractRepository契約番号チェック
+
+| メソッド例 | 用途 |
+|---|---|
+| `existsByTenantIdAndContractNumberIncludingDeleted(tenantId, contractNumber)` | 削除済みを含む契約番号重複チェック |
+| `findByTenantIdAndContractNumber(tenantId, contractNumber)` | 契約番号検索 |
+
+`contractNumber` がNULLまたは空の場合は重複チェック対象外とする。入力値はtrim後の値で比較する。

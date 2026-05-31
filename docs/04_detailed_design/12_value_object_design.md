@@ -105,3 +105,18 @@
 | `RackTemplateAppliedSnapshot` | テンプレート適用時点の予約U・標準構成をラック実体側へコピーした結果を表す |
 
 ラック未搭載機器は `RackUnitRange` を持たない。搭載機器は `rackId` と `RackUnitRange` を必ず同時に持つ。
+
+<!-- issue-fixes-262 -->
+
+## 付録B. Issue対応追補: IP/CIDR正規化
+
+`IpSubnetCidr` と `IpAddressValue` は保存前にcanonical形式へ正規化する。
+
+| 対象 | 正規化方針 |
+|---|---|
+| IPv4アドレス | 先頭ゼロ等の表記揺れを排除し、ドット10進表記へ統一 |
+| IPv6アドレス | RFC 5952相当の小文字・省略表記へ統一 |
+| CIDR | ホスト部をネットワークアドレスへ正規化し、prefix長を明示 |
+| 比較/検索 | 入力値を同じcanonical形式へ変換してから比較 |
+
+DBの一意制約・Repository検索・CSV入出力ではcanonical値を正本とする。元入力文字列を保存する場合は表示補助に限定し、一意判定には使わない。

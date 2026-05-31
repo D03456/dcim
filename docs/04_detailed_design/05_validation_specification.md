@@ -471,3 +471,38 @@ Freeプランの14日間トライアル期限を超過したテナントは `TRI
 | ホスト名 | `hostName` | `host_name` | ホスト名 |
 
 `heightU`、`vendor` などの別名表記は説明文に限定し、Command/DTO/Entityでは上記の正規名を使う。
+
+<!-- issue-fixes-271-273-274 -->
+
+## 付録B. Issue対応追補: IP/Region/ValidationException
+
+### B.1 IPv6個別IP管理
+
+| 項目 | IPv4 | IPv6 |
+|---|---|---|
+| CIDR登録 | ○ | ○ |
+| 個別IP範囲生成 | ○ | × |
+| 個別IP明示登録 | ○ | ○ |
+| 上限カウント | 生成予定数 + 明示登録数 | 明示登録数のみ |
+| 全範囲生成 | 小規模範囲のみ許可 | 禁止 |
+
+IPv6で範囲生成要求が来た場合はValidationExceptionとする。
+
+### B.2 Region重複
+
+同一テナント内の有効データで `regionName + prefecture` の組み合わせを重複不可とする。`regionCode` は任意だが、入力された場合は同一テナント内で重複不可とする。比較はtrim後の値で行う。
+
+### B.3 ValidationExceptionの項目別エラー表現
+
+ValidationExceptionは以下の構造で項目別エラーと全体エラーを表現する。
+
+| 項目 | 内容 |
+|---|---|
+| `fieldErrors` | 画面項目に紐づくエラー配列 |
+| `fieldErrors[].field` | Java/DTOのフィールド名 |
+| `fieldErrors[].messageCode` | メッセージコード |
+| `fieldErrors[].message` | 表示用メッセージ |
+| `fieldErrors[].rejectedValue` | 表示可能な場合のみマスク済み値 |
+| `globalErrors` | 項目に紐づかない業務エラー配列 |
+
+Bean Validation結果と業務チェック結果は同じ形式に統合し、Vaadinでは項目横に `fieldErrors`、画面上部に `globalErrors` を表示する。
