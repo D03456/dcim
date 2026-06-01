@@ -16,6 +16,7 @@
 |---|---|
 | `00_common_layout.md` | 共通レイアウト・CSS利用方針 |
 | `01_screen_mock_list.md` | SCR別HTMLモック一覧 |
+| `02_screen_io_definition.md` | 画面別の表示項目・入力項目・ボタン・遷移・権限制御定義 |
 | `mocks/index.html` | モック入口 |
 | `mocks/styles/dcim-vaadin-mock.css` | 共通CSS |
 | `mocks/SCR-*.html` | 各画面モック |
